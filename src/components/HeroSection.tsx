@@ -47,15 +47,19 @@ export default function HeroSection() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Button variant="neon" size="xl">
-                <Zap className="w-5 h-5" />
-                Start Daily Challenge
-              </Button>
+              <Link to="/daily">
+                <Button variant="neon" size="xl">
+                  <Zap className="w-5 h-5" />
+                  Start Daily Challenge
+                </Button>
+              </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Button variant="neon-outline" size="lg">
-                Practice Mode
-              </Button>
+              <Link to="/practice">
+                <Button variant="neon-outline" size="lg">
+                  Practice Mode
+                </Button>
+              </Link>
             </motion.div>
           </div>
 
