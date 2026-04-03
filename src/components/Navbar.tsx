@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon } from "lucide-react";
+import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -10,23 +11,18 @@ const navItems = [
   { label: "Leaderboard", path: "/leaderboard", icon: Trophy },
   { label: "Practice", path: "/practice", icon: Dumbbell },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
-  { label: "Profile", path: "/profile", icon: User },
 ];
 
 export default function Navbar() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+  const { user } = useAuth();
 
   const toggleDark = () => {
     setDark(!dark);
     document.documentElement.classList.toggle("dark");
   };
-
-  // Set dark on mount
-  useState(() => {
-    document.documentElement.classList.add("dark");
-  });
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
@@ -40,7 +36,6 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
@@ -49,10 +44,7 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={cn(
-                    "relative gap-2 font-body",
-                    active && "text-primary"
-                  )}
+                  className={cn("relative gap-2 font-body", active && "text-primary")}
                 >
                   <item.icon className="w-4 h-4" />
                   {item.label}
@@ -66,6 +58,20 @@ export default function Navbar() {
               </Link>
             );
           })}
+
+          <Link to={user ? "/profile" : "/login"}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "relative gap-2 font-body",
+                (location.pathname === "/profile" || location.pathname === "/login") && "text-primary"
+              )}
+            >
+              {user ? <User className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+              {user ? "Profile" : "Login"}
+            </Button>
+          </Link>
         </div>
 
         <div className="flex items-center gap-2">
@@ -83,7 +89,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile nav */}
       {mobileOpen && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -96,10 +101,7 @@ export default function Navbar() {
               <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)}>
                 <Button
                   variant="ghost"
-                  className={cn(
-                    "w-full justify-start gap-3 my-1",
-                    active && "text-primary bg-primary/10"
-                  )}
+                  className={cn("w-full justify-start gap-3 my-1", active && "text-primary bg-primary/10")}
                 >
                   <item.icon className="w-4 h-4" />
                   {item.label}
@@ -107,6 +109,12 @@ export default function Navbar() {
               </Link>
             );
           })}
+          <Link to={user ? "/profile" : "/login"} onClick={() => setMobileOpen(false)}>
+            <Button variant="ghost" className="w-full justify-start gap-3 my-1">
+              {user ? <User className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+              {user ? "Profile" : "Login"}
+            </Button>
+          </Link>
         </motion.div>
       )}
     </nav>
