@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      leaderboard: {
+        Row: {
+          completed_date: string
+          created_at: string
+          id: string
+          puzzle_id: string
+          time_taken: number
+          user_id: string
+        }
+        Insert: {
+          completed_date?: string
+          created_at?: string
+          id?: string
+          puzzle_id: string
+          time_taken: number
+          user_id: string
+        }
+        Update: {
+          completed_date?: string
+          created_at?: string
+          id?: string
+          puzzle_id?: string
+          time_taken?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leaderboard_puzzle_id_fkey"
+            columns: ["puzzle_id"]
+            isOneToOne: false
+            referencedRelation: "puzzles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -41,6 +76,33 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      puzzles: {
+        Row: {
+          answer: string
+          created_at: string
+          difficulty: string
+          id: string
+          puzzle_date: string
+          question: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          puzzle_date: string
+          question: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          puzzle_date?: string
+          question?: string
         }
         Relationships: []
       }
