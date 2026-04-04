@@ -142,6 +142,12 @@ export default function Leaderboard() {
             </div>
           )}
         </motion.div>
+        </div>
+        <aside className="hidden lg:block w-64 flex-shrink-0 pt-16">
+          <AdPlaceholder />
+          <AdPlaceholder className="mt-4" />
+        </aside>
+        </div>
       </div>
     </div>
   );
