@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import AdPlaceholder from "@/components/AdPlaceholder";
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -124,7 +125,19 @@ export default function DailyChallenge() {
         toast.error("Failed to save score.");
       }
     } else {
-      toast.success(`Correct! Solved in ${formatTime(elapsed)}`);
+      // Award 100 credits
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("credits")
+        .eq("user_id", user.id)
+        .single();
+      if (profile) {
+        await supabase
+          .from("profiles")
+          .update({ credits: profile.credits + 100 })
+          .eq("user_id", user.id);
+      }
+      toast.success(`Correct! Solved in ${formatTime(elapsed)} — +100 Credits!`);
     }
   }, [answer, puzzle, user, elapsed, submitting]);
 
@@ -240,6 +253,9 @@ export default function DailyChallenge() {
             </div>
           )}
         </motion.div>
+        <div className="w-full max-w-lg mt-8">
+          <AdPlaceholder />
+        </div>
       </div>
     </div>
   );
