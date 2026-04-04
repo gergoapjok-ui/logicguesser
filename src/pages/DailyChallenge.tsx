@@ -253,6 +253,9 @@ export default function DailyChallenge() {
             </div>
           )}
         </motion.div>
+        <div className="w-full max-w-lg mt-8">
+          <AdPlaceholder />
+        </div>
       </div>
     </div>
   );
