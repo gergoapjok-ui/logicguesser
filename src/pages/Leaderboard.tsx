@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Trophy, Medal, Clock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import AdPlaceholder from "@/components/AdPlaceholder";
 
 interface LeaderboardEntry {
   id: string;
