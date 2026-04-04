@@ -76,6 +76,7 @@ export default function Shop() {
     setCredits(newCredits);
     setOwned((prev) => new Set(prev).add(avatar.id));
     toast.success(`Purchased ${avatar.name}!`);
+    refreshProfile();
     setBusy(null);
   };
 
