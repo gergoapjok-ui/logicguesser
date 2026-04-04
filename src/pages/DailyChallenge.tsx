@@ -124,7 +124,19 @@ export default function DailyChallenge() {
         toast.error("Failed to save score.");
       }
     } else {
-      toast.success(`Correct! Solved in ${formatTime(elapsed)}`);
+      // Award 100 credits
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("credits")
+        .eq("user_id", user.id)
+        .single();
+      if (profile) {
+        await supabase
+          .from("profiles")
+          .update({ credits: profile.credits + 100 })
+          .eq("user_id", user.id);
+      }
+      toast.success(`Correct! Solved in ${formatTime(elapsed)} — +100 Credits!`);
     }
   }, [answer, puzzle, user, elapsed, submitting]);
 
