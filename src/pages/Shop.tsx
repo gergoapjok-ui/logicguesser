@@ -20,7 +20,7 @@ const AVATARS = [
 ];
 
 export default function Shop() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [credits, setCredits] = useState(0);
   const [owned, setOwned] = useState<Set<string>>(new Set());
@@ -33,12 +33,12 @@ export default function Shop() {
     if (!user) { navigate("/login"); return; }
 
     const load = async () => {
-      const [{ data: profile }, { data: inventory }] = await Promise.all([
+      const [{ data: prof }, { data: inventory }] = await Promise.all([
         supabase.from("profiles").select("credits, avatar_url").eq("user_id", user.id).single(),
         supabase.from("user_inventory").select("item_id").eq("user_id", user.id),
       ]);
-      setCredits(profile?.credits ?? 0);
-      setEquipped(profile?.avatar_url ?? null);
+      setCredits(prof?.credits ?? 0);
+      setEquipped(prof?.avatar_url ?? null);
       setOwned(new Set(inventory?.map((i) => i.item_id) ?? []));
       setLoading(false);
     };
@@ -76,6 +76,7 @@ export default function Shop() {
     setCredits(newCredits);
     setOwned((prev) => new Set(prev).add(avatar.id));
     toast.success(`Purchased ${avatar.name}!`);
+    refreshProfile();
     setBusy(null);
   };
 
@@ -88,7 +89,7 @@ export default function Shop() {
       .eq("user_id", user.id);
 
     if (error) { toast.error("Failed to equip."); }
-    else { setEquipped(avatarId); toast.success("Avatar equipped!"); }
+    else { setEquipped(avatarId); toast.success("Avatar equipped!"); refreshProfile(); }
     setBusy(null);
   };
 

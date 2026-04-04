@@ -1,10 +1,21 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+
+const AVATARS_MAP: Record<string, string> = {
+  avatar_cyber_skull: "💀",
+  avatar_neon_cat: "🐱",
+  avatar_glitch_bot: "🤖",
+  avatar_plasma_fox: "🦊",
+  avatar_quantum_owl: "🦉",
+  avatar_void_wolf: "🐺",
+  avatar_pixel_dragon: "🐉",
+  avatar_star_panda: "🐼",
+};
 
 const navItems = [
   { label: "Home", path: "/", icon: Home },
@@ -17,12 +28,14 @@ export default function Navbar() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const toggleDark = () => {
     setDark(!dark);
     document.documentElement.classList.toggle("dark");
   };
+
+  const avatarEmoji = profile?.avatar_url ? AVATARS_MAP[profile.avatar_url] : null;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
@@ -68,13 +81,37 @@ export default function Navbar() {
                 (location.pathname === "/profile" || location.pathname === "/login") && "text-primary"
               )}
             >
-              {user ? <User className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+              {user ? (
+                avatarEmoji ? (
+                  <span className="text-base">{avatarEmoji}</span>
+                ) : (
+                  <User className="w-4 h-4" />
+                )
+              ) : (
+                <LogIn className="w-4 h-4" />
+              )}
               {user ? "Profile" : "Login"}
             </Button>
           </Link>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Streak */}
+          {user && profile && profile.current_streak > 0 && (
+            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-destructive/10 border border-destructive/20">
+              <Flame className="w-3.5 h-3.5 text-destructive" />
+              <span className="font-display text-xs font-bold text-destructive">{profile.current_streak}</span>
+            </div>
+          )}
+
+          {/* Credits */}
+          {user && profile && (
+            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 border border-primary/20">
+              <Coins className="w-3.5 h-3.5 text-primary text-glow" />
+              <span className="font-display text-xs font-bold text-foreground">{profile.credits}</span>
+            </div>
+          )}
+
           <Button variant="ghost" size="icon" onClick={toggleDark}>
             {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
@@ -89,34 +126,53 @@ export default function Navbar() {
         </div>
       </div>
 
-      {mobileOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="md:hidden glass border-b border-border/50 px-4 pb-4"
-        >
-          {navItems.map((item) => {
-            const active = location.pathname === item.path;
-            return (
-              <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)}>
-                <Button
-                  variant="ghost"
-                  className={cn("w-full justify-start gap-3 my-1", active && "text-primary bg-primary/10")}
-                >
-                  <item.icon className="w-4 h-4" />
-                  {item.label}
-                </Button>
-              </Link>
-            );
-          })}
-          <Link to={user ? "/profile" : "/login"} onClick={() => setMobileOpen(false)}>
-            <Button variant="ghost" className="w-full justify-start gap-3 my-1">
-              {user ? <User className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
-              {user ? "Profile" : "Login"}
-            </Button>
-          </Link>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="md:hidden glass border-b border-border/50 px-4 pb-4"
+          >
+            {/* Mobile streak + credits */}
+            {user && profile && (
+              <div className="flex items-center gap-3 mb-2 pt-2">
+                {profile.current_streak > 0 && (
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-destructive/10 border border-destructive/20">
+                    <Flame className="w-3.5 h-3.5 text-destructive" />
+                    <span className="font-display text-xs font-bold text-destructive">{profile.current_streak}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 border border-primary/20">
+                  <Coins className="w-3.5 h-3.5 text-primary" />
+                  <span className="font-display text-xs font-bold text-foreground">{profile.credits}</span>
+                </div>
+              </div>
+            )}
+
+            {navItems.map((item) => {
+              const active = location.pathname === item.path;
+              return (
+                <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)}>
+                  <Button
+                    variant="ghost"
+                    className={cn("w-full justify-start gap-3 my-1", active && "text-primary bg-primary/10")}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    {item.label}
+                  </Button>
+                </Link>
+              );
+            })}
+            <Link to={user ? "/profile" : "/login"} onClick={() => setMobileOpen(false)}>
+              <Button variant="ghost" className="w-full justify-start gap-3 my-1">
+                {user ? <User className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+                {user ? "Profile" : "Login"}
+              </Button>
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

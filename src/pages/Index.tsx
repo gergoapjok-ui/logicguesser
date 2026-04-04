@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
@@ -8,11 +9,7 @@ const Index = () => {
       <Navbar />
       <HeroSection />
       <FeaturesSection />
-      <footer className="border-t border-border/50 py-8 text-center">
-        <p className="font-body text-sm text-muted-foreground">
-          © 2026 LOGICGUESSER. Challenge your mind daily.
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 };

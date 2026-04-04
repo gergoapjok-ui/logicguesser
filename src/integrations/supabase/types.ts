@@ -55,30 +55,39 @@ export type Database = {
           bio: string | null
           created_at: string
           credits: number
+          current_streak: number
           id: string
+          last_completed_date: string | null
           updated_at: string
           user_id: string
           username: string | null
+          xp: number
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           credits?: number
+          current_streak?: number
           id?: string
+          last_completed_date?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
+          xp?: number
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           credits?: number
+          current_streak?: number
           id?: string
+          last_completed_date?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
+          xp?: number
         }
         Relationships: []
       }
