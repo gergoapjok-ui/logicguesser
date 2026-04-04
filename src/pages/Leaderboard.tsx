@@ -80,8 +80,9 @@ export default function Leaderboard() {
   return (
     <div className="min-h-screen bg-background grid-pattern">
       <Navbar />
-      <div className="pt-24 pb-16 container mx-auto px-4 max-w-2xl">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div className="pt-24 pb-16 container mx-auto px-4 max-w-4xl">
+        <div className="flex gap-8">
+        <div className="flex-1 max-w-2xl">
           <div className="text-center mb-10">
             <Trophy className="w-10 h-10 text-neon-amber mx-auto mb-3" />
             <h1 className="font-display text-4xl font-bold text-foreground mb-2">
