@@ -54,6 +54,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          credits: number
           id: string
           updated_at: string
           user_id: string
@@ -63,6 +64,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          credits?: number
           id?: string
           updated_at?: string
           user_id: string
@@ -72,6 +74,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          credits?: number
           id?: string
           updated_at?: string
           user_id?: string
@@ -103,6 +106,30 @@ export type Database = {
           id?: string
           puzzle_date?: string
           question?: string
+        }
+        Relationships: []
+      }
+      user_inventory: {
+        Row: {
+          id: string
+          item_id: string
+          item_type: string
+          purchased_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          item_type?: string
+          purchased_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          item_type?: string
+          purchased_at?: string
+          user_id?: string
         }
         Relationships: []
       }
