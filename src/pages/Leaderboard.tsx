@@ -82,7 +82,7 @@ export default function Leaderboard() {
       <Navbar />
       <div className="pt-24 pb-16 container mx-auto px-4 max-w-4xl">
         <div className="flex gap-8">
-        <div className="flex-1 max-w-2xl">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 max-w-2xl">
           <div className="text-center mb-10">
             <Trophy className="w-10 h-10 text-neon-amber mx-auto mb-3" />
             <h1 className="font-display text-4xl font-bold text-foreground mb-2">
@@ -142,7 +142,6 @@ export default function Leaderboard() {
             </div>
           )}
         </motion.div>
-        </div>
         <aside className="hidden lg:block w-64 flex-shrink-0 pt-16">
           <AdPlaceholder />
           <AdPlaceholder className="mt-4" />
