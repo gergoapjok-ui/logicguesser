@@ -88,7 +88,7 @@ export default function Shop() {
       .eq("user_id", user.id);
 
     if (error) { toast.error("Failed to equip."); }
-    else { setEquipped(avatarId); toast.success("Avatar equipped!"); }
+    else { setEquipped(avatarId); toast.success("Avatar equipped!"); refreshProfile(); }
     setBusy(null);
   };
 
