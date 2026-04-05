@@ -47,6 +47,13 @@ export type Database = {
             referencedRelation: "puzzles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "leaderboard_puzzle_id_fkey"
+            columns: ["puzzle_id"]
+            isOneToOne: false
+            referencedRelation: "puzzles_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -144,7 +151,54 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          current_streak: number | null
+          user_id: string | null
+          username: string | null
+          xp: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          current_streak?: number | null
+          user_id?: string | null
+          username?: string | null
+          xp?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          current_streak?: number | null
+          user_id?: string | null
+          username?: string | null
+          xp?: number | null
+        }
+        Relationships: []
+      }
+      puzzles_public: {
+        Row: {
+          created_at: string | null
+          difficulty: string | null
+          id: string | null
+          puzzle_date: string | null
+          question: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          difficulty?: string | null
+          id?: string | null
+          puzzle_date?: string | null
+          question?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          difficulty?: string | null
+          id?: string | null
+          puzzle_date?: string | null
+          question?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
