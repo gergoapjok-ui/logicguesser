@@ -60,7 +60,7 @@ export default function Leaderboard() {
 
       const userIds = data.map((e) => e.user_id);
       const { data: profiles } = await supabase
-        .from("profiles")
+        .from("profiles_public" as any)
         .select("user_id, username, avatar_url, xp")
         .in("user_id", userIds);
 

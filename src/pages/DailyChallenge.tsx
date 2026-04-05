@@ -17,7 +17,6 @@ function formatTime(seconds: number) {
 }
 
 function getStreakMultiplier(streak: number): number {
-  // Day 1: 1.0x, Day 2: 1.1x, Day 3: 1.2x, ... capped at 1.5x
   return Math.min(1.5, 1 + (streak * 0.1));
 }
 
@@ -25,7 +24,7 @@ export default function DailyChallenge() {
   const { user, loading: authLoading, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
-  const [puzzle, setPuzzle] = useState<{ id: string; question: string; answer: string; difficulty: string } | null>(null);
+  const [puzzle, setPuzzle] = useState<{ id: string; question: string; difficulty: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const [completedTime, setCompletedTime] = useState<number | null>(null);
@@ -46,20 +45,21 @@ export default function DailyChallenge() {
 
     const load = async () => {
       const today = new Date().toISOString().split("T")[0];
+      // Query puzzles_public view (no answer column exposed)
       const { data: puzzleData } = await supabase
-        .from("puzzles")
-        .select("id, question, answer, difficulty")
+        .from("puzzles_public" as any)
+        .select("id, question, difficulty")
         .eq("puzzle_date", today)
         .single();
 
       if (!puzzleData) { setPuzzle(null); setLoading(false); return; }
-      setPuzzle(puzzleData);
+      setPuzzle(puzzleData as any);
 
       const { data: existing } = await supabase
         .from("leaderboard")
         .select("time_taken")
         .eq("user_id", user.id)
-        .eq("puzzle_id", puzzleData.id)
+        .eq("puzzle_id", (puzzleData as any).id)
         .maybeSingle();
 
       if (existing) {
@@ -84,61 +84,45 @@ export default function DailyChallenge() {
     e.preventDefault();
     if (!puzzle || !user || submitting) return;
 
-    const trimmed = answer.trim().toLowerCase();
-    if (trimmed !== puzzle.answer.trim().toLowerCase()) {
-      toast.error("Wrong answer! Try again.");
-      return;
-    }
+    const trimmed = answer.trim();
+    if (!trimmed) return;
 
-    setRunning(false);
-    setSolved(true);
     setSubmitting(true);
 
-    const { error } = await supabase.from("leaderboard").insert({
-      user_id: user.id,
-      puzzle_id: puzzle.id,
-      time_taken: elapsed,
+    // Call the secure edge function instead of checking client-side
+    const { data, error } = await supabase.functions.invoke("validate-answer", {
+      body: {
+        puzzle_id: puzzle.id,
+        answer: trimmed,
+        time_taken: elapsed,
+      },
     });
 
     setSubmitting(false);
 
     if (error) {
-      toast.error(error.code === "23505" ? "You already submitted a score for today!" : "Failed to save score.");
+      toast.error("Failed to submit answer. Please try again.");
       return;
     }
 
-    // Streak + credits + XP logic
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("credits, xp, current_streak, last_completed_date")
-      .eq("user_id", user.id)
-      .single();
-
-    if (prof) {
-      const today = new Date().toISOString().split("T")[0];
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-      let newStreak = 1;
-      if (prof.last_completed_date === yesterday) {
-        newStreak = prof.current_streak + 1;
-      }
-      const multiplier = getStreakMultiplier(newStreak - 1);
-      const creditReward = Math.round(100 * multiplier);
-      const xpReward = 50;
-
-      await supabase
-        .from("profiles")
-        .update({
-          credits: prof.credits + creditReward,
-          xp: prof.xp + xpReward,
-          current_streak: newStreak,
-          last_completed_date: today,
-        })
-        .eq("user_id", user.id);
-
-      setEarnedCredits(creditReward);
-      refreshProfile();
-      toast.success(`Correct! Solved in ${formatTime(elapsed)} — +${creditReward} Credits! +50 XP`);
+    if (!data.correct) {
+      toast.error("Wrong answer! Try again.");
+      return;
     }
+
+    if (data.already_completed) {
+      toast.info("You already completed today's challenge!");
+      setAlreadyCompleted(true);
+      setRunning(false);
+      return;
+    }
+
+    // Correct and recorded!
+    setRunning(false);
+    setSolved(true);
+    setEarnedCredits(data.credit_reward);
+    refreshProfile();
+    toast.success(`Correct! Solved in ${formatTime(data.time_taken)} — +${data.credit_reward} Credits! +50 XP`);
   }, [answer, puzzle, user, elapsed, submitting, refreshProfile]);
 
   if (authLoading || loading) {
