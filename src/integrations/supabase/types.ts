@@ -201,7 +201,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      update_profile_safe: {
+        Args: { _avatar_url?: string; _bio?: string; _username?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

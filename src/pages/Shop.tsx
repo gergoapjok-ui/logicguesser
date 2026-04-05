@@ -53,27 +53,17 @@ export default function Shop() {
     }
     setBusy(avatar.id);
 
-    const newCredits = credits - avatar.price;
-    const { error: creditErr } = await supabase
-      .from("profiles")
-      .update({ credits: newCredits })
-      .eq("user_id", user.id);
+    const { data, error } = await supabase.functions.invoke("purchase-avatar", {
+      body: { avatar_id: avatar.id },
+    });
 
-    if (creditErr) { toast.error("Purchase failed."); setBusy(null); return; }
-
-    const { error: invErr } = await supabase
-      .from("user_inventory")
-      .insert({ user_id: user.id, item_id: avatar.id, item_type: "avatar" });
-
-    if (invErr) {
-      // rollback credits
-      await supabase.from("profiles").update({ credits }).eq("user_id", user.id);
-      toast.error("Purchase failed.");
+    if (error || !data?.success) {
+      toast.error(data?.error || "Purchase failed.");
       setBusy(null);
       return;
     }
 
-    setCredits(newCredits);
+    setCredits(data.new_credits);
     setOwned((prev) => new Set(prev).add(avatar.id));
     toast.success(`Purchased ${avatar.name}!`);
     refreshProfile();
@@ -83,10 +73,9 @@ export default function Shop() {
   const handleEquip = async (avatarId: string) => {
     if (!user || busy) return;
     setBusy(avatarId);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ avatar_url: avatarId })
-      .eq("user_id", user.id);
+    const { error } = await supabase.rpc("update_profile_safe" as any, {
+      _avatar_url: avatarId,
+    });
 
     if (error) { toast.error("Failed to equip."); }
     else { setEquipped(avatarId); toast.success("Avatar equipped!"); refreshProfile(); }
