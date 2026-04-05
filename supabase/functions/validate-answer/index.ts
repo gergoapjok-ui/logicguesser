@@ -172,6 +172,7 @@ Deno.serve(async (req) => {
       }
     );
   } catch (err) {
+    console.error("validate-answer error:", err);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
