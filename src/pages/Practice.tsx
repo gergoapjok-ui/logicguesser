@@ -106,20 +106,10 @@ export default function Practice() {
       setSolved(true);
       setStreak((s) => s + 1);
 
-      // Award 5 credits + 10 XP if logged in
+      // Award 5 credits + 10 XP via secure edge function
       if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("credits, xp")
-          .eq("user_id", user.id)
-          .single();
-        if (profile) {
-          await supabase
-            .from("profiles")
-            .update({ credits: profile.credits + 5, xp: profile.xp + 10 })
-            .eq("user_id", user.id);
-          refreshProfile();
-        }
+        await supabase.functions.invoke("practice-reward");
+        refreshProfile();
         setShowCredit(true);
         setTimeout(() => setShowCredit(false), 1500);
       }
