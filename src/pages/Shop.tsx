@@ -73,10 +73,9 @@ export default function Shop() {
   const handleEquip = async (avatarId: string) => {
     if (!user || busy) return;
     setBusy(avatarId);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ avatar_url: avatarId })
-      .eq("user_id", user.id);
+    const { error } = await supabase.rpc("update_profile_safe" as any, {
+      _avatar_url: avatarId,
+    });
 
     if (error) { toast.error("Failed to equip."); }
     else { setEquipped(avatarId); toast.success("Avatar equipped!"); refreshProfile(); }
