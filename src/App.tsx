@@ -17,6 +17,7 @@ import Friends from "./pages/Friends";
 import Chat from "./pages/Chat";
 import BattleCreate from "./pages/BattleCreate";
 import BattleLobby from "./pages/BattleLobby";
+import ProUpgrade from "./pages/ProUpgrade";
 
 const queryClient = new QueryClient();
 
