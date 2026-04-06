@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select("username, avatar_url, bio, credits, xp, current_streak, last_completed_date, is_pro, daily_retries_used")
       .eq("user_id", userId)
       .single();
-    if (data) setProfile(data as UserProfile);
+    if (data) setProfile(data as unknown as UserProfile);
   }, []);
 
   const refreshProfile = useCallback(async () => {
