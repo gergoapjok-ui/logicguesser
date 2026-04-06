@@ -10,6 +10,8 @@ export interface UserProfile {
   xp: number;
   current_streak: number;
   last_completed_date: string | null;
+  is_pro: boolean;
+  daily_retries_used: number;
 }
 
 interface AuthContextType {
