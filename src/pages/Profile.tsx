@@ -10,14 +10,11 @@ import { getLevelProgress } from "@/lib/leveling";
 import Navbar from "@/components/Navbar";
 
 const AVATARS_MAP: Record<string, string> = {
-  avatar_cyber_skull: "💀",
-  avatar_neon_cat: "🐱",
-  avatar_glitch_bot: "🤖",
-  avatar_plasma_fox: "🦊",
-  avatar_quantum_owl: "🦉",
-  avatar_void_wolf: "🐺",
-  avatar_pixel_dragon: "🐉",
-  avatar_star_panda: "🐼",
+  avatar_cyber_skull: "💀", avatar_neon_cat: "🐱", avatar_glitch_bot: "🤖",
+  avatar_plasma_fox: "🦊", avatar_quantum_owl: "🦉", avatar_void_wolf: "🐺",
+  avatar_pixel_dragon: "🐉", avatar_star_panda: "🐼",
+  avatar_diamond_phoenix: "🔥", avatar_golden_unicorn: "🦄",
+  avatar_crystal_lion: "🦁", avatar_royal_eagle: "🦅",
 };
 
 export default function Profile() {
