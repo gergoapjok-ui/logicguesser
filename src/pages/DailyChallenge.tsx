@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Timer, Send, CheckCircle2, Clock, Loader2, AlertTriangle, Flame } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Timer, Send, CheckCircle2, Clock, Loader2, AlertTriangle, Flame, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,22 +20,32 @@ function getStreakMultiplier(streak: number): number {
   return Math.min(1.5, 1 + (streak * 0.1));
 }
 
+interface PuzzleTask {
+  id: string;
+  question: string;
+  difficulty: string;
+  task_number: number;
+}
+
 export default function DailyChallenge() {
   const { user, loading: authLoading, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
-  const [puzzle, setPuzzle] = useState<{ id: string; question: string; difficulty: string } | null>(null);
+  const [tasks, setTasks] = useState<PuzzleTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const [completedTime, setCompletedTime] = useState<number | null>(null);
 
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [answer, setAnswer] = useState("");
   const [elapsed, setElapsed] = useState(0);
+  const [penalties, setPenalties] = useState(0);
   const [running, setRunning] = useState(false);
-  const [solved, setSolved] = useState(false);
+  const [allDone, setAllDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [started, setStarted] = useState(false);
   const [earnedCredits, setEarnedCredits] = useState<number | null>(null);
+  const [wrongFlash, setWrongFlash] = useState(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -45,26 +55,41 @@ export default function DailyChallenge() {
 
     const load = async () => {
       const today = new Date().toISOString().split("T")[0];
-      // Query puzzles_public view (no answer column exposed)
       const { data: puzzleData } = await supabase
         .from("puzzles_public" as any)
-        .select("id, question, difficulty")
+        .select("id, question, difficulty, task_number")
         .eq("puzzle_date", today)
-        .single();
+        .order("task_number", { ascending: true });
 
-      if (!puzzleData) { setPuzzle(null); setLoading(false); return; }
-      setPuzzle(puzzleData as any);
+      if (!puzzleData || puzzleData.length === 0) { setTasks([]); setLoading(false); return; }
+      setTasks(puzzleData as any);
 
+      // Check if already completed today
       const { data: existing } = await supabase
         .from("leaderboard")
         .select("time_taken")
         .eq("user_id", user.id)
-        .eq("puzzle_id", (puzzleData as any).id)
+        .eq("completed_date", today)
         .maybeSingle();
 
       if (existing) {
         setAlreadyCompleted(true);
         setCompletedTime(existing.time_taken);
+      } else {
+        // Check partial progress
+        const { data: progress } = await supabase
+          .from("challenge_progress" as any)
+          .select("task_number")
+          .eq("user_id", user.id)
+          .eq("puzzle_date", today);
+
+        if (progress && progress.length > 0) {
+          const completedNums = new Set((progress as any[]).map(p => p.task_number));
+          const nextIncomplete = (puzzleData as any[]).findIndex(t => !completedNums.has(t.task_number));
+          if (nextIncomplete >= 0) {
+            setCurrentTaskIndex(nextIncomplete);
+          }
+        }
       }
       setLoading(false);
     };
@@ -78,23 +103,26 @@ export default function DailyChallenge() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [running]);
 
-  const handleStart = () => { setStarted(true); setRunning(true); setElapsed(0); };
+  const handleStart = () => { setStarted(true); setRunning(true); setElapsed(0); setPenalties(0); };
+
+  const currentTask = tasks[currentTaskIndex] ?? null;
+  const totalTime = elapsed + penalties;
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!puzzle || !user || submitting) return;
-
+    if (!currentTask || !user || submitting) return;
     const trimmed = answer.trim();
     if (!trimmed) return;
 
     setSubmitting(true);
 
-    // Call the secure edge function instead of checking client-side
     const { data, error } = await supabase.functions.invoke("validate-answer", {
       body: {
-        puzzle_id: puzzle.id,
+        puzzle_id: currentTask.id,
         answer: trimmed,
-        time_taken: elapsed,
+        task_number: currentTask.task_number,
+        total_elapsed: elapsed,
+        total_penalties: penalties,
       },
     });
 
@@ -106,24 +134,38 @@ export default function DailyChallenge() {
     }
 
     if (!data.correct) {
-      toast.error("Wrong answer! Try again.");
+      // Wrong answer — +5 seconds penalty
+      setPenalties(p => p + 5);
+      setWrongFlash(true);
+      setTimeout(() => setWrongFlash(false), 600);
+      toast.error("Wrong! +5 seconds penalty");
+      setAnswer("");
       return;
     }
 
     if (data.already_completed) {
-      toast.info("You already completed today's challenge!");
-      setAlreadyCompleted(true);
-      setRunning(false);
+      // This task already done, move to next
+      setAnswer("");
+      if (currentTaskIndex < tasks.length - 1) {
+        setCurrentTaskIndex(i => i + 1);
+      }
       return;
     }
 
-    // Correct and recorded!
-    setRunning(false);
-    setSolved(true);
-    setEarnedCredits(data.credit_reward);
-    refreshProfile();
-    toast.success(`Correct! Solved in ${formatTime(data.time_taken)} — +${data.credit_reward} Credits! +50 XP`);
-  }, [answer, puzzle, user, elapsed, submitting, refreshProfile]);
+    if (data.all_done) {
+      // All tasks completed!
+      setRunning(false);
+      setAllDone(true);
+      setEarnedCredits(data.credit_reward);
+      refreshProfile();
+      toast.success(`All tasks complete! Total time: ${formatTime(data.time_taken)} — +${data.credit_reward} Credits! +50 XP`);
+    } else {
+      // Move to next task
+      toast.success(`Task ${currentTask.task_number} correct! Next task...`);
+      setAnswer("");
+      setCurrentTaskIndex(i => i + 1);
+    }
+  }, [answer, currentTask, user, elapsed, penalties, submitting, refreshProfile, currentTaskIndex, tasks.length]);
 
   if (authLoading || loading) {
     return (
@@ -159,7 +201,7 @@ export default function DailyChallenge() {
                   </div>
                 )}
                 <p className="font-body text-muted-foreground mb-4">
-                  You solved today's puzzle in <span className="text-primary font-semibold">{formatTime(completedTime!)}</span>
+                  You solved today's challenge in <span className="text-primary font-semibold">{formatTime(completedTime!)}</span>
                 </p>
                 <p className="font-body text-muted-foreground text-sm">Come back tomorrow for a new challenge!</p>
                 <Button variant="neon-outline" size="lg" className="mt-6" onClick={() => navigate("/leaderboard")}>
@@ -168,7 +210,7 @@ export default function DailyChallenge() {
               </div>
             )}
 
-            {!alreadyCompleted && !puzzle && (
+            {!alreadyCompleted && tasks.length === 0 && (
               <div className="glass rounded-2xl border border-border/50 p-8 text-center">
                 <AlertTriangle className="w-12 h-12 text-neon-amber mx-auto mb-4" />
                 <h2 className="font-display text-2xl font-bold text-foreground mb-2">No Puzzle Today</h2>
@@ -176,47 +218,73 @@ export default function DailyChallenge() {
               </div>
             )}
 
-            {!alreadyCompleted && puzzle && (
+            {!alreadyCompleted && tasks.length > 0 && (
               <div className="glass rounded-2xl border border-border/50 p-8">
-                <div className="text-center mb-6">
+                <div className="text-center mb-4">
                   <h1 className="font-display text-3xl font-bold text-foreground mb-1">
                     DAILY <span className="text-primary text-glow">CHALLENGE</span>
                   </h1>
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-body bg-primary/10 text-primary border border-primary/30 capitalize">
-                    {puzzle.difficulty}
-                  </span>
                   {profile && profile.current_streak > 0 && (
-                    <div className="mt-2 inline-flex items-center gap-1 text-sm font-body text-muted-foreground">
+                    <div className="mt-1 inline-flex items-center gap-1 text-sm font-body text-muted-foreground">
                       <Flame className="w-3.5 h-3.5 text-destructive" />
                       {profile.current_streak} day streak — {Math.round(getStreakMultiplier(profile.current_streak) * 100)}% credit bonus!
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center justify-center gap-2 mb-6">
+                {/* Progress bar */}
+                {started && !allDone && (
+                  <div className="mb-4">
+                    <div className="flex justify-between text-xs font-body text-muted-foreground mb-1">
+                      <span>Task {currentTaskIndex + 1} of {tasks.length}</span>
+                      {penalties > 0 && (
+                        <span className="text-destructive font-semibold">+{penalties}s penalties</span>
+                      )}
+                    </div>
+                    <div className="h-2 bg-secondary/50 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-primary rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(currentTaskIndex / tasks.length) * 100}%` }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Timer */}
+                <div className="flex items-center justify-center gap-2 mb-4">
                   <Timer className="w-5 h-5 text-primary" />
                   <span className="font-display text-4xl font-bold text-foreground tabular-nums">
-                    {formatTime(elapsed)}
+                    {formatTime(totalTime)}
                   </span>
                 </div>
 
                 {!started ? (
                   <div className="text-center">
-                    <p className="font-body text-muted-foreground text-sm mb-6">
-                      The timer starts when you press the button. You get one attempt per day.
+                    <p className="font-body text-muted-foreground text-sm mb-2">
+                      Today's challenge has <span className="text-primary font-semibold">{tasks.length} tasks</span>.
+                    </p>
+                    <p className="font-body text-muted-foreground text-xs mb-6">
+                      Wrong answers add +5 seconds. Your total time goes on the leaderboard.
                     </p>
                     <Button variant="neon" size="xl" onClick={handleStart}>
                       <Clock className="w-5 h-5" />
                       Start Challenge
                     </Button>
                   </div>
-                ) : solved ? (
+                ) : allDone ? (
                   <div className="text-center">
                     <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-3" />
-                    <p className="font-display text-xl font-bold text-foreground mb-1">Correct!</p>
-                    <p className="font-body text-muted-foreground mb-2">
-                      Time: <span className="text-primary font-semibold">{formatTime(elapsed)}</span>
+                    <p className="font-display text-xl font-bold text-foreground mb-1">All Tasks Complete!</p>
+                    <p className="font-body text-muted-foreground mb-1">
+                      Total Time: <span className="text-primary font-semibold">{formatTime(totalTime)}</span>
                     </p>
+                    {penalties > 0 && (
+                      <p className="font-body text-destructive text-xs mb-2">
+                        Includes {penalties}s in penalties
+                      </p>
+                    )}
                     {earnedCredits && (
                       <p className="font-body text-primary text-sm font-semibold mb-4">
                         +{earnedCredits} Credits · +50 XP
@@ -226,13 +294,46 @@ export default function DailyChallenge() {
                       View Leaderboard
                     </Button>
                   </div>
-                ) : (
+                ) : currentTask ? (
                   <>
-                    <div className="bg-secondary/50 rounded-xl p-6 mb-6 border border-border/30">
-                      <p className="font-body text-foreground text-lg leading-relaxed">
-                        {puzzle.question}
-                      </p>
-                    </div>
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={currentTask.id}
+                        initial={{ opacity: 0, x: 30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -30 }}
+                        className={`rounded-xl p-6 mb-4 border transition-colors ${
+                          wrongFlash
+                            ? "bg-destructive/20 border-destructive/50"
+                            : "bg-secondary/50 border-border/30"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="inline-block px-2 py-0.5 rounded-full text-xs font-body bg-primary/10 text-primary border border-primary/30 capitalize">
+                            {currentTask.difficulty}
+                          </span>
+                          <span className="text-xs font-body text-muted-foreground">
+                            Task {currentTaskIndex + 1}/{tasks.length}
+                          </span>
+                        </div>
+                        <p className="font-body text-foreground text-lg leading-relaxed">
+                          {currentTask.question}
+                        </p>
+                      </motion.div>
+                    </AnimatePresence>
+
+                    {wrongFlash && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="flex items-center gap-2 justify-center mb-3 text-destructive"
+                      >
+                        <XCircle className="w-4 h-4" />
+                        <span className="font-display text-sm font-bold">+5 SECONDS</span>
+                      </motion.div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="flex gap-3">
                       <Input
                         value={answer}
@@ -242,11 +343,11 @@ export default function DailyChallenge() {
                         autoFocus
                       />
                       <Button type="submit" variant="neon" disabled={!answer.trim() || submitting}>
-                        <Send className="w-4 h-4" />
+                        {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                       </Button>
                     </form>
                   </>
-                )}
+                ) : null}
               </div>
             )}
           </motion.div>
