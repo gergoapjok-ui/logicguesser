@@ -82,6 +82,12 @@ export default function Profile() {
             <div className="flex items-center justify-center gap-2 mb-1">
               <Star className="w-4 h-4 text-neon-amber" />
               <span className="font-display text-sm font-bold text-foreground">Level {lvl.level}</span>
+              {profile.is_pro && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-neon-amber/20 border border-neon-amber/40 ml-1">
+                  <Crown className="w-3 h-3 text-neon-amber" />
+                  <span className="font-display text-[10px] font-bold text-neon-amber">PRO</span>
+                </span>
+              )}
             </div>
             <p className="font-body text-xs text-muted-foreground mb-1">{user?.email}</p>
             {profile.bio && (
