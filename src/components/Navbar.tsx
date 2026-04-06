@@ -97,6 +97,14 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Pro badge */}
+          {user && profile?.is_pro && (
+            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-neon-amber/10 border border-neon-amber/30">
+              <Crown className="w-3.5 h-3.5 text-neon-amber" />
+              <span className="font-display text-xs font-bold text-neon-amber">PRO</span>
+            </div>
+          )}
+
           {/* Streak */}
           {user && profile && profile.current_streak > 0 && (
             <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-destructive/10 border border-destructive/20">
