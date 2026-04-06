@@ -228,7 +228,9 @@ export type Database = {
           created_at: string
           credits: number
           current_streak: number
+          daily_retries_used: number
           id: string
+          is_pro: boolean
           last_completed_date: string | null
           updated_at: string
           user_id: string
@@ -241,7 +243,9 @@ export type Database = {
           created_at?: string
           credits?: number
           current_streak?: number
+          daily_retries_used?: number
           id?: string
+          is_pro?: boolean
           last_completed_date?: string | null
           updated_at?: string
           user_id: string
@@ -254,7 +258,9 @@ export type Database = {
           created_at?: string
           credits?: number
           current_streak?: number
+          daily_retries_used?: number
           id?: string
+          is_pro?: boolean
           last_completed_date?: string | null
           updated_at?: string
           user_id?: string
@@ -323,6 +329,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           current_streak: number | null
+          is_pro: boolean | null
           user_id: string | null
           username: string | null
           xp: number | null
@@ -330,6 +337,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           current_streak?: number | null
+          is_pro?: boolean | null
           user_id?: string | null
           username?: string | null
           xp?: number | null
@@ -337,6 +345,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           current_streak?: number | null
+          is_pro?: boolean | null
           user_id?: string | null
           username?: string | null
           xp?: number | null
