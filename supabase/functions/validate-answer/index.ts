@@ -181,7 +181,7 @@ Deno.serve(async (req) => {
     // Streak + credits + XP
     const { data: prof } = await adminClient
       .from("profiles")
-      .select("credits, xp, current_streak, last_completed_date")
+      .select("credits, xp, current_streak, last_completed_date, is_pro, daily_retries_used")
       .eq("user_id", userId)
       .single();
 
@@ -195,6 +195,8 @@ Deno.serve(async (req) => {
       }
       const multiplier = Math.min(1.5, 1 + ((newStreak - 1) * 0.1));
       creditReward = Math.round(100 * multiplier);
+      // Pro users get 2x credits
+      if (prof.is_pro) creditReward *= 2;
       const xpReward = 50;
 
       await adminClient
@@ -204,6 +206,7 @@ Deno.serve(async (req) => {
           xp: prof.xp + xpReward,
           current_streak: newStreak,
           last_completed_date: today,
+          daily_retries_used: 0, // reset retries on new day
         })
         .eq("user_id", userId);
     }
