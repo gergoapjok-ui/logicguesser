@@ -122,6 +122,12 @@ export default function Profile() {
               </div>
             </div>
 
+            {!profile.is_pro && (
+              <Button variant="neon" size="lg" className="w-full mb-3 bg-neon-amber hover:bg-neon-amber/90 text-background" onClick={() => navigate("/pro")}>
+                <Crown className="w-4 h-4" /> Upgrade to Pro
+              </Button>
+            )}
+
             <Button variant="neon-outline" size="lg" className="w-full" onClick={handleLogout}>
               <LogOut className="w-4 h-4" />
               Log Out
