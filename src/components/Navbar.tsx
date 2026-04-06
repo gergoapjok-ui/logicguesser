@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins } from "lucide-react";
+import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,7 @@ const navItems = [
   { label: "Leaderboard", path: "/leaderboard", icon: Trophy },
   { label: "Practice", path: "/practice", icon: Dumbbell },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
+  { label: "Friends", path: "/friends", icon: Users },
 ];
 
 export default function Navbar() {

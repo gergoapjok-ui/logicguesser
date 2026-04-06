@@ -11,7 +11,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -35,10 +34,8 @@ Deno.serve(async (req) => {
     }
 
     const userId = authUser.id;
-
-    // Parse and validate input
     const body = await req.json();
-    const { puzzle_id, answer, time_taken } = body;
+    const { puzzle_id, answer, task_number, total_elapsed, total_penalties } = body;
 
     if (!puzzle_id || typeof puzzle_id !== "string") {
       return new Response(JSON.stringify({ error: "puzzle_id is required" }), {
@@ -52,14 +49,13 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (typeof time_taken !== "number" || time_taken < 3) {
-      return new Response(JSON.stringify({ error: "Invalid time_taken" }), {
+    if (typeof task_number !== "number" || task_number < 1 || task_number > 5) {
+      return new Response(JSON.stringify({ error: "Invalid task_number" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Use service role to access puzzle answer
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -68,7 +64,7 @@ Deno.serve(async (req) => {
     // Get puzzle with answer
     const { data: puzzle, error: puzzleError } = await adminClient
       .from("puzzles")
-      .select("id, answer, puzzle_date")
+      .select("id, answer, puzzle_date, task_number")
       .eq("id", puzzle_id)
       .single();
 
@@ -88,46 +84,101 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check answer
-    const correct = answer.trim().toLowerCase() === puzzle.answer.trim().toLowerCase();
-
-    if (!correct) {
-      return new Response(JSON.stringify({ correct: false }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Check if already completed
-    const { data: existing } = await adminClient
-      .from("leaderboard")
+    // Check if this task was already completed
+    const { data: existingProgress } = await adminClient
+      .from("challenge_progress")
       .select("id")
       .eq("user_id", userId)
-      .eq("puzzle_id", puzzle_id)
+      .eq("puzzle_date", today)
+      .eq("task_number", task_number)
       .maybeSingle();
 
-    if (existing) {
+    if (existingProgress) {
       return new Response(JSON.stringify({ correct: true, already_completed: true }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Insert leaderboard entry server-side
-    const { error: insertError } = await adminClient.from("leaderboard").insert({
-      user_id: userId,
-      puzzle_id: puzzle_id,
-      time_taken: time_taken,
-    });
+    // Check answer
+    const correct = answer.trim().toLowerCase() === puzzle.answer.trim().toLowerCase();
 
-    if (insertError) {
-      return new Response(JSON.stringify({ error: "Failed to save score" }), {
-        status: 500,
+    if (!correct) {
+      return new Response(JSON.stringify({ correct: false, penalty: 5 }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Streak + credits + XP logic
+    // Record progress for this task
+    const penalties = typeof total_penalties === "number" ? total_penalties : 0;
+    await adminClient.from("challenge_progress").insert({
+      user_id: userId,
+      puzzle_date: today,
+      task_number: task_number,
+      puzzle_id: puzzle_id,
+      penalties: penalties,
+    });
+
+    // Check how many tasks are done for today
+    const { data: allProgress } = await adminClient
+      .from("challenge_progress")
+      .select("task_number")
+      .eq("user_id", userId)
+      .eq("puzzle_date", today);
+
+    // Count total tasks for today
+    const { count: totalTasks } = await adminClient
+      .from("puzzles")
+      .select("id", { count: "exact", head: true })
+      .eq("puzzle_date", today);
+
+    const completedTasks = allProgress?.length ?? 0;
+    const isAllDone = completedTasks >= (totalTasks ?? 1);
+
+    if (!isAllDone) {
+      return new Response(
+        JSON.stringify({
+          correct: true,
+          already_completed: false,
+          all_done: false,
+          tasks_completed: completedTasks,
+          total_tasks: totalTasks ?? 1,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // All tasks done — create leaderboard entry
+    const elapsed = typeof total_elapsed === "number" ? total_elapsed : 0;
+    const finalTime = Math.max(1, elapsed + penalties);
+
+    // Check if leaderboard entry already exists for today
+    const { data: existingEntry } = await adminClient
+      .from("leaderboard")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("completed_date", today)
+      .maybeSingle();
+
+    if (!existingEntry) {
+      // Get first puzzle of the day for the FK
+      const { data: firstPuzzle } = await adminClient
+        .from("puzzles")
+        .select("id")
+        .eq("puzzle_date", today)
+        .eq("task_number", 1)
+        .single();
+
+      await adminClient.from("leaderboard").insert({
+        user_id: userId,
+        puzzle_id: firstPuzzle?.id ?? puzzle_id,
+        time_taken: finalTime,
+        completed_date: today,
+      });
+    }
+
+    // Streak + credits + XP
     const { data: prof } = await adminClient
       .from("profiles")
       .select("credits, xp, current_streak, last_completed_date")
@@ -161,14 +212,14 @@ Deno.serve(async (req) => {
       JSON.stringify({
         correct: true,
         already_completed: false,
+        all_done: true,
         credit_reward: creditReward,
         streak: newStreak,
-        time_taken,
+        time_taken: finalTime,
+        tasks_completed: completedTasks,
+        total_tasks: totalTasks ?? 1,
       }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error("validate-answer error:", err);

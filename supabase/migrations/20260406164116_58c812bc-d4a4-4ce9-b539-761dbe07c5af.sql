@@ -1,0 +1,1 @@
+ALTER TABLE public.puzzles DROP CONSTRAINT IF EXISTS puzzles_puzzle_date_key;
