@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Medal, Clock, Loader2, Star } from "lucide-react";
+import { Trophy, Medal, Clock, Loader2, Star, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import { getLevel } from "@/lib/leveling";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface LeaderboardEntry {
   id: string;
@@ -12,17 +13,15 @@ interface LeaderboardEntry {
   username: string | null;
   avatar_url: string | null;
   xp: number;
+  is_pro: boolean;
 }
 
 const AVATARS_MAP: Record<string, string> = {
-  avatar_cyber_skull: "💀",
-  avatar_neon_cat: "🐱",
-  avatar_glitch_bot: "🤖",
-  avatar_plasma_fox: "🦊",
-  avatar_quantum_owl: "🦉",
-  avatar_void_wolf: "🐺",
-  avatar_pixel_dragon: "🐉",
-  avatar_star_panda: "🐼",
+  avatar_cyber_skull: "💀", avatar_neon_cat: "🐱", avatar_glitch_bot: "🤖",
+  avatar_plasma_fox: "🦊", avatar_quantum_owl: "🦉", avatar_void_wolf: "🐺",
+  avatar_pixel_dragon: "🐉", avatar_star_panda: "🐼",
+  avatar_diamond_phoenix: "🔥", avatar_golden_unicorn: "🦄",
+  avatar_crystal_lion: "🦁", avatar_royal_eagle: "🦅",
 };
 
 function formatTime(seconds: number) {
@@ -34,14 +33,14 @@ function formatTime(seconds: number) {
 const rankColors = ["text-neon-amber", "text-muted-foreground", "text-neon-amber/60"];
 
 export default function Leaderboard() {
+  const { profile } = useAuth();
+  const isPro = profile?.is_pro ?? false;
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [puzzleExists, setPuzzleExists] = useState(true);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       const today = new Date().toISOString().split("T")[0];
-
       const { data } = await supabase
         .from("leaderboard")
         .select("id, time_taken, user_id")
@@ -51,26 +50,17 @@ export default function Leaderboard() {
 
       if (!data || data.length === 0) { setEntries([]); setLoading(false); return; }
 
-      const userIds = data.map((e) => e.user_id);
+      const userIds = data.map(e => e.user_id);
       const { data: profiles } = await supabase
         .from("profiles_public" as any)
-        .select("user_id, username, avatar_url, xp")
-        .in("user_id", userIds) as { data: { user_id: string; username: string | null; avatar_url: string | null; xp: number }[] | null };
+        .select("user_id, username, avatar_url, xp, is_pro")
+        .in("user_id", userIds) as { data: { user_id: string; username: string | null; avatar_url: string | null; xp: number; is_pro: boolean }[] | null };
 
-      const profileMap = new Map(profiles?.map((p) => [p.user_id, p]) ?? []);
-
-      setEntries(
-        data.map((e) => {
-          const p = profileMap.get(e.user_id);
-          return {
-            id: e.id,
-            time_taken: e.time_taken,
-            username: p?.username ?? "Anonymous",
-            avatar_url: p?.avatar_url ?? null,
-            xp: p?.xp ?? 0,
-          };
-        })
-      );
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
+      setEntries(data.map(e => {
+        const p = profileMap.get(e.user_id);
+        return { id: e.id, time_taken: e.time_taken, username: p?.username ?? "Anonymous", avatar_url: p?.avatar_url ?? null, xp: p?.xp ?? 0, is_pro: p?.is_pro ?? false };
+      }));
       setLoading(false);
     };
     fetchLeaderboard();
@@ -91,13 +81,7 @@ export default function Leaderboard() {
             </div>
 
             {loading ? (
-              <div className="flex justify-center py-16">
-                <Loader2 className="w-8 h-8 text-primary animate-spin" />
-              </div>
-            ) : !puzzleExists ? (
-              <div className="glass rounded-xl border border-border/50 p-8 text-center">
-                <p className="font-body text-muted-foreground">No puzzle today — no leaderboard yet.</p>
-              </div>
+              <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>
             ) : entries.length === 0 ? (
               <div className="glass rounded-xl border border-border/50 p-8 text-center">
                 <p className="font-body text-muted-foreground">No one has completed today's challenge yet. Be the first!</p>
@@ -107,28 +91,23 @@ export default function Leaderboard() {
                 {entries.map((entry, i) => {
                   const level = getLevel(entry.xp);
                   return (
-                    <motion.div
-                      key={entry.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className={`glass rounded-xl border p-4 flex items-center gap-4 ${
-                        i === 0 ? "border-neon-amber/50 box-glow" : "border-border/50"
-                      }`}
-                    >
+                    <motion.div key={entry.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                      className={`glass rounded-xl border p-4 flex items-center gap-4 ${i === 0 ? "border-neon-amber/50 box-glow" : "border-border/50"}`}>
                       <div className="w-10 h-10 rounded-lg bg-secondary/50 flex items-center justify-center flex-shrink-0">
-                        {i < 3 ? (
-                          <Medal className={`w-5 h-5 ${rankColors[i]}`} />
-                        ) : (
-                          <span className="font-display text-sm font-bold text-muted-foreground">{i + 1}</span>
-                        )}
+                        {i < 3 ? <Medal className={`w-5 h-5 ${rankColors[i]}`} /> : <span className="font-display text-sm font-bold text-muted-foreground">{i + 1}</span>}
                       </div>
                       <div className="flex-1 min-w-0 flex items-center gap-2">
-                        {entry.avatar_url && AVATARS_MAP[entry.avatar_url] && (
-                          <span className="text-lg">{AVATARS_MAP[entry.avatar_url]}</span>
-                        )}
+                        {entry.avatar_url && AVATARS_MAP[entry.avatar_url] && <span className="text-lg">{AVATARS_MAP[entry.avatar_url]}</span>}
                         <div>
-                          <p className="font-body font-semibold text-foreground truncate">{entry.username}</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-body font-semibold text-foreground truncate">{entry.username}</p>
+                            {entry.is_pro && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-neon-amber/20 border border-neon-amber/40">
+                                <Crown className="w-2.5 h-2.5 text-neon-amber" />
+                                <span className="font-display text-[9px] font-bold text-neon-amber">PRO</span>
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Star className="w-3 h-3 text-neon-amber" />
                             <span className="font-body">Lv. {level}</span>
@@ -145,10 +124,12 @@ export default function Leaderboard() {
               </div>
             )}
           </motion.div>
-          <aside className="hidden lg:block w-64 flex-shrink-0 pt-16">
-            <AdPlaceholder />
-            <AdPlaceholder className="mt-4" />
-          </aside>
+          {!isPro && (
+            <aside className="hidden lg:block w-64 flex-shrink-0 pt-16">
+              <AdPlaceholder />
+              <AdPlaceholder className="mt-4" />
+            </aside>
+          )}
         </div>
       </div>
     </div>

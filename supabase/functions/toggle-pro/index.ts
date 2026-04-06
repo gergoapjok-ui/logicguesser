@@ -14,8 +14,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -28,46 +27,27 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await anonClient.auth.getUser();
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const body = await req.json();
+    const activate = body.activate === true;
 
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: prof } = await adminClient
-      .from("profiles")
-      .select("credits, xp, is_pro")
-      .eq("user_id", user.id)
-      .single();
+    await adminClient.from("profiles").update({ is_pro: activate }).eq("user_id", user.id);
 
-    if (!prof) {
-      return new Response(JSON.stringify({ error: "Profile not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const creditReward = prof.is_pro ? 10 : 5;
-    const xpReward = 10;
-
-    await adminClient
-      .from("profiles")
-      .update({ credits: prof.credits + creditReward, xp: prof.xp + xpReward })
-      .eq("user_id", user.id);
-
-    return new Response(
-      JSON.stringify({ success: true, credits: prof.credits + 5, xp: prof.xp + 10 }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ success: true, is_pro: activate }), {
+      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
-    console.error("practice-reward error:", err);
+    console.error("toggle-pro error:", err);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

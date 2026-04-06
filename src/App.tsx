@@ -17,6 +17,7 @@ import Friends from "./pages/Friends";
 import Chat from "./pages/Chat";
 import BattleCreate from "./pages/BattleCreate";
 import BattleLobby from "./pages/BattleLobby";
+import ProUpgrade from "./pages/ProUpgrade";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/chat/:friendId" element={<Chat />} />
             <Route path="/battle/create" element={<BattleCreate />} />
             <Route path="/battle/:battleId" element={<BattleLobby />} />
+            <Route path="/pro" element={<ProUpgrade />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="*" element={<NotFound />} />

@@ -12,14 +12,10 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 type Category = "math" | "logic" | "patterns";
 
-interface Puzzle {
-  question: string;
-  answer: string;
-}
+interface Puzzle { question: string; answer: string; }
 
 function generatePuzzle(category?: Category): Puzzle {
   const cat = category ?? (["math", "logic", "patterns"] as const)[Math.floor(Math.random() * 3)];
-
   if (cat === "math") {
     const a = Math.floor(Math.random() * 20) + 2;
     const b = Math.floor(Math.random() * 15) + 2;
@@ -29,29 +25,21 @@ function generatePuzzle(category?: Category): Puzzle {
     const result = op === "+" ? a * b + c : a * b - c;
     return { question: `What is ${a} × ${b} ${op} ${c}?`, answer: String(result) };
   }
-
   if (cat === "patterns") {
-    const variant = Math.random() < 0.5;
-    if (variant) {
+    if (Math.random() < 0.5) {
       const start = Math.floor(Math.random() * 10) + 1;
       const diff = Math.floor(Math.random() * 8) + 2;
       const seq = Array.from({ length: 4 }, (_, i) => start + diff * i);
-      const ans = start + diff * 4;
-      return { question: `What comes next: ${seq.join(", ")}, ...?`, answer: String(ans) };
+      return { question: `What comes next: ${seq.join(", ")}, ...?`, answer: String(start + diff * 4) };
     } else {
       const base = Math.floor(Math.random() * 4) + 2;
       const seq = Array.from({ length: 4 }, (_, i) => base ** (i + 1));
-      const ans = base ** 5;
-      return { question: `What comes next: ${seq.join(", ")}, ...?`, answer: String(ans) };
+      return { question: `What comes next: ${seq.join(", ")}, ...?`, answer: String(base ** 5) };
     }
   }
-
-  // logic
   const tricks: Puzzle[] = [
     { question: "How many months have 28 days?", answer: "12" },
     { question: "If there are 6 apples and you take away 4, how many do you have?", answer: "4" },
-    { question: "A clerk at a butcher shop is 5'10\". What does he weigh?", answer: "meat" },
-    { question: "What has a head and a tail but no body? (one word)", answer: "coin" },
     { question: "How many letters are in 'the alphabet'?", answer: "11" },
     { question: "If you divide 30 by half and add 10, what do you get?", answer: "70" },
   ];
@@ -65,7 +53,8 @@ function formatTime(seconds: number) {
 }
 
 export default function Practice() {
-  const { user, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
+  const isPro = profile?.is_pro ?? false;
   const [category, setCategory] = useState<Category | undefined>(undefined);
   const [puzzle, setPuzzle] = useState<Puzzle>(() => generatePuzzle());
   const [answer, setAnswer] = useState("");
@@ -74,46 +63,32 @@ export default function Practice() {
   const [solved, setSolved] = useState(false);
   const [streak, setStreak] = useState(0);
   const [showCredit, setShowCredit] = useState(false);
-
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (running) {
-      intervalRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    if (running) intervalRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [running]);
 
   const handleCategoryChange = (val: string) => {
     const cat = val as Category | undefined;
     setCategory(cat || undefined);
     setPuzzle(generatePuzzle(cat || undefined));
-    setAnswer("");
-    setElapsed(0);
-    setSolved(false);
-    setRunning(true);
+    setAnswer(""); setElapsed(0); setSolved(false); setRunning(true);
   };
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = answer.trim().toLowerCase();
     const correct = puzzle.answer.trim().toLowerCase();
-
     if (trimmed === correct) {
-      setRunning(false);
-      setSolved(true);
-      setStreak((s) => s + 1);
-
-      // Award 5 credits + 10 XP via secure edge function
+      setRunning(false); setSolved(true); setStreak(s => s + 1);
       if (user) {
         await supabase.functions.invoke("practice-reward");
         refreshProfile();
         setShowCredit(true);
         setTimeout(() => setShowCredit(false), 1500);
       }
-
       toast.success(`Correct! Solved in ${formatTime(elapsed)}`);
     } else {
       toast.error("Wrong answer! Try again.");
@@ -122,35 +97,24 @@ export default function Practice() {
 
   const handleNext = () => {
     setPuzzle(generatePuzzle(category));
-    setAnswer("");
-    setElapsed(0);
-    setSolved(false);
-    setRunning(true);
+    setAnswer(""); setElapsed(0); setSolved(false); setRunning(true);
   };
+
+  const creditAmount = isPro ? 10 : 5;
 
   return (
     <div className="min-h-screen bg-background grid-pattern">
       <Navbar />
       <div className="pt-24 pb-16 container mx-auto px-4 max-w-4xl">
         <div className="flex gap-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex-1 max-w-lg mx-auto"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 max-w-lg mx-auto">
             <div className="glass rounded-2xl border border-border/50 p-8 relative">
-              {/* Floating +5 Credits animation */}
               <AnimatePresence>
                 {showCredit && (
-                  <motion.div
-                    initial={{ opacity: 1, y: 0 }}
-                    animate={{ opacity: 0, y: -60 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 1.2 }}
-                    className="absolute top-4 right-4 flex items-center gap-1 pointer-events-none z-10"
-                  >
+                  <motion.div initial={{ opacity: 1, y: 0 }} animate={{ opacity: 0, y: -60 }} exit={{ opacity: 0 }}
+                    transition={{ duration: 1.2 }} className="absolute top-4 right-4 flex items-center gap-1 pointer-events-none z-10">
                     <Coins className="w-4 h-4 text-primary" />
-                    <span className="font-display text-sm font-bold text-primary text-glow">+5 Credits</span>
+                    <span className="font-display text-sm font-bold text-primary text-glow">+{creditAmount} Credits</span>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -160,89 +124,49 @@ export default function Practice() {
                   PRACTICE <span className="text-neon-purple text-glow-purple">MODE</span>
                 </h1>
                 <p className="font-body text-muted-foreground text-sm">
-                  Streak: <span className="text-primary font-semibold">{streak}</span> · +5 credits per solve
+                  Streak: <span className="text-primary font-semibold">{streak}</span> · +{creditAmount} credits per solve
+                  {isPro && <span className="text-neon-amber ml-1">(2× Pro)</span>}
                 </p>
               </div>
 
-              {/* Category toggles */}
               <div className="flex justify-center mb-6">
-                <ToggleGroup
-                  type="single"
-                  value={category ?? ""}
-                  onValueChange={handleCategoryChange}
-                  className="bg-secondary/50 rounded-lg p-1 border border-border/30"
-                >
-                  <ToggleGroupItem
-                    value=""
-                    className="font-body text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md px-3"
-                  >
-                    All
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="math"
-                    className="font-body text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md px-3"
-                  >
-                    Math
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="logic"
-                    className="font-body text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md px-3"
-                  >
-                    Logic
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="patterns"
-                    className="font-body text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md px-3"
-                  >
-                    Patterns
-                  </ToggleGroupItem>
+                <ToggleGroup type="single" value={category ?? ""} onValueChange={handleCategoryChange}
+                  className="bg-secondary/50 rounded-lg p-1 border border-border/30">
+                  {["", "math", "logic", "patterns"].map(v => (
+                    <ToggleGroupItem key={v} value={v}
+                      className="font-body text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md px-3">
+                      {v === "" ? "All" : v.charAt(0).toUpperCase() + v.slice(1)}
+                    </ToggleGroupItem>
+                  ))}
                 </ToggleGroup>
               </div>
 
-              {/* Timer */}
               <div className="flex items-center justify-center gap-2 mb-6">
                 <Timer className="w-5 h-5 text-neon-purple" />
-                <span className="font-display text-4xl font-bold text-foreground tabular-nums">
-                  {formatTime(elapsed)}
-                </span>
+                <span className="font-display text-4xl font-bold text-foreground tabular-nums">{formatTime(elapsed)}</span>
               </div>
 
               {solved ? (
                 <div className="text-center">
                   <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-3" />
                   <p className="font-display text-xl font-bold text-foreground mb-1">Correct!</p>
-                  <p className="font-body text-muted-foreground mb-6">
-                    Solved in <span className="text-primary font-semibold">{formatTime(elapsed)}</span>
-                  </p>
-                  <Button variant="neon" size="lg" onClick={handleNext}>
-                    <RotateCcw className="w-4 h-4" />
-                    Next Puzzle
-                  </Button>
+                  <p className="font-body text-muted-foreground mb-6">Solved in <span className="text-primary font-semibold">{formatTime(elapsed)}</span></p>
+                  <Button variant="neon" size="lg" onClick={handleNext}><RotateCcw className="w-4 h-4" /> Next Puzzle</Button>
                 </div>
               ) : (
                 <>
                   <div className="bg-secondary/50 rounded-xl p-6 mb-6 border border-border/30">
                     <Brain className="w-5 h-5 text-neon-purple mb-2" />
-                    <p className="font-body text-foreground text-lg leading-relaxed">
-                      {puzzle.question}
-                    </p>
+                    <p className="font-body text-foreground text-lg leading-relaxed">{puzzle.question}</p>
                   </div>
                   <form onSubmit={handleSubmit} className="flex gap-3">
-                    <Input
-                      value={answer}
-                      onChange={(e) => setAnswer(e.target.value)}
-                      placeholder="Your answer..."
-                      className="flex-1 bg-secondary/50 border-border/50 font-body"
-                      autoFocus
-                    />
-                    <Button type="submit" variant="neon" disabled={!answer.trim()}>
-                      <Send className="w-4 h-4" />
-                    </Button>
+                    <Input value={answer} onChange={e => setAnswer(e.target.value)} placeholder="Your answer..."
+                      className="flex-1 bg-secondary/50 border-border/50 font-body" autoFocus />
+                    <Button type="submit" variant="neon" disabled={!answer.trim()}><Send className="w-4 h-4" /></Button>
                   </form>
                   <div className="text-center mt-4">
                     <Button variant="ghost" size="sm" onClick={handleNext} className="text-muted-foreground">
-                      <RotateCcw className="w-3 h-3" />
-                      Skip
+                      <RotateCcw className="w-3 h-3" /> Skip
                     </Button>
                   </div>
                 </>
@@ -250,10 +174,12 @@ export default function Practice() {
             </div>
           </motion.div>
 
-          <aside className="hidden lg:block w-64 flex-shrink-0 pt-4">
-            <AdPlaceholder />
-            <AdPlaceholder className="mt-4" />
-          </aside>
+          {!isPro && (
+            <aside className="hidden lg:block w-64 flex-shrink-0 pt-4">
+              <AdPlaceholder />
+              <AdPlaceholder className="mt-4" />
+            </aside>
+          )}
         </div>
       </div>
     </div>

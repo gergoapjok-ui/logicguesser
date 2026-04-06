@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LogOut, User, Loader2, Star, Flame, Coins } from "lucide-react";
+import { LogOut, User, Loader2, Star, Flame, Coins, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,14 +10,11 @@ import { getLevelProgress } from "@/lib/leveling";
 import Navbar from "@/components/Navbar";
 
 const AVATARS_MAP: Record<string, string> = {
-  avatar_cyber_skull: "💀",
-  avatar_neon_cat: "🐱",
-  avatar_glitch_bot: "🤖",
-  avatar_plasma_fox: "🦊",
-  avatar_quantum_owl: "🦉",
-  avatar_void_wolf: "🐺",
-  avatar_pixel_dragon: "🐉",
-  avatar_star_panda: "🐼",
+  avatar_cyber_skull: "💀", avatar_neon_cat: "🐱", avatar_glitch_bot: "🤖",
+  avatar_plasma_fox: "🦊", avatar_quantum_owl: "🦉", avatar_void_wolf: "🐺",
+  avatar_pixel_dragon: "🐉", avatar_star_panda: "🐼",
+  avatar_diamond_phoenix: "🔥", avatar_golden_unicorn: "🦄",
+  avatar_crystal_lion: "🦁", avatar_royal_eagle: "🦅",
 };
 
 export default function Profile() {
@@ -85,6 +82,12 @@ export default function Profile() {
             <div className="flex items-center justify-center gap-2 mb-1">
               <Star className="w-4 h-4 text-neon-amber" />
               <span className="font-display text-sm font-bold text-foreground">Level {lvl.level}</span>
+              {profile.is_pro && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-neon-amber/20 border border-neon-amber/40 ml-1">
+                  <Crown className="w-3 h-3 text-neon-amber" />
+                  <span className="font-display text-[10px] font-bold text-neon-amber">PRO</span>
+                </span>
+              )}
             </div>
             <p className="font-body text-xs text-muted-foreground mb-1">{user?.email}</p>
             {profile.bio && (
@@ -118,6 +121,12 @@ export default function Profile() {
                 <div className="font-body text-xs text-muted-foreground">Credits</div>
               </div>
             </div>
+
+            {!profile.is_pro && (
+              <Button variant="neon" size="lg" className="w-full mb-3 bg-neon-amber hover:bg-neon-amber/90 text-background" onClick={() => navigate("/pro")}>
+                <Crown className="w-4 h-4" /> Upgrade to Pro
+              </Button>
+            )}
 
             <Button variant="neon-outline" size="lg" className="w-full" onClick={handleLogout}>
               <LogOut className="w-4 h-4" />

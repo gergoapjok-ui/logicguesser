@@ -10,6 +10,8 @@ export interface UserProfile {
   xp: number;
   current_streak: number;
   last_completed_date: string | null;
+  is_pro: boolean;
+  daily_retries_used: number;
 }
 
 interface AuthContextType {
@@ -40,10 +42,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("username, avatar_url, bio, credits, xp, current_streak, last_completed_date")
+      .select("username, avatar_url, bio, credits, xp, current_streak, last_completed_date, is_pro, daily_retries_used")
       .eq("user_id", userId)
       .single();
-    if (data) setProfile(data as UserProfile);
+    if (data) setProfile(data as unknown as UserProfile);
   }, []);
 
   const refreshProfile = useCallback(async () => {
