@@ -13,6 +13,10 @@ import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
+import Friends from "./pages/Friends";
+import Chat from "./pages/Chat";
+import BattleCreate from "./pages/BattleCreate";
+import BattleLobby from "./pages/BattleLobby";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +34,10 @@ const App = () => (
             <Route path="/practice" element={<Practice />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/friends" element={<Friends />} />
+            <Route path="/chat/:friendId" element={<Chat />} />
+            <Route path="/battle/create" element={<BattleCreate />} />
+            <Route path="/battle/:battleId" element={<BattleLobby />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="*" element={<NotFound />} />
