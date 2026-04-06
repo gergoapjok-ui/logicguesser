@@ -14,6 +14,138 @@ export type Database = {
   }
   public: {
     Tables: {
+      battles: {
+        Row: {
+          allow_penalties: boolean
+          created_at: string
+          creator_id: string
+          creator_score: Json | null
+          custom_settings: Json | null
+          finished_at: string | null
+          game_mode: string
+          id: string
+          max_time_seconds: number
+          opponent_id: string | null
+          opponent_score: Json | null
+          penalty_seconds: number
+          point_system: string
+          rounds: number
+          started_at: string | null
+          status: string
+          winner_id: string | null
+        }
+        Insert: {
+          allow_penalties?: boolean
+          created_at?: string
+          creator_id: string
+          creator_score?: Json | null
+          custom_settings?: Json | null
+          finished_at?: string | null
+          game_mode?: string
+          id?: string
+          max_time_seconds?: number
+          opponent_id?: string | null
+          opponent_score?: Json | null
+          penalty_seconds?: number
+          point_system?: string
+          rounds?: number
+          started_at?: string | null
+          status?: string
+          winner_id?: string | null
+        }
+        Update: {
+          allow_penalties?: boolean
+          created_at?: string
+          creator_id?: string
+          creator_score?: Json | null
+          custom_settings?: Json | null
+          finished_at?: string | null
+          game_mode?: string
+          id?: string
+          max_time_seconds?: number
+          opponent_id?: string | null
+          opponent_score?: Json | null
+          penalty_seconds?: number
+          point_system?: string
+          rounds?: number
+          started_at?: string | null
+          status?: string
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
+      challenge_progress: {
+        Row: {
+          created_at: string
+          id: string
+          penalties: number
+          puzzle_date: string
+          puzzle_id: string
+          task_number: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          penalties?: number
+          puzzle_date?: string
+          puzzle_id: string
+          task_number: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          penalties?: number
+          puzzle_date?: string
+          puzzle_id?: string
+          task_number?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_progress_puzzle_id_fkey"
+            columns: ["puzzle_id"]
+            isOneToOne: false
+            referencedRelation: "puzzles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_progress_puzzle_id_fkey"
+            columns: ["puzzle_id"]
+            isOneToOne: false
+            referencedRelation: "puzzles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: Database["public"]["Enums"]["friend_status"]
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: Database["public"]["Enums"]["friend_status"]
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: Database["public"]["Enums"]["friend_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leaderboard: {
         Row: {
           completed_date: string
@@ -55,6 +187,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      messages: {
+        Row: {
+          battle_invite_id: string | null
+          content: string
+          created_at: string
+          id: string
+          message_type: string
+          read_at: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          battle_invite_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          read_at?: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          battle_invite_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          read_at?: string | null
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -106,6 +271,7 @@ export type Database = {
           id: string
           puzzle_date: string
           question: string
+          task_number: number
         }
         Insert: {
           answer: string
@@ -114,6 +280,7 @@ export type Database = {
           id?: string
           puzzle_date: string
           question: string
+          task_number?: number
         }
         Update: {
           answer?: string
@@ -122,6 +289,7 @@ export type Database = {
           id?: string
           puzzle_date?: string
           question?: string
+          task_number?: number
         }
         Relationships: []
       }
@@ -182,6 +350,7 @@ export type Database = {
           id: string | null
           puzzle_date: string | null
           question: string | null
+          task_number: number | null
         }
         Insert: {
           created_at?: string | null
@@ -189,6 +358,7 @@ export type Database = {
           id?: string | null
           puzzle_date?: string | null
           question?: string | null
+          task_number?: number | null
         }
         Update: {
           created_at?: string | null
@@ -196,6 +366,7 @@ export type Database = {
           id?: string | null
           puzzle_date?: string | null
           question?: string | null
+          task_number?: number | null
         }
         Relationships: []
       }
@@ -207,7 +378,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      friend_status: "pending" | "accepted" | "rejected" | "blocked"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -334,6 +505,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      friend_status: ["pending", "accepted", "rejected", "blocked"],
+    },
   },
 } as const
