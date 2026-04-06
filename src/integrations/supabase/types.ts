@@ -17,16 +17,22 @@ export type Database = {
       battles: {
         Row: {
           allow_penalties: boolean
+          battle_puzzles: Json | null
           created_at: string
+          creator_answers: Json | null
           creator_id: string
           creator_score: Json | null
+          creator_time: number | null
+          current_round: number | null
           custom_settings: Json | null
           finished_at: string | null
           game_mode: string
           id: string
           max_time_seconds: number
+          opponent_answers: Json | null
           opponent_id: string | null
           opponent_score: Json | null
+          opponent_time: number | null
           penalty_seconds: number
           point_system: string
           rounds: number
@@ -36,16 +42,22 @@ export type Database = {
         }
         Insert: {
           allow_penalties?: boolean
+          battle_puzzles?: Json | null
           created_at?: string
+          creator_answers?: Json | null
           creator_id: string
           creator_score?: Json | null
+          creator_time?: number | null
+          current_round?: number | null
           custom_settings?: Json | null
           finished_at?: string | null
           game_mode?: string
           id?: string
           max_time_seconds?: number
+          opponent_answers?: Json | null
           opponent_id?: string | null
           opponent_score?: Json | null
+          opponent_time?: number | null
           penalty_seconds?: number
           point_system?: string
           rounds?: number
@@ -55,16 +67,22 @@ export type Database = {
         }
         Update: {
           allow_penalties?: boolean
+          battle_puzzles?: Json | null
           created_at?: string
+          creator_answers?: Json | null
           creator_id?: string
           creator_score?: Json | null
+          creator_time?: number | null
+          current_round?: number | null
           custom_settings?: Json | null
           finished_at?: string | null
           game_mode?: string
           id?: string
           max_time_seconds?: number
+          opponent_answers?: Json | null
           opponent_id?: string | null
           opponent_score?: Json | null
+          opponent_time?: number | null
           penalty_seconds?: number
           point_system?: string
           rounds?: number
