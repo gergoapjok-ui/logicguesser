@@ -41,18 +41,11 @@ export default function Leaderboard() {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       const today = new Date().toISOString().split("T")[0];
-      const { data: puzzle } = await supabase
-        .from("puzzles")
-        .select("id")
-        .eq("puzzle_date", today)
-        .single();
-
-      if (!puzzle) { setPuzzleExists(false); setLoading(false); return; }
 
       const { data } = await supabase
         .from("leaderboard")
         .select("id, time_taken, user_id")
-        .eq("puzzle_id", puzzle.id)
+        .eq("completed_date", today)
         .order("time_taken", { ascending: true })
         .limit(10);
 
