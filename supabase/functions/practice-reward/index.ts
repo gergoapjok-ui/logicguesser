@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
 
     const { data: prof } = await adminClient
       .from("profiles")
-      .select("credits, xp")
+      .select("credits, xp, is_pro")
       .eq("user_id", user.id)
       .single();
 
@@ -51,9 +51,12 @@ Deno.serve(async (req) => {
       });
     }
 
+    const creditReward = prof.is_pro ? 10 : 5;
+    const xpReward = 10;
+
     await adminClient
       .from("profiles")
-      .update({ credits: prof.credits + 5, xp: prof.xp + 10 })
+      .update({ credits: prof.credits + creditReward, xp: prof.xp + xpReward })
       .eq("user_id", user.id);
 
     return new Response(
