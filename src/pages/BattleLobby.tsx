@@ -42,6 +42,8 @@ interface Battle {
   opponent_score: any;
   creator_answers: any[];
   opponent_answers: any[];
+  realtime_mode: boolean;
+  current_round: number;
 }
 
 export default function BattleLobby() {
@@ -134,9 +136,15 @@ export default function BattleLobby() {
         if (updated.status === "playing" && updated.battle_puzzles?.length > 0 && puzzles.length === 0) {
           const bp = updated.battle_puzzles;
           setPuzzles(bp.map((p: any, i: number) => ({ round: i + 1, question: p.question })));
-          setCurrentRound(1);
+          setCurrentRound(updated.current_round || 1);
           setElapsed(0);
           setRunning(true);
+        }
+
+        // Real-time mode: sync current_round from server (advances when someone answers correctly)
+        if (updated.realtime_mode && updated.status === "playing" && updated.current_round) {
+          setCurrentRound(updated.current_round);
+          setElapsed(0); // Reset timer for new round
         }
 
         // Sync scores from realtime for the current user
@@ -145,10 +153,18 @@ export default function BattleLobby() {
           const myAnswersArr = isMe ? updated.creator_answers : updated.opponent_answers;
           const myScoreObj = isMe ? updated.creator_score : updated.opponent_score;
           if (myScoreObj) setMyScore(myScoreObj);
-          if (myAnswersArr && updated.battle_puzzles && myAnswersArr.length >= updated.battle_puzzles.length) {
-            setPlayerDone(true);
-            setRunning(false);
+
+          if (!updated.realtime_mode) {
+            if (myAnswersArr && updated.battle_puzzles && myAnswersArr.length >= updated.battle_puzzles.length) {
+              setPlayerDone(true);
+              setRunning(false);
+            }
           }
+        }
+
+        if (updated.status === "finished") {
+          setRunning(false);
+          setPlayerDone(true);
         }
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -169,7 +185,8 @@ export default function BattleLobby() {
   const startBattle = async () => {
     if (!battle || !user) return;
     setStarting(true);
-    const { data, error } = await supabase.functions.invoke("battle-start", {
+    const fnName = battle.realtime_mode ? "battle-start-realtime" : "battle-start";
+    const { data, error } = await supabase.functions.invoke(fnName, {
       body: { battle_id: battle.id },
     });
     if (error || !data?.success) {
@@ -189,7 +206,8 @@ export default function BattleLobby() {
     if (!battle || !user || submitting || !answer.trim()) return;
     setSubmitting(true);
 
-    const { data, error } = await supabase.functions.invoke("battle-answer", {
+    const fnName = battle.realtime_mode ? "battle-answer-realtime" : "battle-answer";
+    const { data, error } = await supabase.functions.invoke(fnName, {
       body: { battle_id: battle.id, round: currentRound, answer: answer.trim(), elapsed },
     });
     setSubmitting(false);
@@ -206,18 +224,29 @@ export default function BattleLobby() {
     setMyScore(data.score);
     setAnswer("");
 
-    if (data.player_done) {
-      setRunning(false);
-      setPlayerDone(true);
+    if (battle.realtime_mode) {
+      // Real-time mode: round advances for both players via realtime subscription
+      toast.success(`Round ${currentRound} — you got it first! 🏆`);
       if (data.battle_finished) {
+        setRunning(false);
+        setPlayerDone(true);
         toast.success("Battle finished!");
-      } else {
-        toast.success("You're done! Waiting for opponent...");
       }
+      // current_round will update via realtime subscription
     } else {
-      toast.success(`Round ${currentRound} correct!`);
-      setCurrentRound(r => r + 1);
-      setElapsed(0);
+      if (data.player_done) {
+        setRunning(false);
+        setPlayerDone(true);
+        if (data.battle_finished) {
+          toast.success("Battle finished!");
+        } else {
+          toast.success("You're done! Waiting for opponent...");
+        }
+      } else {
+        toast.success(`Round ${currentRound} correct!`);
+        setCurrentRound(r => r + 1);
+        setElapsed(0);
+      }
     }
   }, [battle, user, submitting, answer, currentRound, elapsed]);
 

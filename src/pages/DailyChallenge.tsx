@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Timer, Send, CheckCircle2, Clock, Loader2, AlertTriangle, Flame, XCircle, RotateCcw, Crown } from "lucide-react";
+import { Timer, Send, CheckCircle2, Clock, Loader2, AlertTriangle, Flame, XCircle, RotateCcw, Crown, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -48,8 +48,14 @@ export default function DailyChallenge() {
   const [earnedCredits, setEarnedCredits] = useState<number | null>(null);
   const [wrongFlash, setWrongFlash] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [creditRestarting, setCreditRestarting] = useState(false);
 
+  // Determine credit restart cost
+  const today = new Date();
+  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+  const isDiscountDay = dayOfYear % 4 === 0;
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const restartCost = isDiscountDay ? 1000 : 10000;
 
   useEffect(() => {
     if (authLoading) return;
@@ -178,6 +184,28 @@ export default function DailyChallenge() {
 
   const retriesUsed = profile?.daily_retries_used ?? 0;
   const canRetry = isPro && retriesUsed < 3;
+  const canCreditRestart = (profile?.credits ?? 0) >= restartCost;
+
+  const handleCreditRestart = async () => {
+    setCreditRestarting(true);
+    const { data, error } = await supabase.functions.invoke("daily-restart-credits");
+    if (error || !data?.success) {
+      toast.error(data?.error || "Failed to restart");
+      setCreditRestarting(false);
+      return;
+    }
+    toast.success(`Restarted for ${data.cost} credits!`);
+    setAlreadyCompleted(false);
+    setCompletedTime(null);
+    setCurrentTaskIndex(0);
+    setAllDone(false);
+    setStarted(false);
+    setElapsed(0);
+    setPenalties(0);
+    setEarnedCredits(null);
+    await refreshProfile();
+    setCreditRestarting(false);
+  };
 
   return (
     <div className="min-h-screen bg-background grid-pattern">
@@ -215,7 +243,18 @@ export default function DailyChallenge() {
                   </div>
                 )}
 
-                {!canRetry && (
+                {/* Credit-based restart (available to everyone) */}
+                {canCreditRestart && (
+                  <div className="mb-4">
+                    <Button variant="neon-outline" onClick={handleCreditRestart} disabled={creditRestarting} className="gap-2">
+                      {creditRestarting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Coins className="w-4 h-4" />}
+                      Restart for {restartCost.toLocaleString()} Credits
+                      {isDiscountDay && <span className="text-xs text-primary">(Discount day!)</span>}
+                    </Button>
+                  </div>
+                )}
+
+                {!canRetry && !canCreditRestart && (
                   <p className="font-body text-muted-foreground text-sm mb-4">
                     {isPro && retriesUsed >= 3 ? "All retries used today." : "Come back tomorrow for a new challenge!"}
                     {!isPro && (

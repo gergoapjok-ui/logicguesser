@@ -33,6 +33,7 @@ export default function BattleCreate() {
   const [pointSystem, setPointSystem] = useState("speed");
   const [allowPenalties, setAllowPenalties] = useState(true);
   const [penaltySeconds, setPenaltySeconds] = useState(5);
+  const [realtimeMode, setRealtimeMode] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const handleCreate = async () => {
@@ -48,6 +49,7 @@ export default function BattleCreate() {
       point_system: pointSystem,
       allow_penalties: allowPenalties,
       penalty_seconds: penaltySeconds,
+      realtime_mode: realtimeMode,
       status: "pending",
     }).select("id").single();
 
@@ -174,6 +176,20 @@ export default function BattleCreate() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Real-Time Mode */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-display text-sm font-bold text-foreground uppercase tracking-wider">⚡ Real-Time Mode</p>
+                <p className="font-body text-xs text-muted-foreground">Both players see the same question — fastest correct answer wins the round</p>
+              </div>
+              <button
+                onClick={() => setRealtimeMode(!realtimeMode)}
+                className={`w-12 h-6 rounded-full transition-colors ${realtimeMode ? "bg-primary" : "bg-secondary"}`}
+              >
+                <div className={`w-5 h-5 rounded-full bg-background transition-transform ${realtimeMode ? "translate-x-6" : "translate-x-0.5"}`} />
+              </button>
             </div>
 
             {/* Penalties */}
