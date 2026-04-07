@@ -252,8 +252,9 @@ export default function DailyChallenge() {
                       {isDiscountDay && <span className="text-xs text-primary">(Discount day!)</span>}
                     </Button>
                   </div>
+                )}
 
-                {!canRetry && (
+                {!canRetry && !canCreditRestart && (
                   <p className="font-body text-muted-foreground text-sm mb-4">
                     {isPro && retriesUsed >= 3 ? "All retries used today." : "Come back tomorrow for a new challenge!"}
                     {!isPro && (
