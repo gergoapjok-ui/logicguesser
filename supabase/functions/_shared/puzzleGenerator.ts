@@ -5,6 +5,8 @@ export interface ServerPuzzle {
   answer: string;
 }
 
+function gcd(a: number, b: number): number { return b === 0 ? a : gcd(b, a % b); }
+
 function mathBasic(): ServerPuzzle {
   const a = Math.floor(Math.random() * 20) + 2;
   const b = Math.floor(Math.random() * 15) + 2;
@@ -64,6 +66,41 @@ function mathEquation(): ServerPuzzle {
   return { question: `Solve for x: ${a}x + ${b - a * x} = ${b}`, answer: String(x) };
 }
 
+function mathQuadratic(): ServerPuzzle {
+  const a = Math.floor(Math.random() * 8) + 1;
+  const b = a + Math.floor(Math.random() * 6) + 1;
+  return { question: `x² − ${a + b}x + ${a * b} = 0. What is the larger root?`, answer: String(b) };
+}
+
+function mathLogarithm(): ServerPuzzle {
+  const pairs: [number, number, number][] = [
+    [2, 8, 3], [2, 16, 4], [2, 32, 5], [3, 9, 2], [3, 27, 3], [5, 25, 2], [10, 100, 2], [10, 1000, 3],
+  ];
+  const [base, val, ans] = pairs[Math.floor(Math.random() * pairs.length)];
+  return { question: `What is log base ${base} of ${val}?`, answer: String(ans) };
+}
+
+function mathFactorial(): ServerPuzzle {
+  const n = Math.floor(Math.random() * 6) + 3;
+  let f = 1;
+  for (let i = 2; i <= n; i++) f *= i;
+  return { question: `What is ${n}! (${n} factorial)?`, answer: String(f) };
+}
+
+function mathGCD(): ServerPuzzle {
+  const a = Math.floor(Math.random() * 80) + 12;
+  const b = Math.floor(Math.random() * 60) + 8;
+  return { question: `What is the GCD of ${a} and ${b}?`, answer: String(gcd(a, b)) };
+}
+
+function mathChainedOps(): ServerPuzzle {
+  const a = Math.floor(Math.random() * 12) + 2;
+  const b = Math.floor(Math.random() * 8) + 2;
+  const c = Math.floor(Math.random() * 6) + 1;
+  const d = Math.floor(Math.random() * 10) + 1;
+  return { question: `What is (${a} × ${b} + ${c}) × ${d}?`, answer: String((a * b + c) * d) };
+}
+
 function patternArithmetic(): ServerPuzzle {
   const start = Math.floor(Math.random() * 10) + 1;
   const diff = Math.floor(Math.random() * 8) + 2;
@@ -98,6 +135,19 @@ function patternPrimes(): ServerPuzzle {
   return { question: `What comes next: ${seq.join(", ")}, ...?`, answer: String(primes[start + 5]) };
 }
 
+function patternCubes(): ServerPuzzle {
+  const offset = Math.floor(Math.random() * 3);
+  const seq = Array.from({ length: 4 }, (_, i) => (i + 1 + offset) ** 3);
+  return { question: `What comes next: ${seq.join(", ")}, ...?`, answer: String((5 + offset) ** 3) };
+}
+
+function patternDoubleStep(): ServerPuzzle {
+  const start = Math.floor(Math.random() * 4) + 1;
+  const seq = [start];
+  for (let i = 1; i < 5; i++) seq.push(seq[i - 1] * 2 + 1);
+  return { question: `What comes next: ${seq.join(", ")}, ...?`, answer: String(seq[4] * 2 + 1) };
+}
+
 const logicTricks: ServerPuzzle[] = [
   { question: "How many months have 28 days?", answer: "12" },
   { question: "If there are 6 apples and you take away 4, how many do you have?", answer: "4" },
@@ -109,14 +159,77 @@ const logicTricks: ServerPuzzle[] = [
   { question: "If two's company and three's a crowd, what are four and five?", answer: "9" },
   { question: "Tom's father has three sons: Snap, Crackle, and ___?", answer: "tom" },
   { question: "I am an odd number. Take away a letter and I become even. What number am I?", answer: "seven" },
+  { question: "I have 6 eggs. I broke 2, cooked 2, and ate 2. How many eggs do I have left?", answer: "4" },
+  { question: "What starts with 'e', ends with 'e', and only has one letter?", answer: "envelope" },
+  { question: "If you're running a race and pass the person in 2nd place, what place are you in?", answer: "2" },
+  { question: "What occurs once in a minute, twice in a moment, but never in a thousand years?", answer: "m" },
+  { question: "Forward I'm heavy, backward I'm not. What am I?", answer: "ton" },
+  { question: "What 5-letter word becomes shorter when you add 2 letters?", answer: "short" },
+  { question: "What has 4 fingers and a thumb but isn't alive?", answer: "glove" },
+  { question: "What has a head and a tail but no body?", answer: "coin" },
+  { question: "What invention lets you look through a wall?", answer: "window" },
+  { question: "What is full of holes but still holds water?", answer: "sponge" },
 ];
+
+function logicDeduction(): ServerPuzzle {
+  const puzzles: [string, string][] = [
+    ["Alice is taller than Bob. Bob is taller than Carol. Who is the shortest?", "carol"],
+    ["If all Bloops are Razzies and all Razzies are Lazzies, are all Bloops Lazzies?", "yes"],
+    ["I have a brother. My brother has a brother. But I have no brothers other than him. What am I?", "sister"],
+  ];
+  const [q, a] = puzzles[Math.floor(Math.random() * puzzles.length)];
+  return { question: q, answer: a };
+}
+
+function wordAnagram(): ServerPuzzle {
+  const words: [string, string][] = [
+    ["LISTEN", "SILENT"], ["EARTH", "HEART"], ["NIGHT", "THING"],
+    ["TASTE", "STATE"], ["BELOW", "ELBOW"], ["STUDY", "DUSTY"],
+    ["FIRED", "FRIED"], ["PEARS", "SPARE"], ["STREAM", "MASTER"],
+    ["DANGER", "GARDEN"], ["LEMONS", "MELONS"], ["RESCUE", "SECURE"],
+    ["DRAWER", "REWARD"], ["OPTION", "POTION"],
+  ];
+  const [scrambled, answer] = words[Math.floor(Math.random() * words.length)];
+  return { question: `Unscramble this word: ${scrambled}`, answer };
+}
+
+function wordRiddle(): ServerPuzzle {
+  const riddles: [string, string][] = [
+    ["I have cities but no houses, forests but no trees. What am I?", "map"],
+    ["The more you take, the more you leave behind. What am I?", "footsteps"],
+    ["What has keys but no locks?", "piano"],
+    ["What gets wetter the more it dries?", "towel"],
+    ["What has hands but can't clap?", "clock"],
+    ["What has teeth but cannot bite?", "comb"],
+    ["What building has the most stories?", "library"],
+    ["I'm not alive, but I grow. I don't have lungs, but I need air. What am I?", "fire"],
+    ["What has a head and a tail but no body?", "coin"],
+    ["What is full of holes but still holds water?", "sponge"],
+  ];
+  const [q, a] = riddles[Math.floor(Math.random() * riddles.length)];
+  return { question: q, answer: a };
+}
+
+function wordCompound(): ServerPuzzle {
+  const compounds: [string, string, string][] = [
+    ["sun", "flower", "sunflower"], ["rain", "bow", "rainbow"],
+    ["fire", "fly", "firefly"], ["book", "worm", "bookworm"],
+    ["star", "fish", "starfish"], ["butter", "fly", "butterfly"],
+    ["water", "fall", "waterfall"], ["snow", "flake", "snowflake"],
+  ];
+  const [a, b, ans] = compounds[Math.floor(Math.random() * compounds.length)];
+  return { question: `Combine these to make one word: "${a}" + "${b}" = ?`, answer: ans };
+}
 
 export function generateServerPuzzle(): ServerPuzzle {
   const generators = [
     mathBasic, mathHard, mathMissingOp, mathPercentage, mathSqrt, mathPower,
-    mathModulo, mathEquation, patternArithmetic, patternGeometric,
-    patternFibLike, patternSquares, patternPrimes,
+    mathModulo, mathEquation, mathQuadratic, mathLogarithm, mathFactorial,
+    mathGCD, mathChainedOps,
+    patternArithmetic, patternGeometric, patternFibLike, patternSquares,
+    patternPrimes, patternCubes, patternDoubleStep,
     () => logicTricks[Math.floor(Math.random() * logicTricks.length)],
+    logicDeduction, wordAnagram, wordRiddle, wordCompound,
   ];
   return generators[Math.floor(Math.random() * generators.length)]();
 }
