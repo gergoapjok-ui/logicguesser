@@ -132,19 +132,28 @@ export default function BattleLobby() {
         const updated = payload.new as Battle;
         setBattle(updated);
 
-        // If battle just started and we don't have puzzles yet, load them
-        if (updated.status === "playing" && updated.battle_puzzles?.length > 0 && puzzles.length === 0) {
-          const bp = updated.battle_puzzles;
-          setPuzzles(bp.map((p: any, i: number) => ({ round: i + 1, question: p.question })));
-          setCurrentRound(updated.current_round || 1);
-          setElapsed(0);
-          setRunning(true);
+        // If battle just started, load puzzles for all players (including non-starter)
+        if (updated.status === "playing" && updated.battle_puzzles?.length > 0) {
+          setPuzzles(prev => {
+            if (prev.length > 0) return prev; // already have puzzles
+            const bp = updated.battle_puzzles;
+            setCurrentRound(updated.current_round || 1);
+            setElapsed(0);
+            setRunning(true);
+            return bp.map((p: any, i: number) => ({ round: i + 1, question: p.question }));
+          });
         }
 
         // Real-time mode: sync current_round from server (advances when someone answers correctly)
         if (updated.realtime_mode && updated.status === "playing" && updated.current_round) {
-          setCurrentRound(updated.current_round);
-          setElapsed(0); // Reset timer for new round
+          setCurrentRound(prev => {
+            if (updated.current_round! > prev) {
+              setElapsed(0); // Reset timer for new round
+              setAnswer("");
+              return updated.current_round!;
+            }
+            return prev;
+          });
         }
 
         // Sync scores from realtime for the current user
@@ -166,9 +175,14 @@ export default function BattleLobby() {
           setRunning(false);
           setPlayerDone(true);
         }
+
+        // Handle status transitions that the non-starter needs to see
+        if (updated.status === "accepted" || updated.status === "declined") {
+          // Force re-render with new status
+        }
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [battleId, puzzles.length, user?.id]);
+  }, [battleId, user?.id]);
 
   const acceptBattle = async () => {
     if (!battle || !user) return;
