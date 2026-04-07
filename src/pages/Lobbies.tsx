@@ -137,19 +137,24 @@ export default function Lobbies() {
   // Active lobby realtime
   useEffect(() => {
     if (!activeLobby) return;
-    const channel = supabase.channel(`lobby-${activeLobby.id}`)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "lobbies", filter: `id=eq.${activeLobby.id}` }, (payload) => {
+    const lobbyId = activeLobby.id;
+    const channel = supabase.channel(`lobby-${lobbyId}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "lobbies", filter: `id=eq.${lobbyId}` }, (payload) => {
         const updated = payload.new as Lobby;
         setActiveLobby(updated);
-        if (updated.status === "playing" && updated.lobby_puzzles?.length > 0 && puzzles.length === 0) {
-          setPuzzles(updated.lobby_puzzles.map((p: any, i: number) => ({ round: i + 1, question: p.question })));
-          setCurrentRound(1);
-          setElapsed(0);
-          setRunning(true);
+        // When lobby transitions to playing, load puzzles for all players
+        if (updated.status === "playing" && updated.lobby_puzzles?.length > 0) {
+          setPuzzles(prev => {
+            if (prev.length > 0) return prev; // already loaded
+            setCurrentRound(1);
+            setElapsed(0);
+            setRunning(true);
+            return updated.lobby_puzzles.map((p: any, i: number) => ({ round: i + 1, question: p.question }));
+          });
         }
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "lobby_participants", filter: `lobby_id=eq.${activeLobby.id}` }, async () => {
-        const { data } = await supabase.from("lobby_participants" as any).select("*").eq("lobby_id", activeLobby.id);
+      .on("postgres_changes", { event: "*", schema: "public", table: "lobby_participants", filter: `lobby_id=eq.${lobbyId}` }, async () => {
+        const { data } = await supabase.from("lobby_participants" as any).select("*").eq("lobby_id", lobbyId);
         if (data) {
           setParticipants(data as any);
           fetchParticipantNames(data as any);
@@ -158,15 +163,26 @@ export default function Lobbies() {
       .subscribe();
 
     // Fetch participants
-    supabase.from("lobby_participants" as any).select("*").eq("lobby_id", activeLobby.id).then(({ data }) => {
+    supabase.from("lobby_participants" as any).select("*").eq("lobby_id", lobbyId).then(({ data }) => {
       if (data) {
         setParticipants(data as any);
         fetchParticipantNames(data as any);
       }
     });
 
+    // If lobby is already playing (e.g. creator just started it), load puzzles
+    if (activeLobby.status === "playing" && activeLobby.lobby_puzzles?.length > 0) {
+      setPuzzles(prev => {
+        if (prev.length > 0) return prev;
+        setCurrentRound(1);
+        setElapsed(0);
+        setRunning(true);
+        return activeLobby.lobby_puzzles.map((p: any, i: number) => ({ round: i + 1, question: p.question }));
+      });
+    }
+
     return () => { supabase.removeChannel(channel); };
-  }, [activeLobby?.id, puzzles.length]);
+  }, [activeLobby?.id]);
 
   const handleCreate = async () => {
     setCreating(true);
@@ -212,10 +228,15 @@ export default function Lobbies() {
       toast.error(data?.error || "Failed to start");
       return;
     }
+    // Puzzles will be loaded via the realtime subscription when status changes to "playing"
+    // But also set them immediately for the creator so there's no delay
     setPuzzles(data.puzzles);
     setCurrentRound(1);
     setElapsed(0);
     setRunning(true);
+    // Re-fetch the lobby to get updated status
+    const { data: updatedLobby } = await supabase.from("lobbies" as any).select("*").eq("id", activeLobby.id).single();
+    if (updatedLobby) setActiveLobby(updatedLobby as any);
   };
 
   const handleSubmitAnswer = useCallback(async (e: React.FormEvent) => {
