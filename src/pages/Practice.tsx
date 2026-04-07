@@ -9,42 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-
-type Category = "math" | "logic" | "patterns";
-
-interface Puzzle { question: string; answer: string; }
-
-function generatePuzzle(category?: Category): Puzzle {
-  const cat = category ?? (["math", "logic", "patterns"] as const)[Math.floor(Math.random() * 3)];
-  if (cat === "math") {
-    const a = Math.floor(Math.random() * 20) + 2;
-    const b = Math.floor(Math.random() * 15) + 2;
-    const c = Math.floor(Math.random() * 30) + 1;
-    const ops = ["+", "-"] as const;
-    const op = ops[Math.floor(Math.random() * ops.length)];
-    const result = op === "+" ? a * b + c : a * b - c;
-    return { question: `What is ${a} × ${b} ${op} ${c}?`, answer: String(result) };
-  }
-  if (cat === "patterns") {
-    if (Math.random() < 0.5) {
-      const start = Math.floor(Math.random() * 10) + 1;
-      const diff = Math.floor(Math.random() * 8) + 2;
-      const seq = Array.from({ length: 4 }, (_, i) => start + diff * i);
-      return { question: `What comes next: ${seq.join(", ")}, ...?`, answer: String(start + diff * 4) };
-    } else {
-      const base = Math.floor(Math.random() * 4) + 2;
-      const seq = Array.from({ length: 4 }, (_, i) => base ** (i + 1));
-      return { question: `What comes next: ${seq.join(", ")}, ...?`, answer: String(base ** 5) };
-    }
-  }
-  const tricks: Puzzle[] = [
-    { question: "How many months have 28 days?", answer: "12" },
-    { question: "If there are 6 apples and you take away 4, how many do you have?", answer: "4" },
-    { question: "How many letters are in 'the alphabet'?", answer: "11" },
-    { question: "If you divide 30 by half and add 10, what do you get?", answer: "70" },
-  ];
-  return tricks[Math.floor(Math.random() * tricks.length)];
-}
+import { generatePuzzle, type PuzzleCategory, type Puzzle } from "@/lib/puzzleGenerator";
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -55,7 +20,7 @@ function formatTime(seconds: number) {
 export default function Practice() {
   const { user, profile, refreshProfile } = useAuth();
   const isPro = profile?.is_pro ?? false;
-  const [category, setCategory] = useState<Category | undefined>(undefined);
+  const [category, setCategory] = useState<PuzzleCategory | undefined>(undefined);
   const [puzzle, setPuzzle] = useState<Puzzle>(() => generatePuzzle());
   const [answer, setAnswer] = useState("");
   const [elapsed, setElapsed] = useState(0);
@@ -71,9 +36,9 @@ export default function Practice() {
   }, [running]);
 
   const handleCategoryChange = (val: string) => {
-    const cat = val as Category | undefined;
-    setCategory(cat || undefined);
-    setPuzzle(generatePuzzle(cat || undefined));
+    const cat = (val || undefined) as PuzzleCategory | undefined;
+    setCategory(cat);
+    setPuzzle(generatePuzzle(cat));
     setAnswer(""); setElapsed(0); setSolved(false); setRunning(true);
   };
 
@@ -131,8 +96,8 @@ export default function Practice() {
 
               <div className="flex justify-center mb-6">
                 <ToggleGroup type="single" value={category ?? ""} onValueChange={handleCategoryChange}
-                  className="bg-secondary/50 rounded-lg p-1 border border-border/30">
-                  {["", "math", "logic", "patterns"].map(v => (
+                  className="bg-secondary/50 rounded-lg p-1 border border-border/30 flex-wrap">
+                  {(["", "math", "logic", "patterns", "visual", "word"] as const).map(v => (
                     <ToggleGroupItem key={v} value={v}
                       className="font-body text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md px-3">
                       {v === "" ? "All" : v.charAt(0).toUpperCase() + v.slice(1)}
@@ -155,8 +120,19 @@ export default function Practice() {
                 </div>
               ) : (
                 <>
+                  {puzzle.visual && (
+                    <div className="mb-4 flex justify-center">
+                      <div
+                        className="rounded-xl overflow-hidden border border-border/30 max-w-[300px] w-full"
+                        dangerouslySetInnerHTML={{ __html: puzzle.visual }}
+                      />
+                    </div>
+                  )}
                   <div className="bg-secondary/50 rounded-xl p-6 mb-6 border border-border/30">
-                    <Brain className="w-5 h-5 text-neon-purple mb-2" />
+                    <div className="flex items-center gap-2 mb-2">
+                      <Brain className="w-5 h-5 text-neon-purple" />
+                      <span className="text-xs font-body text-muted-foreground uppercase tracking-wider">{puzzle.category}</span>
+                    </div>
                     <p className="font-body text-foreground text-lg leading-relaxed">{puzzle.question}</p>
                   </div>
                   <form onSubmit={handleSubmit} className="flex gap-3">
