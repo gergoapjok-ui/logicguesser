@@ -136,9 +136,15 @@ export default function BattleLobby() {
         if (updated.status === "playing" && updated.battle_puzzles?.length > 0 && puzzles.length === 0) {
           const bp = updated.battle_puzzles;
           setPuzzles(bp.map((p: any, i: number) => ({ round: i + 1, question: p.question })));
-          setCurrentRound(1);
+          setCurrentRound(updated.current_round || 1);
           setElapsed(0);
           setRunning(true);
+        }
+
+        // Real-time mode: sync current_round from server (advances when someone answers correctly)
+        if (updated.realtime_mode && updated.status === "playing" && updated.current_round) {
+          setCurrentRound(updated.current_round);
+          setElapsed(0); // Reset timer for new round
         }
 
         // Sync scores from realtime for the current user
@@ -147,10 +153,18 @@ export default function BattleLobby() {
           const myAnswersArr = isMe ? updated.creator_answers : updated.opponent_answers;
           const myScoreObj = isMe ? updated.creator_score : updated.opponent_score;
           if (myScoreObj) setMyScore(myScoreObj);
-          if (myAnswersArr && updated.battle_puzzles && myAnswersArr.length >= updated.battle_puzzles.length) {
-            setPlayerDone(true);
-            setRunning(false);
+
+          if (!updated.realtime_mode) {
+            if (myAnswersArr && updated.battle_puzzles && myAnswersArr.length >= updated.battle_puzzles.length) {
+              setPlayerDone(true);
+              setRunning(false);
+            }
           }
+        }
+
+        if (updated.status === "finished") {
+          setRunning(false);
+          setPlayerDone(true);
         }
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
