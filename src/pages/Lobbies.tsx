@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, Crown, Loader2, Plus, Swords, Clock, Target, Zap, Shield,
-  Send, Timer, CheckCircle2, XCircle, Trophy,
+  Send, Timer, CheckCircle2, XCircle, Trophy, Radio, FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,11 +60,13 @@ export default function Lobbies() {
   const [rounds, setRounds] = useState(5);
   const [maxTime, setMaxTime] = useState(300);
   const [pointSystem, setPointSystem] = useState("speed");
+  const [battleMode, setBattleMode] = useState<"realtime" | "async">("async");
   const [creating, setCreating] = useState(false);
 
   // Active lobby state
   const [activeLobby, setActiveLobby] = useState<Lobby | null>(null);
   const [participants, setParticipants] = useState<any[]>([]);
+  const [participantNames, setParticipantNames] = useState<Record<string, { username: string; avatar_url: string | null }>>({});
   const [puzzles, setPuzzles] = useState<{ round: number; question: string }[]>([]);
   const [currentRound, setCurrentRound] = useState(1);
   const [answer, setAnswer] = useState("");
@@ -75,6 +77,8 @@ export default function Lobbies() {
   const [myScore, setMyScore] = useState({ correct: 0, penalties: 0, total_time: 0 });
   const [wrongFlash, setWrongFlash] = useState(false);
   const [joiningId, setJoiningId] = useState<string | null>(null);
+  // Track usernames for lobby list creators
+  const [creatorNames, setCreatorNames] = useState<Record<string, string>>({});
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -86,8 +90,20 @@ export default function Lobbies() {
 
   const fetchLobbies = async () => {
     const { data } = await supabase.from("lobbies" as any).select("*").in("status", ["waiting", "playing"]).order("created_at", { ascending: false }).limit(20);
-    setLobbies((data as any) ?? []);
+    const lobbyList = (data as any) ?? [];
+    setLobbies(lobbyList);
     setLoading(false);
+
+    // Fetch creator usernames
+    const creatorIds = [...new Set(lobbyList.map((l: any) => l.creator_id))];
+    if (creatorIds.length > 0) {
+      const { data: profiles } = await supabase.from("profiles_public" as any).select("user_id, username").in("user_id", creatorIds);
+      if (profiles) {
+        const map: Record<string, string> = {};
+        (profiles as any[]).forEach(p => { map[p.user_id] = p.username || "Anonymous"; });
+        setCreatorNames(map);
+      }
+    }
   };
 
   // Realtime for lobbies list
@@ -106,6 +122,18 @@ export default function Lobbies() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [running]);
 
+  // Fetch participant usernames
+  const fetchParticipantNames = async (parts: any[]) => {
+    const userIds = parts.map(p => p.user_id);
+    if (userIds.length === 0) return;
+    const { data } = await supabase.from("profiles_public" as any).select("user_id, username, avatar_url").in("user_id", userIds);
+    if (data) {
+      const map: Record<string, { username: string; avatar_url: string | null }> = {};
+      (data as any[]).forEach(p => { map[p.user_id] = { username: p.username || "Anonymous", avatar_url: p.avatar_url }; });
+      setParticipantNames(map);
+    }
+  };
+
   // Active lobby realtime
   useEffect(() => {
     if (!activeLobby) return;
@@ -122,13 +150,19 @@ export default function Lobbies() {
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "lobby_participants", filter: `lobby_id=eq.${activeLobby.id}` }, async () => {
         const { data } = await supabase.from("lobby_participants" as any).select("*").eq("lobby_id", activeLobby.id);
-        if (data) setParticipants(data as any);
+        if (data) {
+          setParticipants(data as any);
+          fetchParticipantNames(data as any);
+        }
       })
       .subscribe();
 
     // Fetch participants
     supabase.from("lobby_participants" as any).select("*").eq("lobby_id", activeLobby.id).then(({ data }) => {
-      if (data) setParticipants(data as any);
+      if (data) {
+        setParticipants(data as any);
+        fetchParticipantNames(data as any);
+      }
     });
 
     return () => { supabase.removeChannel(channel); };
@@ -145,7 +179,6 @@ export default function Lobbies() {
       return;
     }
     toast.success("Lobby created!");
-    // Enter the lobby
     const { data: lobbyData } = await supabase.from("lobbies" as any).select("*").eq("id", data.lobby_id).single();
     setActiveLobby(lobbyData as any);
     setTab("active");
@@ -218,6 +251,16 @@ export default function Lobbies() {
     }
   }, [activeLobby, user, submitting, answer, currentRound, elapsed]);
 
+  const getParticipantName = (userId: string) => {
+    if (userId === user?.id) return "You";
+    return participantNames[userId]?.username || userId.slice(0, 8);
+  };
+
+  const getParticipantAvatar = (userId: string) => {
+    const avatarKey = participantNames[userId]?.avatar_url;
+    return avatarKey ? AVATARS_MAP[avatarKey] || null : null;
+  };
+
   const currentPuzzle = puzzles[currentRound - 1] ?? null;
 
   if (authLoading || loading) {
@@ -270,10 +313,10 @@ export default function Lobbies() {
                   <div>
                     <p className="font-display font-bold text-foreground text-sm">{lobby.name}</p>
                     <div className="flex items-center gap-3 text-xs font-body text-muted-foreground mt-1">
+                      <span>by {creatorNames[lobby.creator_id] || "..."}</span>
                       <span className="capitalize">{lobby.game_mode}</span>
                       <span>{lobby.rounds} rounds</span>
                       <span>{formatTime(lobby.max_time_seconds)}</span>
-                      <span className="capitalize">{lobby.point_system}</span>
                     </div>
                   </div>
                   <Button variant="neon" size="sm" onClick={() => handleJoin(lobby.id)} disabled={joiningId === lobby.id}>
@@ -291,6 +334,25 @@ export default function Lobbies() {
                 <label className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-2 block">Lobby Name</label>
                 <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary/50 border-border/50 font-body" maxLength={50} />
               </div>
+
+              {/* Battle Mode */}
+              <div>
+                <label className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-2 block">Battle Mode</label>
+                <div className="flex gap-2">
+                  <button onClick={() => setBattleMode("realtime")}
+                    className={`flex-1 py-3 px-3 rounded-lg font-display font-bold text-xs border transition-all flex items-center gap-2 justify-center ${battleMode === "realtime" ? "border-primary bg-primary/10 text-primary" : "border-border/50 bg-secondary/30 text-muted-foreground"}`}>
+                    <Radio className="w-3.5 h-3.5" /> Real-Time
+                  </button>
+                  <button onClick={() => setBattleMode("async")}
+                    className={`flex-1 py-3 px-3 rounded-lg font-display font-bold text-xs border transition-all flex items-center gap-2 justify-center ${battleMode === "async" ? "border-primary bg-primary/10 text-primary" : "border-border/50 bg-secondary/30 text-muted-foreground"}`}>
+                    <FileText className="w-3.5 h-3.5" /> At Own Pace
+                  </button>
+                </div>
+                <p className="font-body text-xs text-muted-foreground mt-1">
+                  {battleMode === "realtime" ? "Fastest answer wins each round — both players see results live." : "Each player completes all rounds at their own pace — best total time wins."}
+                </p>
+              </div>
+
               <div>
                 <label className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-2 block">Max Players</label>
                 <div className="flex gap-2">
@@ -331,19 +393,24 @@ export default function Lobbies() {
                   }`}>{activeLobby.status.toUpperCase()}</span>
                 </div>
 
-                {/* Participants */}
+                {/* Participants with usernames */}
                 <div className="space-y-2 mb-4">
                   <p className="font-body text-xs text-muted-foreground">Players ({participants.length}/{activeLobby.max_players})</p>
                   <div className="flex flex-wrap gap-2">
-                    {participants.map(p => (
-                      <div key={p.id} className={`px-3 py-1.5 rounded-lg border text-xs font-body flex items-center gap-1.5 ${
-                        p.finished ? "border-primary/40 bg-primary/10" : "border-border/30 bg-secondary/30"
-                      }`}>
-                        <span>{p.user_id === user?.id ? "You" : p.user_id.slice(0, 6)}</span>
-                        {p.finished && <CheckCircle2 className="w-3 h-3 text-primary" />}
-                        {p.score && <span className="text-muted-foreground">{(p.score as any).correct}pts</span>}
-                      </div>
-                    ))}
+                    {participants.map(p => {
+                      const avatar = getParticipantAvatar(p.user_id);
+                      return (
+                        <div key={p.id} className={`px-3 py-1.5 rounded-lg border text-xs font-body flex items-center gap-1.5 ${
+                          p.finished ? "border-primary/40 bg-primary/10" : "border-border/30 bg-secondary/30"
+                        }`}>
+                          {avatar && <span>{avatar}</span>}
+                          <span className="font-display font-bold">{getParticipantName(p.user_id)}</span>
+                          {p.user_id === activeLobby.creator_id && <Crown className="w-3 h-3 text-neon-amber" />}
+                          {p.finished && <CheckCircle2 className="w-3 h-3 text-primary" />}
+                          {p.score && <span className="text-muted-foreground">{(p.score as any).correct}pts</span>}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -352,6 +419,9 @@ export default function Lobbies() {
                   <Button variant="neon" size="xl" className="w-full" onClick={handleStart}>
                     <Swords className="w-5 h-5" /> Start Battle
                   </Button>
+                )}
+                {activeLobby.status === "waiting" && activeLobby.creator_id === user?.id && participants.length < 2 && (
+                  <p className="font-body text-sm text-muted-foreground text-center">Waiting for more players to join...</p>
                 )}
                 {activeLobby.status === "waiting" && activeLobby.creator_id !== user?.id && (
                   <p className="font-body text-sm text-muted-foreground text-center">Waiting for host to start...</p>
@@ -409,17 +479,21 @@ export default function Lobbies() {
                   <div className="space-y-2">
                     {[...participants]
                       .sort((a, b) => (b.score?.correct ?? 0) - (a.score?.correct ?? 0) || (a.score?.total_time ?? 0) - (b.score?.total_time ?? 0))
-                      .map((p, i) => (
-                        <div key={p.id} className={`flex items-center justify-between p-3 rounded-lg border ${i === 0 ? "border-neon-amber/40 bg-neon-amber/10" : "border-border/20 bg-secondary/30"}`}>
-                          <div className="flex items-center gap-2">
-                            <span className="font-display font-bold text-sm text-foreground">{i + 1}.</span>
-                            <span className="font-body text-sm text-foreground">{p.user_id === user?.id ? "You" : p.user_id.slice(0, 8)}</span>
+                      .map((p, i) => {
+                        const avatar = getParticipantAvatar(p.user_id);
+                        return (
+                          <div key={p.id} className={`flex items-center justify-between p-3 rounded-lg border ${i === 0 ? "border-neon-amber/40 bg-neon-amber/10" : "border-border/20 bg-secondary/30"}`}>
+                            <div className="flex items-center gap-2">
+                              <span className="font-display font-bold text-sm text-foreground">{i + 1}.</span>
+                              {avatar && <span>{avatar}</span>}
+                              <span className="font-body text-sm text-foreground">{getParticipantName(p.user_id)}</span>
+                            </div>
+                            <span className="font-display text-sm font-bold text-primary">{(p.score as any)?.correct ?? 0} pts · {formatTime((p.score as any)?.total_time ?? 0)}</span>
                           </div>
-                          <span className="font-display text-sm font-bold text-primary">{(p.score as any)?.correct ?? 0} pts · {formatTime((p.score as any)?.total_time ?? 0)}</span>
-                        </div>
-                      ))}
+                        );
+                      })}
                   </div>
-                  <Button variant="neon-outline" className="mt-4" onClick={() => { setActiveLobby(null); setTab("browse"); setPuzzles([]); setPlayerDone(false); setMyScore({ correct: 0, penalties: 0, total_time: 0 }); }}>
+                  <Button variant="neon-outline" className="mt-4" onClick={() => { setActiveLobby(null); setTab("browse"); setPuzzles([]); setPlayerDone(false); setMyScore({ correct: 0, penalties: 0, total_time: 0 }); setParticipantNames({}); }}>
                     Back to Lobbies
                   </Button>
                 </div>

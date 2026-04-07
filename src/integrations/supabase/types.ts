@@ -358,6 +358,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          data: Json | null
+          id: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          data?: Json | null
+          id?: string
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          data?: Json | null
+          id?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -456,6 +489,42 @@ export type Database = {
           item_id?: string
           item_type?: string
           purchased_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          id: string
+          notifications_enabled: boolean
+          notify_battle_invites: boolean
+          notify_credits: boolean
+          notify_friend_requests: boolean
+          sound_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notifications_enabled?: boolean
+          notify_battle_invites?: boolean
+          notify_credits?: boolean
+          notify_friend_requests?: boolean
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notifications_enabled?: boolean
+          notify_battle_invites?: boolean
+          notify_credits?: boolean
+          notify_friend_requests?: boolean
+          sound_enabled?: boolean
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

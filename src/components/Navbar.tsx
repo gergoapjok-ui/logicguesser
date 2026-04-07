@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins, Users, Crown, Swords } from "lucide-react";
+import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins, Users, Crown, Swords, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import NotificationBell from "@/components/NotificationBell";
 
 const AVATARS_MAP: Record<string, string> = {
   avatar_cyber_skull: "💀",
@@ -126,6 +127,16 @@ export default function Navbar() {
               <Coins className="w-3.5 h-3.5 text-primary text-glow" />
               <span className="font-display text-xs font-bold text-foreground">{profile.credits}</span>
             </div>
+          )}
+
+          {/* Notifications */}
+          {user && <NotificationBell />}
+
+          {/* Settings */}
+          {user && (
+            <Link to="/settings">
+              <Button variant="ghost" size="icon"><Settings className="w-4 h-4" /></Button>
+            </Link>
           )}
 
           <Button variant="ghost" size="icon" onClick={toggleDark}>
