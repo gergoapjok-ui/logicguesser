@@ -129,6 +129,16 @@ export default function Navbar() {
             </div>
           )}
 
+          {/* Notifications */}
+          {user && <NotificationBell />}
+
+          {/* Settings */}
+          {user && (
+            <Link to="/settings">
+              <Button variant="ghost" size="icon"><Settings className="w-4 h-4" /></Button>
+            </Link>
+          )}
+
           <Button variant="ghost" size="icon" onClick={toggleDark}>
             {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
