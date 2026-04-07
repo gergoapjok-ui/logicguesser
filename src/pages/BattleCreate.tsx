@@ -178,6 +178,20 @@ export default function BattleCreate() {
               </div>
             </div>
 
+            {/* Real-Time Mode */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-display text-sm font-bold text-foreground uppercase tracking-wider">⚡ Real-Time Mode</p>
+                <p className="font-body text-xs text-muted-foreground">Both players see the same question — fastest correct answer wins the round</p>
+              </div>
+              <button
+                onClick={() => setRealtimeMode(!realtimeMode)}
+                className={`w-12 h-6 rounded-full transition-colors ${realtimeMode ? "bg-primary" : "bg-secondary"}`}
+              >
+                <div className={`w-5 h-5 rounded-full bg-background transition-transform ${realtimeMode ? "translate-x-6" : "translate-x-0.5"}`} />
+              </button>
+            </div>
+
             {/* Penalties */}
             <div className="flex items-center justify-between">
               <div>
