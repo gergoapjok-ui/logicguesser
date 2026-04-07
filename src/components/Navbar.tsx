@@ -28,12 +28,18 @@ const navItems = [
 export default function Navbar() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+  const [dark, setDark] = useState(() => {
+    const saved = localStorage.getItem("logicguesser-theme");
+    if (saved) return saved === "dark";
+    return document.documentElement.classList.contains("dark");
+  });
   const { user, profile } = useAuth();
 
   const toggleDark = () => {
-    setDark(!dark);
-    document.documentElement.classList.toggle("dark");
+    const newDark = !dark;
+    setDark(newDark);
+    document.documentElement.classList.toggle("dark", newDark);
+    localStorage.setItem("logicguesser-theme", newDark ? "dark" : "light");
   };
 
   const avatarEmoji = profile?.avatar_url ? AVATARS_MAP[profile.avatar_url] : null;
