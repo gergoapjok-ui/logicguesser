@@ -48,8 +48,13 @@ export default function DailyChallenge() {
   const [earnedCredits, setEarnedCredits] = useState<number | null>(null);
   const [wrongFlash, setWrongFlash] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [creditRestarting, setCreditRestarting] = useState(false);
 
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Determine credit restart cost
+  const today = new Date();
+  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+  const isDiscountDay = dayOfYear % 4 === 0;
+  const restartCost = isDiscountDay ? 1000 : 10000;
 
   useEffect(() => {
     if (authLoading) return;
