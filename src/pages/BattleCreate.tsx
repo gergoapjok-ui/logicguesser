@@ -49,6 +49,7 @@ export default function BattleCreate() {
       point_system: pointSystem,
       allow_penalties: allowPenalties,
       penalty_seconds: penaltySeconds,
+      realtime_mode: realtimeMode,
       status: "pending",
     }).select("id").single();
 
