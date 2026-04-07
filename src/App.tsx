@@ -19,6 +19,7 @@ import BattleCreate from "./pages/BattleCreate";
 import BattleLobby from "./pages/BattleLobby";
 import Lobbies from "./pages/Lobbies";
 import ProUpgrade from "./pages/ProUpgrade";
+import SettingsPage from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
