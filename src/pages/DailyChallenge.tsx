@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Timer, Send, CheckCircle2, Clock, Loader2, AlertTriangle, Flame, XCircle, RotateCcw, Crown } from "lucide-react";
+import { Timer, Send, CheckCircle2, Clock, Loader2, AlertTriangle, Flame, XCircle, RotateCcw, Crown, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
