@@ -23,6 +23,7 @@ const navItems = [
   { label: "Practice", path: "/practice", icon: Dumbbell },
   { label: "Shop", path: "/shop", icon: ShoppingBag },
   { label: "Friends", path: "/friends", icon: Users },
+  { label: "Lobbies", path: "/lobbies", icon: Swords },
 ];
 
 export default function Navbar() {
