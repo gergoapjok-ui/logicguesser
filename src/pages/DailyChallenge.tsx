@@ -54,6 +54,7 @@ export default function DailyChallenge() {
   const today = new Date();
   const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
   const isDiscountDay = dayOfYear % 4 === 0;
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const restartCost = isDiscountDay ? 1000 : 10000;
 
   useEffect(() => {
