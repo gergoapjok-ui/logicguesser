@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.101.1";
+import { isAnswerCorrect } from "../_shared/fuzzyMatch.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,7 +66,7 @@ Deno.serve(async (req) => {
     }
 
     const puzzle = puzzles[round - 1];
-    const correct = answer.trim().toLowerCase() === puzzle.answer.trim().toLowerCase();
+    const correct = isAnswerCorrect(answer, puzzle.answer);
     const penaltyTime = !correct && battle.allow_penalties ? (battle.penalty_seconds || 5) : 0;
 
     const answersKey = isCreator ? "creator_answers" : "opponent_answers";
