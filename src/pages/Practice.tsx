@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { isAnswerCorrect } from "@/lib/fuzzyMatch";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder from "@/components/AdPlaceholder";
@@ -44,9 +45,8 @@ export default function Practice() {
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = answer.trim().toLowerCase();
-    const correct = puzzle.answer.trim().toLowerCase();
-    if (trimmed === correct) {
+    const trimmed = answer.trim();
+    if (isAnswerCorrect(trimmed, puzzle.answer)) {
       setRunning(false); setSolved(true); setStreak(s => s + 1);
       if (user) {
         await supabase.functions.invoke("practice-reward");
