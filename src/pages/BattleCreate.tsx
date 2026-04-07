@@ -33,6 +33,7 @@ export default function BattleCreate() {
   const [pointSystem, setPointSystem] = useState("speed");
   const [allowPenalties, setAllowPenalties] = useState(true);
   const [penaltySeconds, setPenaltySeconds] = useState(5);
+  const [realtimeMode, setRealtimeMode] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const handleCreate = async () => {
