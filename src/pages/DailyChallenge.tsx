@@ -183,6 +183,28 @@ export default function DailyChallenge() {
 
   const retriesUsed = profile?.daily_retries_used ?? 0;
   const canRetry = isPro && retriesUsed < 3;
+  const canCreditRestart = (profile?.credits ?? 0) >= restartCost;
+
+  const handleCreditRestart = async () => {
+    setCreditRestarting(true);
+    const { data, error } = await supabase.functions.invoke("daily-restart-credits");
+    if (error || !data?.success) {
+      toast.error(data?.error || "Failed to restart");
+      setCreditRestarting(false);
+      return;
+    }
+    toast.success(`Restarted for ${data.cost} credits!`);
+    setAlreadyCompleted(false);
+    setCompletedTime(null);
+    setCurrentTaskIndex(0);
+    setAllDone(false);
+    setStarted(false);
+    setElapsed(0);
+    setPenalties(0);
+    setEarnedCredits(null);
+    await refreshProfile();
+    setCreditRestarting(false);
+  };
 
   return (
     <div className="min-h-screen bg-background grid-pattern">
