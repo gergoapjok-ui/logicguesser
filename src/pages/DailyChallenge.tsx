@@ -243,6 +243,16 @@ export default function DailyChallenge() {
                   </div>
                 )}
 
+                {/* Credit-based restart (available to everyone) */}
+                {canCreditRestart && (
+                  <div className="mb-4">
+                    <Button variant="neon-outline" onClick={handleCreditRestart} disabled={creditRestarting} className="gap-2">
+                      {creditRestarting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Coins className="w-4 h-4" />}
+                      Restart for {restartCost.toLocaleString()} Credits
+                      {isDiscountDay && <span className="text-xs text-primary">(Discount day!)</span>}
+                    </Button>
+                  </div>
+
                 {!canRetry && (
                   <p className="font-body text-muted-foreground text-sm mb-4">
                     {isPro && retriesUsed >= 3 ? "All retries used today." : "Come back tomorrow for a new challenge!"}
