@@ -58,11 +58,22 @@ Deno.serve(async (req) => {
       });
     }
 
-    const price = AVATARS[avatar_id];
+    const avatarInfo = AVATARS[avatar_id];
+    const price = avatarInfo.price;
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Check pro requirement
+    if (avatarInfo.proOnly) {
+      const { data: profCheck } = await adminClient.from("profiles").select("is_pro").eq("user_id", user.id).single();
+      if (!profCheck?.is_pro) {
+        return new Response(JSON.stringify({ error: "Pro membership required" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     // Check if already owned
     const { data: existing } = await adminClient
