@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Medal, Clock, Loader2, Star, Crown } from "lucide-react";
+import { Trophy, Medal, Clock, Loader2, Star, Crown, UserPlus, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import { getLevel } from "@/lib/leveling";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface LeaderboardEntry {
   id: string;
+  user_id: string;
   time_taken: number;
   username: string | null;
   avatar_url: string | null;
@@ -33,13 +36,16 @@ function formatTime(seconds: number) {
 const rankColors = ["text-neon-amber", "text-muted-foreground", "text-neon-amber/60"];
 
 export default function Leaderboard() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const isPro = profile?.is_pro ?? false;
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [friendIds, setFriendIds] = useState<Set<string>>(new Set());
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
+  const [sendingTo, setSendingTo] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
+    const fetchData = async () => {
       const today = new Date().toISOString().split("T")[0];
       const { data } = await supabase
         .from("leaderboard")
@@ -59,12 +65,47 @@ export default function Leaderboard() {
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
       setEntries(data.map(e => {
         const p = profileMap.get(e.user_id);
-        return { id: e.id, time_taken: e.time_taken, username: p?.username ?? "Anonymous", avatar_url: p?.avatar_url ?? null, xp: p?.xp ?? 0, is_pro: p?.is_pro ?? false };
+        return { id: e.id, user_id: e.user_id, time_taken: e.time_taken, username: p?.username ?? "Anonymous", avatar_url: p?.avatar_url ?? null, xp: p?.xp ?? 0, is_pro: p?.is_pro ?? false };
       }));
+
+      if (user) {
+        const { data: friendships } = await supabase
+          .from("friendships" as any)
+          .select("requester_id, addressee_id, status")
+          .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
+
+        const fIds = new Set<string>();
+        const pIds = new Set<string>();
+        (friendships as any[] ?? []).forEach((f: any) => {
+          const otherId = f.requester_id === user.id ? f.addressee_id : f.requester_id;
+          if (f.status === "accepted") fIds.add(otherId);
+          else if (f.status === "pending") pIds.add(otherId);
+        });
+        setFriendIds(fIds);
+        setPendingIds(pIds);
+      }
+
       setLoading(false);
     };
-    fetchLeaderboard();
-  }, []);
+    fetchData();
+  }, [user]);
+
+  const sendFriendRequest = async (targetId: string) => {
+    if (!user) return;
+    setSendingTo(targetId);
+    const { error } = await supabase.from("friendships" as any).insert({
+      requester_id: user.id,
+      addressee_id: targetId,
+    });
+    if (error) {
+      if (error.code === "23505") toast.info("Request already sent!");
+      else toast.error("Failed to send request");
+    } else {
+      toast.success("Friend request sent!");
+      setPendingIds(prev => new Set(prev).add(targetId));
+    }
+    setSendingTo(null);
+  };
 
   return (
     <div className="min-h-screen bg-background grid-pattern">
@@ -90,6 +131,9 @@ export default function Leaderboard() {
               <div className="space-y-3">
                 {entries.map((entry, i) => {
                   const level = getLevel(entry.xp);
+                  const isMe = user?.id === entry.user_id;
+                  const isFriend = friendIds.has(entry.user_id);
+                  const isPending = pendingIds.has(entry.user_id);
                   return (
                     <motion.div key={entry.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
                       className={`glass rounded-xl border p-4 flex items-center gap-4 ${i === 0 ? "border-neon-amber/50 box-glow" : "border-border/50"}`}>
@@ -114,9 +158,32 @@ export default function Leaderboard() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 text-primary">
-                        <Clock className="w-4 h-4" />
-                        <span className="font-display text-lg font-bold tabular-nums">{formatTime(entry.time_taken)}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 text-primary">
+                          <Clock className="w-4 h-4" />
+                          <span className="font-display text-lg font-bold tabular-nums">{formatTime(entry.time_taken)}</span>
+                        </div>
+                        {user && !isMe && (
+                          isFriend ? (
+                            <span className="text-xs text-primary"><Check className="w-4 h-4" /></span>
+                          ) : isPending ? (
+                            <span className="text-xs text-muted-foreground font-body">Sent</span>
+                          ) : (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8"
+                              onClick={() => sendFriendRequest(entry.user_id)}
+                              disabled={sendingTo === entry.user_id}
+                            >
+                              {sendingTo === entry.user_id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <UserPlus className="w-4 h-4 text-primary" />
+                              )}
+                            </Button>
+                          )
+                        )}
                       </div>
                     </motion.div>
                   );
