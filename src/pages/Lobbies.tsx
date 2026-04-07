@@ -157,12 +157,13 @@ export default function Lobbies() {
     const { data, error } = await supabase.functions.invoke("lobby-join", {
       body: { lobby_id: lobbyId },
     });
-    if (error || !data?.success) {
+    const alreadyIn = data?.error === "Already in lobby";
+    if ((error || !data?.success) && !alreadyIn) {
       toast.error(data?.error || "Failed to join");
       setJoiningId(null);
       return;
     }
-    toast.success("Joined lobby!");
+    if (!alreadyIn) toast.success("Joined lobby!");
     const { data: lobbyData } = await supabase.from("lobbies" as any).select("*").eq("id", lobbyId).single();
     setActiveLobby(lobbyData as any);
     setTab("active");
