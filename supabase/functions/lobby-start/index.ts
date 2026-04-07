@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.101.1";
+import { generateServerPuzzle } from "../_shared/puzzleGenerator.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -57,32 +58,7 @@ Deno.serve(async (req) => {
 
     // Generate puzzles
     const rounds = lobby.rounds || 5;
-    const puzzles: { question: string; answer: string }[] = [];
-
-    for (let i = 0; i < rounds; i++) {
-      const variant = Math.floor(Math.random() * 3);
-      if (variant === 0) {
-        const a = Math.floor(Math.random() * 20) + 2;
-        const b = Math.floor(Math.random() * 15) + 2;
-        const c = Math.floor(Math.random() * 30) + 1;
-        const ops = ["+", "-"] as const;
-        const op = ops[Math.floor(Math.random() * 2)];
-        const result = op === "+" ? a * b + c : a * b - c;
-        puzzles.push({ question: `What is ${a} × ${b} ${op} ${c}?`, answer: String(result) });
-      } else if (variant === 1) {
-        const start = Math.floor(Math.random() * 10) + 1;
-        const diff = Math.floor(Math.random() * 8) + 2;
-        const seq = Array.from({ length: 4 }, (_, j) => start + diff * j);
-        puzzles.push({ question: `What comes next: ${seq.join(", ")}, ...?`, answer: String(start + diff * 4) });
-      } else {
-        const tricks = [
-          { question: "How many months have 28 days?", answer: "12" },
-          { question: "If you divide 30 by half and add 10, what do you get?", answer: "70" },
-          { question: "How many letters are in 'the alphabet'?", answer: "11" },
-        ];
-        puzzles.push(tricks[Math.floor(Math.random() * tricks.length)]);
-      }
-    }
+    const puzzles = Array.from({ length: rounds }, () => generateServerPuzzle());
 
     await adminClient.from("lobbies").update({
       status: "playing",
