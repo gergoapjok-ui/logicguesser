@@ -42,6 +42,8 @@ interface Battle {
   opponent_score: any;
   creator_answers: any[];
   opponent_answers: any[];
+  realtime_mode: boolean;
+  current_round: number;
 }
 
 export default function BattleLobby() {
