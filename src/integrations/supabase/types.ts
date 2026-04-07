@@ -496,6 +496,7 @@ export type Database = {
       user_settings: {
         Row: {
           created_at: string
+          email_notifications_enabled: boolean
           id: string
           notifications_enabled: boolean
           notify_battle_invites: boolean
@@ -507,6 +508,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          email_notifications_enabled?: boolean
           id?: string
           notifications_enabled?: boolean
           notify_battle_invites?: boolean
@@ -518,6 +520,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          email_notifications_enabled?: boolean
           id?: string
           notifications_enabled?: boolean
           notify_battle_invites?: boolean
@@ -587,6 +590,16 @@ export type Database = {
       }
     }
     Functions: {
+      create_notification_if_enabled: {
+        Args: {
+          _body: string
+          _data?: Json
+          _title: string
+          _type: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
       update_profile_safe: {
         Args: { _avatar_url?: string; _bio?: string; _username?: string }
         Returns: undefined
