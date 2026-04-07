@@ -43,6 +43,7 @@ const App = () => (
             <Route path="/battle/:battleId" element={<BattleLobby />} />
             <Route path="/lobbies" element={<Lobbies />} />
             <Route path="/pro" element={<ProUpgrade />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="*" element={<NotFound />} />
