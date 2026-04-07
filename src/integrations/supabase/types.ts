@@ -35,6 +35,7 @@ export type Database = {
           opponent_time: number | null
           penalty_seconds: number
           point_system: string
+          realtime_mode: boolean
           rounds: number
           started_at: string | null
           status: string
@@ -60,6 +61,7 @@ export type Database = {
           opponent_time?: number | null
           penalty_seconds?: number
           point_system?: string
+          realtime_mode?: boolean
           rounds?: number
           started_at?: string | null
           status?: string
@@ -85,6 +87,7 @@ export type Database = {
           opponent_time?: number | null
           penalty_seconds?: number
           point_system?: string
+          realtime_mode?: boolean
           rounds?: number
           started_at?: string | null
           status?: string
@@ -202,6 +205,122 @@ export type Database = {
             columns: ["puzzle_id"]
             isOneToOne: false
             referencedRelation: "puzzles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lobbies: {
+        Row: {
+          allow_penalties: boolean
+          created_at: string
+          creator_id: string
+          finished_at: string | null
+          game_mode: string
+          id: string
+          lobby_puzzles: Json | null
+          max_players: number
+          max_time_seconds: number
+          name: string
+          penalty_seconds: number
+          point_system: string
+          rounds: number
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          allow_penalties?: boolean
+          created_at?: string
+          creator_id: string
+          finished_at?: string | null
+          game_mode?: string
+          id?: string
+          lobby_puzzles?: Json | null
+          max_players?: number
+          max_time_seconds?: number
+          name?: string
+          penalty_seconds?: number
+          point_system?: string
+          rounds?: number
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          allow_penalties?: boolean
+          created_at?: string
+          creator_id?: string
+          finished_at?: string | null
+          game_mode?: string
+          id?: string
+          lobby_puzzles?: Json | null
+          max_players?: number
+          max_time_seconds?: number
+          name?: string
+          penalty_seconds?: number
+          point_system?: string
+          rounds?: number
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      lobby_daily_usage: {
+        Row: {
+          id: string
+          lobbies_created: number
+          lobbies_joined: number
+          usage_date: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          lobbies_created?: number
+          lobbies_joined?: number
+          usage_date?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          lobbies_created?: number
+          lobbies_joined?: number
+          usage_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lobby_participants: {
+        Row: {
+          answers: Json | null
+          finished: boolean
+          id: string
+          joined_at: string
+          lobby_id: string
+          score: Json | null
+          user_id: string
+        }
+        Insert: {
+          answers?: Json | null
+          finished?: boolean
+          id?: string
+          joined_at?: string
+          lobby_id: string
+          score?: Json | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json | null
+          finished?: boolean
+          id?: string
+          joined_at?: string
+          lobby_id?: string
+          score?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lobby_participants_lobby_id_fkey"
+            columns: ["lobby_id"]
+            isOneToOne: false
+            referencedRelation: "lobbies"
             referencedColumns: ["id"]
           },
         ]
