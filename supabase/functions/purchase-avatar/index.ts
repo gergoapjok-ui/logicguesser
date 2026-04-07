@@ -5,15 +5,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const AVATARS: Record<string, number> = {
-  avatar_cyber_skull: 500,
-  avatar_neon_cat: 300,
-  avatar_glitch_bot: 750,
-  avatar_plasma_fox: 400,
-  avatar_quantum_owl: 600,
-  avatar_void_wolf: 1000,
-  avatar_pixel_dragon: 1200,
-  avatar_star_panda: 350,
+const AVATARS: Record<string, { price: number; proOnly: boolean }> = {
+  avatar_cyber_skull: { price: 500, proOnly: false },
+  avatar_neon_cat: { price: 300, proOnly: false },
+  avatar_glitch_bot: { price: 750, proOnly: false },
+  avatar_plasma_fox: { price: 400, proOnly: false },
+  avatar_quantum_owl: { price: 600, proOnly: false },
+  avatar_void_wolf: { price: 1000, proOnly: false },
+  avatar_pixel_dragon: { price: 1200, proOnly: false },
+  avatar_star_panda: { price: 350, proOnly: false },
+  avatar_diamond_phoenix: { price: 200, proOnly: true },
+  avatar_golden_unicorn: { price: 200, proOnly: true },
+  avatar_crystal_lion: { price: 200, proOnly: true },
+  avatar_royal_eagle: { price: 200, proOnly: true },
 };
 
 Deno.serve(async (req) => {

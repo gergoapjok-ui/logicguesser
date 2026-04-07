@@ -119,7 +119,7 @@ export default function BattleLobby() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [running]);
 
-  // Realtime
+  // Realtime — sync puzzles and scores when battle state changes
   useEffect(() => {
     if (!battleId) return;
     const channel = supabase
@@ -127,10 +127,32 @@ export default function BattleLobby() {
       .on("postgres_changes", {
         event: "UPDATE", schema: "public", table: "battles", filter: `id=eq.${battleId}`,
       }, (payload) => {
-        setBattle(payload.new as Battle);
+        const updated = payload.new as Battle;
+        setBattle(updated);
+
+        // If battle just started and we don't have puzzles yet, load them
+        if (updated.status === "playing" && updated.battle_puzzles?.length > 0 && puzzles.length === 0) {
+          const bp = updated.battle_puzzles;
+          setPuzzles(bp.map((p: any, i: number) => ({ round: i + 1, question: p.question })));
+          setCurrentRound(1);
+          setElapsed(0);
+          setRunning(true);
+        }
+
+        // Sync scores from realtime for the current user
+        if (updated.status === "playing" || updated.status === "finished") {
+          const isMe = user?.id === updated.creator_id;
+          const myAnswersArr = isMe ? updated.creator_answers : updated.opponent_answers;
+          const myScoreObj = isMe ? updated.creator_score : updated.opponent_score;
+          if (myScoreObj) setMyScore(myScoreObj);
+          if (myAnswersArr && updated.battle_puzzles && myAnswersArr.length >= updated.battle_puzzles.length) {
+            setPlayerDone(true);
+            setRunning(false);
+          }
+        }
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [battleId]);
+  }, [battleId, puzzles.length, user?.id]);
 
   const acceptBattle = async () => {
     if (!battle || !user) return;
