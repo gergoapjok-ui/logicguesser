@@ -171,7 +171,8 @@ export default function BattleLobby() {
   const startBattle = async () => {
     if (!battle || !user) return;
     setStarting(true);
-    const { data, error } = await supabase.functions.invoke("battle-start", {
+    const fnName = battle.realtime_mode ? "battle-start-realtime" : "battle-start";
+    const { data, error } = await supabase.functions.invoke(fnName, {
       body: { battle_id: battle.id },
     });
     if (error || !data?.success) {
@@ -191,7 +192,8 @@ export default function BattleLobby() {
     if (!battle || !user || submitting || !answer.trim()) return;
     setSubmitting(true);
 
-    const { data, error } = await supabase.functions.invoke("battle-answer", {
+    const fnName = battle.realtime_mode ? "battle-answer-realtime" : "battle-answer";
+    const { data, error } = await supabase.functions.invoke(fnName, {
       body: { battle_id: battle.id, round: currentRound, answer: answer.trim(), elapsed },
     });
     setSubmitting(false);
@@ -208,18 +210,29 @@ export default function BattleLobby() {
     setMyScore(data.score);
     setAnswer("");
 
-    if (data.player_done) {
-      setRunning(false);
-      setPlayerDone(true);
+    if (battle.realtime_mode) {
+      // Real-time mode: round advances for both players via realtime subscription
+      toast.success(`Round ${currentRound} — you got it first! 🏆`);
       if (data.battle_finished) {
+        setRunning(false);
+        setPlayerDone(true);
         toast.success("Battle finished!");
-      } else {
-        toast.success("You're done! Waiting for opponent...");
       }
+      // current_round will update via realtime subscription
     } else {
-      toast.success(`Round ${currentRound} correct!`);
-      setCurrentRound(r => r + 1);
-      setElapsed(0);
+      if (data.player_done) {
+        setRunning(false);
+        setPlayerDone(true);
+        if (data.battle_finished) {
+          toast.success("Battle finished!");
+        } else {
+          toast.success("You're done! Waiting for opponent...");
+        }
+      } else {
+        toast.success(`Round ${currentRound} correct!`);
+        setCurrentRound(r => r + 1);
+        setElapsed(0);
+      }
     }
   }, [battle, user, submitting, answer, currentRound, elapsed]);
 
