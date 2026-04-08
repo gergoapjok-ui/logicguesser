@@ -20,6 +20,7 @@ import BattleLobby from "./pages/BattleLobby";
 import Lobbies from "./pages/Lobbies";
 import ProUpgrade from "./pages/ProUpgrade";
 import SettingsPage from "./pages/Settings";
+import BattleInvitePopup from "./components/BattleInvitePopup";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <BattleInvitePopup />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/daily" element={<DailyChallenge />} />
