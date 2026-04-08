@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Settings as SettingsIcon, Bell, BellOff, Volume2, VolumeX, Swords, Coins, Users, Loader2, Save } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Volume2, VolumeX, Swords, Coins, Users, Loader2, Save, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +15,7 @@ interface UserSettings {
   notify_credits: boolean;
   notify_friend_requests: boolean;
   sound_enabled: boolean;
+  email_notifications_enabled: boolean;
 }
 
 const defaultSettings: UserSettings = {
@@ -23,6 +24,7 @@ const defaultSettings: UserSettings = {
   notify_credits: true,
   notify_friend_requests: true,
   sound_enabled: true,
+  email_notifications_enabled: false,
 };
 
 export default function SettingsPage() {
@@ -39,7 +41,7 @@ export default function SettingsPage() {
   }, [user, authLoading]);
 
   const fetchSettings = async () => {
-    const { data } = await supabase.from("user_settings" as any).select("*").eq("user_id", user!.id).maybeSingle();
+    const { data } = await supabase.from("user_settings").select("*").eq("user_id", user!.id).maybeSingle();
     if (data) {
       setSettings({
         notifications_enabled: (data as any).notifications_enabled,
@@ -47,6 +49,7 @@ export default function SettingsPage() {
         notify_credits: (data as any).notify_credits,
         notify_friend_requests: (data as any).notify_friend_requests,
         sound_enabled: (data as any).sound_enabled,
+        email_notifications_enabled: (data as any).email_notifications_enabled ?? false,
       });
     }
     setLoading(false);
@@ -55,7 +58,7 @@ export default function SettingsPage() {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from("user_settings" as any).upsert({
+    const { error } = await supabase.from("user_settings").upsert({
       user_id: user.id,
       ...settings,
       updated_at: new Date().toISOString(),
@@ -79,6 +82,7 @@ export default function SettingsPage() {
     { key: "notify_credits", label: "Credit Rewards", description: "Get notified when you earn credits", icon: Coins, disabled: !settings.notifications_enabled },
     { key: "notify_friend_requests", label: "Friend Requests", description: "Get notified about new friend requests", icon: Users, disabled: !settings.notifications_enabled },
     { key: "sound_enabled", label: "Sound Effects", description: "Play sounds for game events", icon: settings.sound_enabled ? Volume2 : VolumeX },
+    { key: "email_notifications_enabled", label: "Email Notifications", description: "Receive email alerts for important events", icon: Mail },
   ];
 
   return (

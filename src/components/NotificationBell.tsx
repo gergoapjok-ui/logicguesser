@@ -35,7 +35,7 @@ export default function NotificationBell() {
   }, [user?.id]);
 
   const fetchNotifications = async () => {
-    const { data } = await supabase.from("notifications" as any).select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(20);
+    const { data } = await supabase.from("notifications").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(20);
     if (data) setNotifications(data as any);
   };
 
@@ -43,8 +43,15 @@ export default function NotificationBell() {
 
   const markAllRead = async () => {
     if (!user || unreadCount === 0) return;
-    await supabase.from("notifications" as any).update({ read: true } as any).eq("user_id", user.id).eq("read", false);
+    await supabase.from("notifications").update({ read: true } as any).eq("user_id", user.id).eq("read", false);
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const clearAll = async () => {
+    if (!user || notifications.length === 0) return;
+    const ids = notifications.map(n => n.id);
+    await supabase.from("notifications").delete().in("id", ids);
+    setNotifications([]);
   };
 
   if (!user) return null;
@@ -68,10 +75,15 @@ export default function NotificationBell() {
               initial={{ opacity: 0, y: -8, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.95 }}
-              className="absolute right-0 top-10 z-50 w-72 max-h-80 overflow-y-auto glass rounded-xl border border-border/50 shadow-xl"
+              className="fixed right-2 top-16 sm:absolute sm:right-0 sm:top-10 z-50 w-[calc(100vw-1rem)] sm:w-72 max-h-80 overflow-y-auto glass rounded-xl border border-border/50 shadow-xl"
             >
-              <div className="p-3 border-b border-border/30">
+              <div className="p-3 border-b border-border/30 flex items-center justify-between">
                 <p className="font-display text-xs font-bold text-foreground uppercase tracking-wider">Notifications</p>
+                {notifications.length > 0 && (
+                  <button onClick={clearAll} className="font-body text-[10px] text-muted-foreground hover:text-destructive transition-colors">
+                    Clear all
+                  </button>
+                )}
               </div>
               {notifications.length === 0 ? (
                 <div className="p-4 text-center">
@@ -83,6 +95,9 @@ export default function NotificationBell() {
                     <div key={n.id} className={`p-3 ${!n.read ? "bg-primary/5" : ""}`}>
                       <p className="font-display text-xs font-bold text-foreground">{n.title}</p>
                       <p className="font-body text-xs text-muted-foreground mt-0.5">{n.body}</p>
+                      <p className="font-body text-[10px] text-muted-foreground/60 mt-1">
+                        {new Date(n.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </p>
                     </div>
                   ))}
                 </div>
