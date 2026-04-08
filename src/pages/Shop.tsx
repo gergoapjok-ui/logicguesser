@@ -32,6 +32,7 @@ const AVATARS = [
 
 export default function Shop() {
   const { user, loading: authLoading, profile, refreshProfile } = useAuth();
+  const { currentTheme, setTheme, ownedThemes, refreshOwned } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [credits, setCredits] = useState(0);
