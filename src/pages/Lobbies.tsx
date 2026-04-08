@@ -93,7 +93,7 @@ export default function Lobbies() {
     setLobbies(lobbyList);
     setLoading(false);
 
-    const creatorIds = [...new Set(lobbyList.map((l: any) => l.creator_id))];
+    const creatorIds = [...new Set(lobbyList.map((l: any) => l.creator_id))] as string[];
     if (creatorIds.length > 0) {
       const { data: profiles } = await supabase.from("profiles_public").select("user_id, username").in("user_id", creatorIds);
       if (profiles) {
