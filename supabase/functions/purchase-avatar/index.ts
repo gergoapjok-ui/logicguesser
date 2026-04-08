@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
     );
 
     // Check pro requirement
-    if (avatarInfo.proOnly) {
+    if (itemInfo.proOnly) {
       const { data: profCheck } = await adminClient.from("profiles").select("is_pro").eq("user_id", user.id).single();
       if (!profCheck?.is_pro) {
         return new Response(JSON.stringify({ error: "Pro membership required" }), {
