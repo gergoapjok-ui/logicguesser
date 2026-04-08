@@ -32,12 +32,23 @@ const AVATARS = [
 export default function Shop() {
   const { user, loading: authLoading, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [credits, setCredits] = useState(0);
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [equipped, setEquipped] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [buyingCredits, setBuyingCredits] = useState<string | null>(null);
   const isPro = profile?.is_pro ?? false;
+
+  // Handle credit purchase return
+  useEffect(() => {
+    const purchased = searchParams.get("credits_purchased");
+    if (purchased) {
+      toast.success(`${purchased} credits added to your account!`);
+      refreshProfile();
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (authLoading) return;
