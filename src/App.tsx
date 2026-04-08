@@ -31,6 +31,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <BattleInvitePopup />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/daily" element={<DailyChallenge />} />
