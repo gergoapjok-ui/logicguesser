@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShoppingBag, Coins, Check, Loader2, Crown, Lock } from "lucide-react";
+import { ShoppingBag, Coins, Check, Loader2, Crown, Lock, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+
+const CREDIT_PACKS = [
+  { id: "credits_5000", name: "5,000 Credits", credits: 5000, price: "$0.99", emoji: "💰" },
+  { id: "credits_25000", name: "25,000 Credits", credits: 25000, price: "$2.99", emoji: "💎" },
+];
 
 const AVATARS = [
   { id: "avatar_cyber_skull", name: "Cyber Skull", emoji: "💀", price: 500, proOnly: false },
@@ -27,12 +32,23 @@ const AVATARS = [
 export default function Shop() {
   const { user, loading: authLoading, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [credits, setCredits] = useState(0);
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [equipped, setEquipped] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [buyingCredits, setBuyingCredits] = useState<string | null>(null);
   const isPro = profile?.is_pro ?? false;
+
+  // Handle credit purchase return
+  useEffect(() => {
+    const purchased = searchParams.get("credits_purchased");
+    if (purchased) {
+      toast.success(`${purchased} credits added to your account!`);
+      refreshProfile();
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -178,6 +194,44 @@ export default function Shop() {
                 </motion.div>
               );
             })}
+          </div>
+
+          {/* Credit Packs */}
+          <div className="flex items-center gap-2 mb-3">
+            <CreditCard className="w-4 h-4 text-primary" />
+            <h2 className="font-display text-sm font-bold text-primary uppercase tracking-wider">Buy Credits</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            {CREDIT_PACKS.map((pack) => (
+              <motion.div key={pack.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                className="glass rounded-xl border border-primary/30 p-5 text-center">
+                <div className="text-4xl mb-2">{pack.emoji}</div>
+                <p className="font-display text-lg font-bold text-foreground">{pack.name}</p>
+                <p className="font-display text-xl font-bold text-primary mt-1">{pack.price}</p>
+                <Button
+                  variant="neon"
+                  size="sm"
+                  className="w-full mt-3"
+                  disabled={buyingCredits === pack.id}
+                  onClick={async () => {
+                    if (!user) { navigate("/login"); return; }
+                    setBuyingCredits(pack.id);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("create-checkout", {
+                        body: { type: "credits", pack_id: pack.id },
+                      });
+                      if (error) throw error;
+                      if (data?.url) window.open(data.url, "_blank");
+                    } catch {
+                      toast.error("Failed to start checkout");
+                    }
+                    setBuyingCredits(null);
+                  }}
+                >
+                  {buyingCredits === pack.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><CreditCard className="w-4 h-4" /> Purchase</>}
+                </Button>
+              </motion.div>
+            ))}
           </div>
 
           <div className="text-center space-y-2">

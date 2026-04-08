@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
-import { Crown, Check, Zap, Shield, RotateCcw, Coins, Star, Loader2 } from "lucide-react";
+import { Crown, Check, Zap, Shield, RotateCcw, Coins, Star, Loader2, CreditCard, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 
 const PRO_PERKS = [
@@ -20,23 +20,49 @@ const PRO_PERKS = [
 export default function ProUpgrade() {
   const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [activating, setActivating] = useState(false);
+  const [managingPortal, setManagingPortal] = useState(false);
 
-  const handleActivate = async () => {
+  useEffect(() => {
+    if (searchParams.get("success") === "true") {
+      toast.success("🎉 Welcome to LOGICGUESSER Pro!");
+      // Check subscription to sync is_pro
+      supabase.functions.invoke("check-subscription").then(() => refreshProfile());
+    }
+  }, [searchParams]);
+
+  // Periodically check subscription status
+  useEffect(() => {
+    if (!user) return;
+    supabase.functions.invoke("check-subscription").then(() => refreshProfile());
+  }, [user]);
+
+  const handleCheckout = async () => {
     if (!user) { navigate("/login"); return; }
     setActivating(true);
-
-    const { error } = await supabase.functions.invoke("toggle-pro", {
-      body: { activate: true },
-    });
-
-    if (error) {
-      toast.error("Failed to activate Pro");
-    } else {
-      toast.success("🎉 Welcome to LOGICGUESSER Pro!");
-      await refreshProfile();
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { type: "pro" },
+      });
+      if (error) throw error;
+      if (data?.url) window.open(data.url, "_blank");
+    } catch {
+      toast.error("Failed to start checkout");
     }
     setActivating(false);
+  };
+
+  const handleManage = async () => {
+    setManagingPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error) throw error;
+      if (data?.url) window.open(data.url, "_blank");
+    } catch {
+      toast.error("Failed to open subscription management");
+    }
+    setManagingPortal(false);
   };
 
   const isPro = profile?.is_pro ?? false;
@@ -79,10 +105,15 @@ export default function ProUpgrade() {
           </div>
 
           {isPro ? (
-            <div className="text-center glass rounded-2xl border border-primary/30 p-6">
-              <Check className="w-10 h-10 text-primary mx-auto mb-2" />
-              <p className="font-display text-xl font-bold text-foreground mb-1">You're a Pro!</p>
-              <p className="font-body text-sm text-muted-foreground">Enjoy all premium features.</p>
+            <div className="text-center space-y-4">
+              <div className="glass rounded-2xl border border-primary/30 p-6">
+                <Check className="w-10 h-10 text-primary mx-auto mb-2" />
+                <p className="font-display text-xl font-bold text-foreground mb-1">You're a Pro!</p>
+                <p className="font-body text-sm text-muted-foreground">Enjoy all premium features.</p>
+              </div>
+              <Button variant="neon-outline" size="lg" className="w-full" onClick={handleManage} disabled={managingPortal}>
+                {managingPortal ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ExternalLink className="w-4 h-4" /> Manage Subscription</>}
+              </Button>
             </div>
           ) : (
             <div className="text-center">
@@ -95,11 +126,10 @@ export default function ProUpgrade() {
                 variant="neon"
                 size="xl"
                 className="w-full bg-neon-amber hover:bg-neon-amber/90 text-background"
-                onClick={handleActivate}
+                onClick={handleCheckout}
                 disabled={activating}
               >
-                {activating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Crown className="w-5 h-5" />}
-                Activate Pro
+                {activating ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CreditCard className="w-5 h-5" /> Subscribe with Stripe</>}
               </Button>
             </div>
           )}
