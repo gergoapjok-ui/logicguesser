@@ -221,6 +221,67 @@ function wordCompound(): ServerPuzzle {
   return { question: `Combine these to make one word: "${a}" + "${b}" = ?`, answer: ans };
 }
 
+// ─── Cipher Puzzles ─────────────────────────────────────────────
+
+function cipherCaesar(): ServerPuzzle {
+  const words = ["HELLO", "WORLD", "LOGIC", "BRAIN", "SMART", "PUZZLE", "TIGER", "CROWN"];
+  const word = words[Math.floor(Math.random() * words.length)];
+  const shift = Math.floor(Math.random() * 5) + 1;
+  const encrypted = word.split("").map(c => String.fromCharCode(((c.charCodeAt(0) - 65 + shift) % 26) + 65)).join("");
+  return { question: `Caesar cipher (shift ${shift}): "${encrypted}" decodes to?`, answer: word.toLowerCase() };
+}
+
+function cipherMorse(): ServerPuzzle {
+  const morseMap: Record<string, string> = {
+    A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.",
+    H: "....", I: "..", J: ".---", K: "-.-", L: ".-..", M: "--", N: "-.",
+    O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-",
+    U: "..-", V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--..",
+  };
+  const words = ["SOS", "HI", "OK", "GO", "RUN", "CAT", "DOG", "SUN", "WIN", "ACE"];
+  const word = words[Math.floor(Math.random() * words.length)];
+  const morse = word.split("").map(c => morseMap[c]).join(" / ");
+  return { question: `Decode this Morse code: ${morse}`, answer: word.toLowerCase() };
+}
+
+function cipherSubstitution(): ServerPuzzle {
+  const pairs: [string, string][] = [
+    ["1=A, 2=B, 3=C ... What is 8-5-12-12-15?", "hello"],
+    ["1=A, 2=B, 3=C ... What is 23-15-18-12-4?", "world"],
+    ["1=A, 2=B, 3=C ... What is 3-15-4-5?", "code"],
+    ["1=A, 2=B, 3=C ... What is 7-1-13-5?", "game"],
+  ];
+  const [q, a] = pairs[Math.floor(Math.random() * pairs.length)];
+  return { question: q, answer: a };
+}
+
+function cipherReverse(): ServerPuzzle {
+  const words = ["ALGORITHM", "COMPUTER", "FUNCTION", "VARIABLE", "DATABASE", "KEYBOARD"];
+  const word = words[Math.floor(Math.random() * words.length)];
+  const reversed = word.split("").reverse().join("");
+  return { question: `This word is written backwards: "${reversed}". What is it?`, answer: word.toLowerCase() };
+}
+
+// ─── Spatial Puzzles ────────────────────────────────────────────
+
+function spatialMirrorLetter(): ServerPuzzle {
+  const pairs: [string, string][] = [["b", "d"], ["d", "b"], ["p", "q"], ["q", "p"]];
+  const [letter, mirror] = pairs[Math.floor(Math.random() * pairs.length)];
+  return { question: `What letter appears when "${letter}" is mirrored horizontally?`, answer: mirror };
+}
+
+function spatialFolding(): ServerPuzzle {
+  const folds = Math.floor(Math.random() * 2) + 1;
+  const holes = Math.pow(2, folds);
+  return { question: `A paper is folded ${folds} time${folds > 1 ? "s" : ""} in half, then a hole is punched. How many holes when unfolded?`, answer: String(holes) };
+}
+
+function spatialBlocks(): ServerPuzzle {
+  const bottom = Math.floor(Math.random() * 4) + 2;
+  const top = Math.floor(Math.random() * bottom) + 1;
+  return { question: `A stack has ${bottom} blocks on the bottom row and ${top} on top. How many blocks total?`, answer: String(bottom + top) };
+}
+
 export function generateServerPuzzle(): ServerPuzzle {
   const generators = [
     mathBasic, mathHard, mathMissingOp, mathPercentage, mathSqrt, mathPower,
@@ -230,6 +291,8 @@ export function generateServerPuzzle(): ServerPuzzle {
     patternPrimes, patternCubes, patternDoubleStep,
     () => logicTricks[Math.floor(Math.random() * logicTricks.length)],
     logicDeduction, wordAnagram, wordRiddle, wordCompound,
+    cipherCaesar, cipherMorse, cipherSubstitution, cipherReverse,
+    spatialMirrorLetter, spatialFolding, spatialBlocks,
   ];
   return generators[Math.floor(Math.random() * generators.length)]();
 }
