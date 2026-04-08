@@ -34,8 +34,7 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
     if (customers.data.length === 0) {
-      // Ensure profile is_pro is false
-      await supabaseClient.from("profiles").update({ is_pro: false }).eq("user_id", user.id);
+      // No Stripe customer — don't touch is_pro, just report no subscription
       return new Response(JSON.stringify({ subscribed: false }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -53,9 +52,9 @@ serve(async (req) => {
       if (productId === PRO_PRODUCT_ID) {
         await supabaseClient.from("profiles").update({ is_pro: true }).eq("user_id", user.id);
       }
-    } else {
-      await supabaseClient.from("profiles").update({ is_pro: false }).eq("user_id", user.id);
     }
+    // Only set is_pro=false if user HAD a Stripe subscription that expired/cancelled
+    // Don't override manual/mock Pro status
 
     return new Response(JSON.stringify({ subscribed: hasActiveSub, subscription_end: subscriptionEnd }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
