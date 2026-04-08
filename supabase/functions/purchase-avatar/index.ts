@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
     // Add to inventory
     const { error: invErr } = await adminClient
       .from("user_inventory")
-      .insert({ user_id: user.id, item_id: avatar_id, item_type: "avatar" });
+      .insert({ user_id: user.id, item_id: avatar_id, item_type: isTheme ? "theme" : "avatar" });
 
     if (invErr) {
       // Rollback
