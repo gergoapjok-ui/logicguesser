@@ -20,6 +20,16 @@ const AVATARS: Record<string, { price: number; proOnly: boolean }> = {
   avatar_royal_eagle: { price: 200, proOnly: true },
 };
 
+const THEMES: Record<string, { price: number; proOnly: boolean }> = {
+  theme_cyberpunk: { price: 5000, proOnly: false },
+  theme_ocean: { price: 5000, proOnly: false },
+  theme_sunset: { price: 8000, proOnly: false },
+  theme_arctic: { price: 8000, proOnly: false },
+  theme_royal: { price: 15000, proOnly: true },
+  theme_blood_moon: { price: 15000, proOnly: true },
+  theme_hacker: { price: 20000, proOnly: false },
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -49,17 +59,19 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { avatar_id } = body;
+    const { avatar_id, item_type } = body;
+    const isTheme = item_type === "theme";
+    const catalog = isTheme ? THEMES : AVATARS;
 
-    if (!avatar_id || typeof avatar_id !== "string" || !AVATARS[avatar_id]) {
-      return new Response(JSON.stringify({ error: "Invalid avatar" }), {
+    if (!avatar_id || typeof avatar_id !== "string" || !catalog[avatar_id]) {
+      return new Response(JSON.stringify({ error: isTheme ? "Invalid theme" : "Invalid avatar" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const avatarInfo = AVATARS[avatar_id];
-    const price = avatarInfo.price;
+    const itemInfo = catalog[avatar_id];
+    const price = itemInfo.price;
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
