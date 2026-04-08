@@ -120,6 +120,7 @@ export default function Shop() {
     toast.success("Theme applied!");
   };
 
+  const handleEquip = async (avatarId: string) => {
     if (!user || busy) return;
     setBusy(avatarId);
     const { error } = await supabase.rpc("update_profile_safe" as any, { _avatar_url: avatarId });
