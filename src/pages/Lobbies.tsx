@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, Crown, Loader2, Plus, Swords, Clock, Target, Zap, Shield,
-  Send, Timer, CheckCircle2, XCircle, Trophy, Radio, FileText,
+  Send, Timer, CheckCircle2, XCircle, Trophy, Radio, FileText, Trash2, UserMinus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,7 +77,6 @@ export default function Lobbies() {
   const [myScore, setMyScore] = useState({ correct: 0, penalties: 0, total_time: 0 });
   const [wrongFlash, setWrongFlash] = useState(false);
   const [joiningId, setJoiningId] = useState<string | null>(null);
-  // Track usernames for lobby list creators
   const [creatorNames, setCreatorNames] = useState<Record<string, string>>({});
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -89,15 +88,14 @@ export default function Lobbies() {
   }, [user, authLoading]);
 
   const fetchLobbies = async () => {
-    const { data } = await supabase.from("lobbies" as any).select("*").in("status", ["waiting", "playing"]).order("created_at", { ascending: false }).limit(20);
+    const { data } = await supabase.from("lobbies").select("*").in("status", ["waiting", "playing"]).order("created_at", { ascending: false }).limit(20);
     const lobbyList = (data as any) ?? [];
     setLobbies(lobbyList);
     setLoading(false);
 
-    // Fetch creator usernames
     const creatorIds = [...new Set(lobbyList.map((l: any) => l.creator_id))];
     if (creatorIds.length > 0) {
-      const { data: profiles } = await supabase.from("profiles_public" as any).select("user_id, username").in("user_id", creatorIds);
+      const { data: profiles } = await supabase.from("profiles_public").select("user_id, username").in("user_id", creatorIds);
       if (profiles) {
         const map: Record<string, string> = {};
         (profiles as any[]).forEach(p => { map[p.user_id] = p.username || "Anonymous"; });
@@ -122,11 +120,10 @@ export default function Lobbies() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [running]);
 
-  // Fetch participant usernames
   const fetchParticipantNames = async (parts: any[]) => {
     const userIds = parts.map(p => p.user_id);
     if (userIds.length === 0) return;
-    const { data } = await supabase.from("profiles_public" as any).select("user_id, username, avatar_url").in("user_id", userIds);
+    const { data } = await supabase.from("profiles_public").select("user_id, username, avatar_url").in("user_id", userIds);
     if (data) {
       const map: Record<string, { username: string; avatar_url: string | null }> = {};
       (data as any[]).forEach(p => { map[p.user_id] = { username: p.username || "Anonymous", avatar_url: p.avatar_url }; });
@@ -142,10 +139,9 @@ export default function Lobbies() {
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "lobbies", filter: `id=eq.${lobbyId}` }, (payload) => {
         const updated = payload.new as Lobby;
         setActiveLobby(updated);
-        // When lobby transitions to playing, load puzzles for all players
         if (updated.status === "playing" && updated.lobby_puzzles?.length > 0) {
           setPuzzles(prev => {
-            if (prev.length > 0) return prev; // already loaded
+            if (prev.length > 0) return prev;
             setCurrentRound(1);
             setElapsed(0);
             setRunning(true);
@@ -154,7 +150,7 @@ export default function Lobbies() {
         }
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "lobby_participants", filter: `lobby_id=eq.${lobbyId}` }, async () => {
-        const { data } = await supabase.from("lobby_participants" as any).select("*").eq("lobby_id", lobbyId);
+        const { data } = await supabase.from("lobby_participants").select("*").eq("lobby_id", lobbyId);
         if (data) {
           setParticipants(data as any);
           fetchParticipantNames(data as any);
@@ -162,15 +158,13 @@ export default function Lobbies() {
       })
       .subscribe();
 
-    // Fetch participants
-    supabase.from("lobby_participants" as any).select("*").eq("lobby_id", lobbyId).then(({ data }) => {
+    supabase.from("lobby_participants").select("*").eq("lobby_id", lobbyId).then(({ data }) => {
       if (data) {
         setParticipants(data as any);
         fetchParticipantNames(data as any);
       }
     });
 
-    // If lobby is already playing (e.g. creator just started it), load puzzles
     if (activeLobby.status === "playing" && activeLobby.lobby_puzzles?.length > 0) {
       setPuzzles(prev => {
         if (prev.length > 0) return prev;
@@ -195,7 +189,7 @@ export default function Lobbies() {
       return;
     }
     toast.success("Lobby created!");
-    const { data: lobbyData } = await supabase.from("lobbies" as any).select("*").eq("id", data.lobby_id).single();
+    const { data: lobbyData } = await supabase.from("lobbies").select("*").eq("id", data.lobby_id).single();
     setActiveLobby(lobbyData as any);
     setTab("active");
     setCreating(false);
@@ -207,13 +201,18 @@ export default function Lobbies() {
       body: { lobby_id: lobbyId },
     });
     const alreadyIn = data?.error === "Already in lobby";
-    if ((error || !data?.success) && !alreadyIn) {
+    if (error && !alreadyIn) {
+      toast.error(data?.error || "Failed to join");
+      setJoiningId(null);
+      return;
+    }
+    if (!data?.success && !alreadyIn) {
       toast.error(data?.error || "Failed to join");
       setJoiningId(null);
       return;
     }
     if (!alreadyIn) toast.success("Joined lobby!");
-    const { data: lobbyData } = await supabase.from("lobbies" as any).select("*").eq("id", lobbyId).single();
+    const { data: lobbyData } = await supabase.from("lobbies").select("*").eq("id", lobbyId).single();
     setActiveLobby(lobbyData as any);
     setTab("active");
     setJoiningId(null);
@@ -228,15 +227,39 @@ export default function Lobbies() {
       toast.error(data?.error || "Failed to start");
       return;
     }
-    // Puzzles will be loaded via the realtime subscription when status changes to "playing"
-    // But also set them immediately for the creator so there's no delay
     setPuzzles(data.puzzles);
     setCurrentRound(1);
     setElapsed(0);
     setRunning(true);
-    // Re-fetch the lobby to get updated status
-    const { data: updatedLobby } = await supabase.from("lobbies" as any).select("*").eq("id", activeLobby.id).single();
+    const { data: updatedLobby } = await supabase.from("lobbies").select("*").eq("id", activeLobby.id).single();
     if (updatedLobby) setActiveLobby(updatedLobby as any);
+  };
+
+  const handleDeleteLobby = async () => {
+    if (!activeLobby || activeLobby.creator_id !== user?.id) return;
+    await supabase.from("lobby_participants").delete().eq("lobby_id", activeLobby.id);
+    await supabase.from("lobbies").delete().eq("id", activeLobby.id);
+    toast.success("Lobby deleted");
+    setActiveLobby(null);
+    setPuzzles([]);
+    setTab("browse");
+    fetchLobbies();
+  };
+
+  const handleKickPlayer = async (userId: string) => {
+    if (!activeLobby || activeLobby.creator_id !== user?.id) return;
+    await supabase.from("lobby_participants").delete().eq("lobby_id", activeLobby.id).eq("user_id", userId);
+    toast.success("Player kicked");
+  };
+
+  const handleLeaveLobby = async () => {
+    if (!activeLobby || !user) return;
+    await supabase.from("lobby_participants").delete().eq("lobby_id", activeLobby.id).eq("user_id", user.id);
+    toast.success("Left lobby");
+    setActiveLobby(null);
+    setPuzzles([]);
+    setTab("browse");
+    fetchLobbies();
   };
 
   const handleSubmitAnswer = useCallback(async (e: React.FormEvent) => {
@@ -356,7 +379,6 @@ export default function Lobbies() {
                 <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary/50 border-border/50 font-body" maxLength={50} />
               </div>
 
-              {/* Battle Mode */}
               <div>
                 <label className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-2 block">Battle Mode</label>
                 <div className="flex gap-2">
@@ -408,10 +430,22 @@ export default function Lobbies() {
               <div className="glass rounded-2xl border border-border/50 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-display text-lg font-bold text-foreground">{activeLobby.name}</h2>
-                  <span className={`px-2 py-1 rounded-full text-xs font-display font-bold ${
-                    activeLobby.status === "waiting" ? "bg-neon-amber/20 text-neon-amber" :
-                    activeLobby.status === "playing" ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"
-                  }`}>{activeLobby.status.toUpperCase()}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-display font-bold ${
+                      activeLobby.status === "waiting" ? "bg-neon-amber/20 text-neon-amber" :
+                      activeLobby.status === "playing" ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"
+                    }`}>{activeLobby.status.toUpperCase()}</span>
+                    {activeLobby.status === "waiting" && activeLobby.creator_id === user?.id && (
+                      <Button variant="ghost" size="icon" onClick={handleDeleteLobby} className="text-destructive h-7 w-7">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                    {activeLobby.status === "waiting" && activeLobby.creator_id !== user?.id && (
+                      <Button variant="ghost" size="sm" onClick={handleLeaveLobby} className="text-muted-foreground text-xs h-7">
+                        Leave
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Participants with usernames */}
@@ -420,6 +454,8 @@ export default function Lobbies() {
                   <div className="flex flex-wrap gap-2">
                     {participants.map(p => {
                       const avatar = getParticipantAvatar(p.user_id);
+                      const isCreator = activeLobby.creator_id === user?.id;
+                      const isThisUser = p.user_id === user?.id;
                       return (
                         <div key={p.id} className={`px-3 py-1.5 rounded-lg border text-xs font-body flex items-center gap-1.5 ${
                           p.finished ? "border-primary/40 bg-primary/10" : "border-border/30 bg-secondary/30"
@@ -429,6 +465,11 @@ export default function Lobbies() {
                           {p.user_id === activeLobby.creator_id && <Crown className="w-3 h-3 text-neon-amber" />}
                           {p.finished && <CheckCircle2 className="w-3 h-3 text-primary" />}
                           {p.score && <span className="text-muted-foreground">{(p.score as any).correct}pts</span>}
+                          {isCreator && !isThisUser && activeLobby.status === "waiting" && (
+                            <button onClick={() => handleKickPlayer(p.user_id)} className="ml-1 text-destructive/60 hover:text-destructive transition-colors">
+                              <UserMinus className="w-3 h-3" />
+                            </button>
+                          )}
                         </div>
                       );
                     })}

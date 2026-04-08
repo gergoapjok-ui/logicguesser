@@ -75,35 +75,41 @@ export default function BattleLobby() {
     if (!user) { navigate("/login"); return; }
 
     const load = async () => {
-      const { data } = await supabase.from("battles" as any).select("*").eq("id", battleId).single();
+      const { data } = await supabase.from("battles").select("*").eq("id", battleId).single();
       if (!data) { setLoading(false); return; }
-      setBattle(data as any);
+      const b = data as any as Battle;
+      setBattle(b);
 
-      const ids = [(data as any).creator_id, (data as any).opponent_id].filter(Boolean);
+      const ids = [b.creator_id, b.opponent_id].filter(Boolean);
       const { data: profiles } = await supabase
-        .from("profiles_public" as any).select("user_id, username, avatar_url, is_pro").in("user_id", ids);
+        .from("profiles_public").select("user_id, username, avatar_url, is_pro").in("user_id", ids);
       if (profiles) {
         const map = new Map((profiles as any[]).map(p => [p.user_id, p]));
-        setCreatorProfile(map.get((data as any).creator_id) ?? null);
-        if ((data as any).opponent_id) setOpponentProfile(map.get((data as any).opponent_id) ?? null);
+        setCreatorProfile(map.get(b.creator_id) ?? null);
+        if (b.opponent_id) setOpponentProfile(map.get(b.opponent_id) ?? null);
       }
 
-      // If battle is playing and we have puzzles, resume
-      if ((data as any).status === "playing" && (data as any).battle_puzzles?.length > 0) {
-        const bp = (data as any).battle_puzzles;
+      // Resume in-progress async battle
+      if (b.status === "playing" && b.battle_puzzles?.length > 0) {
+        const bp = b.battle_puzzles;
         setPuzzles(bp.map((p: any, i: number) => ({ round: i + 1, question: p.question })));
-        const isCreator = user.id === (data as any).creator_id;
-        const myAnswers = isCreator ? (data as any).creator_answers : (data as any).opponent_answers;
+        const isCreator = user.id === b.creator_id;
+        const myAnswers = isCreator ? b.creator_answers : b.opponent_answers;
+        const myScoreObj = isCreator ? b.creator_score : b.opponent_score;
+
         if (myAnswers?.length > 0) {
           if (myAnswers.length >= bp.length) {
             setPlayerDone(true);
-            setMyScore(isCreator ? (data as any).creator_score : (data as any).opponent_score);
+            if (myScoreObj) setMyScore(myScoreObj);
           } else {
             setCurrentRound(myAnswers.length + 1);
-            setMyScore(isCreator ? (data as any).creator_score : (data as any).opponent_score);
+            if (myScoreObj) setMyScore(myScoreObj);
+            setRunning(true);
           }
         }
-        if (!playerDone && myAnswers?.length < bp.length) {
+        // For async mode: don't auto-start the timer — user must press Start
+        // For realtime mode: if already playing, start the timer
+        if (b.realtime_mode && (!myAnswers || myAnswers.length < bp.length)) {
           setRunning(true);
         }
       }
@@ -121,7 +127,7 @@ export default function BattleLobby() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [running]);
 
-  // Realtime — sync puzzles and scores when battle state changes
+  // Realtime subscription
   useEffect(() => {
     if (!battleId) return;
     const channel = supabase
@@ -132,23 +138,26 @@ export default function BattleLobby() {
         const updated = payload.new as Battle;
         setBattle(updated);
 
-        // If battle just started, load puzzles for all players (including non-starter)
+        // If battle just transitioned to playing and we don't have puzzles yet (opponent in realtime)
         if (updated.status === "playing" && updated.battle_puzzles?.length > 0) {
           setPuzzles(prev => {
-            if (prev.length > 0) return prev; // already have puzzles
+            if (prev.length > 0) return prev;
             const bp = updated.battle_puzzles;
-            setCurrentRound(updated.current_round || 1);
-            setElapsed(0);
-            setRunning(true);
+            if (updated.realtime_mode) {
+              // Realtime: auto-start for both players
+              setCurrentRound(updated.current_round || 1);
+              setElapsed(0);
+              setRunning(true);
+            }
             return bp.map((p: any, i: number) => ({ round: i + 1, question: p.question }));
           });
         }
 
-        // Real-time mode: sync current_round from server (advances when someone answers correctly)
+        // Real-time mode: sync current_round
         if (updated.realtime_mode && updated.status === "playing" && updated.current_round) {
           setCurrentRound(prev => {
             if (updated.current_round! > prev) {
-              setElapsed(0); // Reset timer for new round
+              setElapsed(0);
               setAnswer("");
               return updated.current_round!;
             }
@@ -156,7 +165,7 @@ export default function BattleLobby() {
           });
         }
 
-        // Sync scores from realtime for the current user
+        // Sync scores
         if (updated.status === "playing" || updated.status === "finished") {
           const isMe = user?.id === updated.creator_id;
           const myAnswersArr = isMe ? updated.creator_answers : updated.opponent_answers;
@@ -175,24 +184,19 @@ export default function BattleLobby() {
           setRunning(false);
           setPlayerDone(true);
         }
-
-        // Handle status transitions that the non-starter needs to see
-        if (updated.status === "accepted" || updated.status === "declined") {
-          // Force re-render with new status
-        }
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [battleId, user?.id]);
 
   const acceptBattle = async () => {
     if (!battle || !user) return;
-    await supabase.from("battles" as any).update({ status: "accepted", opponent_id: user.id }).eq("id", battle.id);
+    await supabase.from("battles").update({ status: "accepted", opponent_id: user.id } as any).eq("id", battle.id);
     toast.success("Battle accepted!");
   };
 
   const declineBattle = async () => {
     if (!battle || !user) return;
-    await supabase.from("battles" as any).update({ status: "declined" }).eq("id", battle.id);
+    await supabase.from("battles").update({ status: "declined" } as any).eq("id", battle.id);
     navigate("/friends");
   };
 
@@ -239,14 +243,12 @@ export default function BattleLobby() {
     setAnswer("");
 
     if (battle.realtime_mode) {
-      // Real-time mode: round advances for both players via realtime subscription
       toast.success(`Round ${currentRound} — you got it first! 🏆`);
       if (data.battle_finished) {
         setRunning(false);
         setPlayerDone(true);
         toast.success("Battle finished!");
       }
-      // current_round will update via realtime subscription
     } else {
       if (data.player_done) {
         setRunning(false);
@@ -276,6 +278,14 @@ export default function BattleLobby() {
   const isOpponent = user?.id === battle.opponent_id;
   const modeIcon = battle.game_mode === "survival" ? Shield : battle.game_mode === "blitz" ? Clock : Zap;
   const currentPuzzle = puzzles[currentRound - 1] ?? null;
+
+  // For async (non-realtime) battles: the opponent should see a "Start" button rather than auto-starting
+  const isAsyncAndAccepted = battle.status === "accepted" && !battle.realtime_mode;
+  const isAsyncPlayingButNotStarted = battle.status === "playing" && !battle.realtime_mode && puzzles.length > 0 && !running && !playerDone && currentRound === 1 && elapsed === 0;
+  const showStartButton = (
+    (battle.status === "accepted") ||
+    (isAsyncPlayingButNotStarted && isOpponent)
+  );
 
   return (
     <div className="min-h-screen bg-background grid-pattern">
@@ -383,10 +393,12 @@ export default function BattleLobby() {
             </div>
           )}
 
-          {/* ACCEPTED — start button */}
-          {battle.status === "accepted" && (isCreator || isOpponent) && (
+          {/* ACCEPTED or async waiting — per-user start button */}
+          {showStartButton && (
             <div className="text-center">
-              <p className="font-display text-xl font-bold text-primary text-glow mb-4">Battle Accepted!</p>
+              <p className="font-display text-xl font-bold text-primary text-glow mb-4">
+                {battle.status === "accepted" ? "Battle Accepted!" : "Your turn — press Start!"}
+              </p>
               <Button variant="neon" size="xl" className="w-full" onClick={startBattle} disabled={starting}>
                 {starting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Swords className="w-5 h-5" />}
                 Start Battle
@@ -395,7 +407,7 @@ export default function BattleLobby() {
           )}
 
           {/* PLAYING — game area */}
-          {battle.status === "playing" && !playerDone && currentPuzzle && (
+          {battle.status === "playing" && !playerDone && running && currentPuzzle && (
             <div className="glass rounded-2xl border border-border/50 p-6">
               <div className="flex justify-between items-center mb-4">
                 <span className="font-body text-xs text-muted-foreground">Round {currentRound}/{puzzles.length}</span>
