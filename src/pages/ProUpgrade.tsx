@@ -87,9 +87,9 @@ export default function ProUpgrade() {
           ) : (
             <div className="text-center">
               <div className="glass rounded-2xl border border-neon-amber/30 p-6 mb-4">
-                <p className="font-body text-sm text-muted-foreground mb-1">Limited-time offer</p>
-                <p className="font-display text-3xl font-bold text-neon-amber mb-1">FREE</p>
-                <p className="font-body text-xs text-muted-foreground">Mock activation — no payment required</p>
+                <p className="font-body text-sm text-muted-foreground mb-1">Monthly subscription</p>
+                <p className="font-display text-3xl font-bold text-neon-amber mb-1">$2.49<span className="text-base font-body text-muted-foreground">/mo</span></p>
+                <p className="font-body text-xs text-muted-foreground">Cancel anytime</p>
               </div>
               <Button
                 variant="neon"
