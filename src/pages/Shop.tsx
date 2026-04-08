@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShoppingBag, Coins, Check, Loader2, Crown, Lock, CreditCard } from "lucide-react";
+import { ShoppingBag, Coins, Check, Loader2, Crown, Lock, CreditCard, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme, APP_THEMES } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
@@ -31,6 +32,7 @@ const AVATARS = [
 
 export default function Shop() {
   const { user, loading: authLoading, profile, refreshProfile } = useAuth();
+  const { currentTheme, setTheme, ownedThemes, refreshOwned } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [credits, setCredits] = useState(0);
@@ -91,6 +93,31 @@ export default function Shop() {
     toast.success(`Purchased ${avatar.name}!`);
     refreshProfile();
     setBusy(null);
+  };
+
+  const handleBuyTheme = async (theme: typeof APP_THEMES[0]) => {
+    if (!user || busy) return;
+    if (theme.proOnly && !isPro) { toast.error("This theme is Pro-exclusive!"); return; }
+    if (credits < theme.price) { toast.error("Not enough credits!"); return; }
+    setBusy(theme.id);
+    const { data, error } = await supabase.functions.invoke("purchase-avatar", {
+      body: { avatar_id: theme.id, item_type: "theme" },
+    });
+    if (error || !data?.success) {
+      toast.error(data?.error || "Purchase failed.");
+      setBusy(null);
+      return;
+    }
+    setCredits(data.new_credits);
+    await refreshOwned();
+    toast.success(`Purchased ${theme.name} theme!`);
+    refreshProfile();
+    setBusy(null);
+  };
+
+  const handleEquipTheme = (themeId: string) => {
+    setTheme(themeId);
+    toast.success("Theme applied!");
   };
 
   const handleEquip = async (avatarId: string) => {
@@ -188,6 +215,51 @@ export default function Shop() {
                       <p className="flex items-center justify-center gap-1 text-xs font-body text-neon-amber mb-2"><Coins className="w-3 h-3" /> {avatar.price}</p>
                       <Button variant="neon" size="sm" className="w-full" onClick={() => handleBuy(avatar)} disabled={busy === avatar.id}>
                         {busy === avatar.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Buy"}
+                      </Button>
+                    </>
+                  ) : null}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Themes */}
+          <div className="flex items-center gap-2 mb-3">
+            <Palette className="w-4 h-4 text-accent" />
+            <h2 className="font-display text-sm font-bold text-accent uppercase tracking-wider">Themes</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {APP_THEMES.map((theme, i) => {
+              const isOwned = ownedThemes.has(theme.id);
+              const isActive = currentTheme === theme.id;
+              const locked = theme.proOnly && !isPro && !isOwned;
+              return (
+                <motion.div key={theme.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                  className={`glass rounded-xl border p-4 text-center relative ${
+                    isActive ? "border-accent/60 box-glow-purple" : locked ? "border-border/30 opacity-70" : "border-border/50"
+                  }`}>
+                  {locked && (
+                    <div className="absolute inset-0 rounded-xl bg-background/50 flex items-center justify-center z-10">
+                      <div className="text-center">
+                        <Lock className="w-6 h-6 text-neon-amber mx-auto mb-1" />
+                        <Button variant="link" className="text-neon-amber text-xs p-0 h-auto" onClick={() => navigate("/pro")}>Get Pro</Button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="text-4xl mb-2">{theme.emoji}</div>
+                  <p className="font-display text-sm font-bold text-foreground mb-0.5">{theme.name}</p>
+                  <p className="font-body text-[10px] text-muted-foreground mb-2">{theme.description}</p>
+                  {isActive ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-body text-accent"><Check className="w-3 h-3" /> Active</span>
+                  ) : isOwned ? (
+                    <Button variant="neon-outline" size="sm" className="w-full mt-1" onClick={() => handleEquipTheme(theme.id)}>Apply</Button>
+                  ) : theme.price === 0 ? (
+                    <Button variant="neon-outline" size="sm" className="w-full mt-1" onClick={() => handleEquipTheme(theme.id)}>Apply</Button>
+                  ) : !locked ? (
+                    <>
+                      <p className="flex items-center justify-center gap-1 text-xs font-body text-neon-amber mb-1"><Coins className="w-3 h-3" /> {theme.price.toLocaleString()}</p>
+                      <Button variant="neon" size="sm" className="w-full" onClick={() => handleBuyTheme(theme)} disabled={busy === theme.id}>
+                        {busy === theme.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Buy"}
                       </Button>
                     </>
                   ) : null}

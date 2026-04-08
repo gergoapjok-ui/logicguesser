@@ -1,6 +1,6 @@
 // Shared puzzle generator with rich puzzle types including visual puzzles
 
-export type PuzzleCategory = "math" | "logic" | "patterns" | "visual" | "word";
+export type PuzzleCategory = "math" | "logic" | "patterns" | "visual" | "word" | "cipher" | "spatial";
 
 export interface Puzzle {
   question: string;
@@ -713,6 +713,156 @@ function visualLineGraph(): Puzzle {
   }
 }
 
+// ─── Cipher Puzzles ─────────────────────────────────────────────
+
+function cipherCaesar(): Puzzle {
+  const words = ["HELLO", "WORLD", "LOGIC", "BRAIN", "SMART", "PUZZLE", "TIGER", "CROWN", "FLAME", "GHOST"];
+  const word = words[Math.floor(Math.random() * words.length)];
+  const shift = Math.floor(Math.random() * 5) + 1;
+  const encrypted = word.split("").map(c => String.fromCharCode(((c.charCodeAt(0) - 65 + shift) % 26) + 65)).join("");
+  return { question: `Caesar cipher (shift ${shift}): "${encrypted}" decodes to?`, answer: word.toLowerCase(), category: "cipher" };
+}
+
+function cipherMorse(): Puzzle {
+  const morseMap: Record<string, string> = {
+    A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.",
+    H: "....", I: "..", J: ".---", K: "-.-", L: ".-..", M: "--", N: "-.",
+    O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-",
+    U: "..-", V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--..",
+  };
+  const words = ["SOS", "HI", "OK", "GO", "RUN", "CAT", "DOG", "SUN", "WIN", "ACE"];
+  const word = words[Math.floor(Math.random() * words.length)];
+  const morse = word.split("").map(c => morseMap[c]).join(" / ");
+  return { question: `Decode this Morse code: ${morse}`, answer: word.toLowerCase(), category: "cipher" };
+}
+
+function cipherSubstitution(): Puzzle {
+  const pairs: [string, string, string][] = [
+    ["1=A, 2=B, 3=C ... What is 8-5-12-12-15?", "8-5-12-12-15", "hello"],
+    ["1=A, 2=B, 3=C ... What is 23-15-18-12-4?", "23-15-18-12-4", "world"],
+    ["1=A, 2=B, 3=C ... What is 3-15-4-5?", "3-15-4-5", "code"],
+    ["1=A, 2=B, 3=C ... What is 7-1-13-5?", "7-1-13-5", "game"],
+    ["1=A, 2=B, 3=C ... What is 16-9-26-26-1?", "16-9-26-26-1", "pizza"],
+  ];
+  const [q, _, a] = pairs[Math.floor(Math.random() * pairs.length)];
+  return { question: q, answer: a, category: "cipher" };
+}
+
+function cipherReverse(): Puzzle {
+  const words = ["ALGORITHM", "COMPUTER", "FUNCTION", "VARIABLE", "DATABASE", "KEYBOARD"];
+  const word = words[Math.floor(Math.random() * words.length)];
+  const reversed = word.split("").reverse().join("");
+  return { question: `This word is written backwards: "${reversed}". What is it?`, answer: word.toLowerCase(), category: "cipher" };
+}
+
+function cipherEmoji(): Puzzle {
+  const puzzles: [string, string][] = [
+    ["🌞 + 🌻 = ? (combine the objects)", "sunflower"],
+    ["🔥 + 🪰 = ? (combine the objects)", "firefly"],
+    ["⭐ + 🐟 = ? (combine the objects)", "starfish"],
+    ["🌈 + 🎀 = ? (combine the objects)", "rainbow"],
+    ["❄️ + ❄️ = ? (what falls from clouds)", "snowflake"],
+    ["📚 + 🪱 = ? (combine the objects)", "bookworm"],
+  ];
+  const [q, a] = puzzles[Math.floor(Math.random() * puzzles.length)];
+  return { question: q, answer: a, category: "cipher" };
+}
+
+// ─── Spatial Puzzles ────────────────────────────────────────────
+
+function spatialRotation(): Puzzle {
+  const shapes = [
+    { name: "L-shape", desc: "An L pointing up-right", rotated: "An L pointing right-down", answer: "right-down" },
+    { name: "Arrow pointing right", desc: "→", rotated: "↓", answer: "down" },
+    { name: "Arrow pointing up", desc: "↑", rotated: "→", answer: "right" },
+  ];
+  const shape = shapes[Math.floor(Math.random() * shapes.length)];
+  // Visual: show a shape and ask what it looks like rotated 90° clockwise
+  const svg = `<svg viewBox="0 0 280 140" xmlns="http://www.w3.org/2000/svg">
+    <rect width="280" height="140" rx="12" fill="#1a1a2e"/>
+    <text x="140" y="30" text-anchor="middle" fill="#888" font-size="12">Rotate 90° clockwise</text>
+    <polygon points="60,100 60,40 90,40 90,70 120,70 120,100" fill="#a855f7" opacity="0.85"/>
+    <text x="90" y="120" text-anchor="middle" fill="#aaa" font-size="10">Original</text>
+    <rect x="160" y="35" width="80" height="70" rx="6" fill="#333" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4"/>
+    <text x="200" y="75" text-anchor="middle" fill="#f59e0b" font-size="20">?</text>
+    <text x="200" y="120" text-anchor="middle" fill="#aaa" font-size="10">After rotation</text>
+  </svg>`;
+  return { question: `If you rotate this L-shape 90° clockwise, which direction does it point? (answer: ${shape.rotated})`, answer: shape.answer, visual: svg, category: "spatial" };
+}
+
+function spatialMirror(): Puzzle {
+  const letters = ["b", "d", "p", "q"];
+  const mirrors: Record<string, string> = { b: "d", d: "b", p: "q", q: "p" };
+  const letter = letters[Math.floor(Math.random() * letters.length)];
+  const svg = `<svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+    <rect width="240" height="120" rx="12" fill="#1a1a2e"/>
+    <text x="60" y="75" text-anchor="middle" fill="#22d3ee" font-size="48" font-weight="bold">${letter}</text>
+    <line x1="120" y1="15" x2="120" y2="105" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4"/>
+    <text x="180" y="75" text-anchor="middle" fill="#f59e0b" font-size="48" font-weight="bold">?</text>
+    <text x="120" y="14" text-anchor="middle" fill="#888" font-size="10">mirror</text>
+  </svg>`;
+  return { question: `What letter appears when "${letter}" is mirrored horizontally?`, answer: mirrors[letter], visual: svg, category: "spatial" };
+}
+
+function spatialCubeNet(): Puzzle {
+  // Show a cube net, ask how many faces
+  const faces = 6;
+  const svg = `<svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg">
+    <rect width="280" height="160" rx="12" fill="#1a1a2e"/>
+    <rect x="100" y="10" width="35" height="35" rx="3" fill="#a855f7" opacity="0.85" stroke="#ddd" stroke-width="1"/>
+    <rect x="65" y="45" width="35" height="35" rx="3" fill="#22d3ee" opacity="0.85" stroke="#ddd" stroke-width="1"/>
+    <rect x="100" y="45" width="35" height="35" rx="3" fill="#f59e0b" opacity="0.85" stroke="#ddd" stroke-width="1"/>
+    <rect x="135" y="45" width="35" height="35" rx="3" fill="#ef4444" opacity="0.85" stroke="#ddd" stroke-width="1"/>
+    <rect x="170" y="45" width="35" height="35" rx="3" fill="#10b981" opacity="0.85" stroke="#ddd" stroke-width="1"/>
+    <rect x="100" y="80" width="35" height="35" rx="3" fill="#3b82f6" opacity="0.85" stroke="#ddd" stroke-width="1"/>
+    <text x="140" y="135" text-anchor="middle" fill="#888" font-size="11">Cube net</text>
+  </svg>`;
+  // Ask which color is opposite the yellow face
+  return { question: `In this cube net, how many faces does a cube have?`, answer: String(faces), visual: svg, category: "spatial" };
+}
+
+function spatialFolding(): Puzzle {
+  // A paper with a hole punched after folding - count holes when unfolded
+  const folds = Math.floor(Math.random() * 2) + 1; // 1 or 2 folds
+  const holes = Math.pow(2, folds);
+  const svg = `<svg viewBox="0 0 280 140" xmlns="http://www.w3.org/2000/svg">
+    <rect width="280" height="140" rx="12" fill="#1a1a2e"/>
+    <rect x="30" y="20" width="80" height="100" rx="4" fill="#444" stroke="#888" stroke-width="1"/>
+    <text x="70" y="75" text-anchor="middle" fill="#aaa" font-size="10">Folded ${folds}x</text>
+    <circle cx="70" cy="55" r="6" fill="#ef4444"/>
+    <text x="140" y="75" text-anchor="middle" fill="#f59e0b" font-size="24">→</text>
+    <rect x="170" y="20" width="80" height="100" rx="4" fill="#444" stroke="#888" stroke-width="1" stroke-dasharray="4"/>
+    <text x="210" y="75" text-anchor="middle" fill="#f59e0b" font-size="20">?</text>
+    <text x="210" y="135" text-anchor="middle" fill="#888" font-size="10">Unfolded</text>
+  </svg>`;
+  return { question: `A paper is folded ${folds} time${folds > 1 ? "s" : ""} in half, then a hole is punched. How many holes when unfolded?`, answer: String(holes), visual: svg, category: "spatial" };
+}
+
+function spatialCounting3D(): Puzzle {
+  // Count visible cubes in a 3D stack
+  const layers = [
+    [3, 2], // bottom: 3 cubes, top: 2 cubes  
+    [4, 1],
+    [2, 2],
+    [3, 3],
+  ];
+  const [bottom, top] = layers[Math.floor(Math.random() * layers.length)];
+  const total = bottom + top;
+  let cubes = "";
+  // Draw isometric-ish cubes
+  for (let i = 0; i < bottom; i++) {
+    const x = 40 + i * 50;
+    cubes += `<rect x="${x}" y="70" width="40" height="40" rx="4" fill="#3b82f6" opacity="0.85" stroke="#1a1a2e" stroke-width="1"/>`;
+  }
+  for (let i = 0; i < top; i++) {
+    const x = 40 + i * 50;
+    cubes += `<rect x="${x}" y="30" width="40" height="40" rx="4" fill="#a855f7" opacity="0.85" stroke="#1a1a2e" stroke-width="1"/>`;
+  }
+  const w = Math.max(bottom, top) * 50 + 60;
+  const svg = `<svg viewBox="0 0 ${Math.max(w, 200)} 130" xmlns="http://www.w3.org/2000/svg"><rect width="${Math.max(w, 200)}" height="130" rx="12" fill="#1a1a2e"/>${cubes}<text x="${Math.max(w, 200) / 2}" y="125" text-anchor="middle" fill="#888" font-size="10">Stacked blocks</text></svg>`;
+  return { question: `How many blocks are there in total?`, answer: String(total), visual: svg, category: "spatial" };
+}
+
 // ─── Generator ──────────────────────────────────────────────────
 
 const allGenerators: Record<PuzzleCategory, (() => Puzzle)[]> = {
@@ -721,10 +871,12 @@ const allGenerators: Record<PuzzleCategory, (() => Puzzle)[]> = {
   logic: [() => logicTricks[Math.floor(Math.random() * logicTricks.length)], logicDeduction, logicCryptarithmetic],
   word: [wordAnagram, wordMissing, wordRiddle, wordAcronym, wordCompound],
   visual: [visualCountShapes, visualPatternGrid, visualBarChart, visualDiceCount, visualClockAngle, visualMaze, visualPieChart, visualSymmetry, visualCountColor, visualNumberGrid, visualCompareAreas, visualLineGraph],
+  cipher: [cipherCaesar, cipherMorse, cipherSubstitution, cipherReverse, cipherEmoji],
+  spatial: [spatialRotation, spatialMirror, spatialCubeNet, spatialFolding, spatialCounting3D],
 };
 
 export function generatePuzzle(category?: PuzzleCategory): Puzzle {
-  const cats: PuzzleCategory[] = category ? [category] : ["math", "logic", "patterns", "visual", "word"];
+  const cats: PuzzleCategory[] = category ? [category] : ["math", "logic", "patterns", "visual", "word", "cipher", "spatial"];
   const cat = cats[Math.floor(Math.random() * cats.length)];
   const generators = allGenerators[cat];
   return generators[Math.floor(Math.random() * generators.length)]();
