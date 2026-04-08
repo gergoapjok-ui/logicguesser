@@ -95,7 +95,31 @@ export default function Shop() {
     setBusy(null);
   };
 
-  const handleEquip = async (avatarId: string) => {
+  const handleBuyTheme = async (theme: typeof APP_THEMES[0]) => {
+    if (!user || busy) return;
+    if (theme.proOnly && !isPro) { toast.error("This theme is Pro-exclusive!"); return; }
+    if (credits < theme.price) { toast.error("Not enough credits!"); return; }
+    setBusy(theme.id);
+    const { data, error } = await supabase.functions.invoke("purchase-avatar", {
+      body: { avatar_id: theme.id, item_type: "theme" },
+    });
+    if (error || !data?.success) {
+      toast.error(data?.error || "Purchase failed.");
+      setBusy(null);
+      return;
+    }
+    setCredits(data.new_credits);
+    await refreshOwned();
+    toast.success(`Purchased ${theme.name} theme!`);
+    refreshProfile();
+    setBusy(null);
+  };
+
+  const handleEquipTheme = (themeId: string) => {
+    setTheme(themeId);
+    toast.success("Theme applied!");
+  };
+
     if (!user || busy) return;
     setBusy(avatarId);
     const { error } = await supabase.rpc("update_profile_safe" as any, { _avatar_url: avatarId });
