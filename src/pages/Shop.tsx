@@ -196,6 +196,44 @@ export default function Shop() {
             })}
           </div>
 
+          {/* Credit Packs */}
+          <div className="flex items-center gap-2 mb-3">
+            <CreditCard className="w-4 h-4 text-primary" />
+            <h2 className="font-display text-sm font-bold text-primary uppercase tracking-wider">Buy Credits</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            {CREDIT_PACKS.map((pack) => (
+              <motion.div key={pack.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                className="glass rounded-xl border border-primary/30 p-5 text-center">
+                <div className="text-4xl mb-2">{pack.emoji}</div>
+                <p className="font-display text-lg font-bold text-foreground">{pack.name}</p>
+                <p className="font-display text-xl font-bold text-primary mt-1">{pack.price}</p>
+                <Button
+                  variant="neon"
+                  size="sm"
+                  className="w-full mt-3"
+                  disabled={buyingCredits === pack.id}
+                  onClick={async () => {
+                    if (!user) { navigate("/login"); return; }
+                    setBuyingCredits(pack.id);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("create-checkout", {
+                        body: { type: "credits", pack_id: pack.id },
+                      });
+                      if (error) throw error;
+                      if (data?.url) window.open(data.url, "_blank");
+                    } catch {
+                      toast.error("Failed to start checkout");
+                    }
+                    setBuyingCredits(null);
+                  }}
+                >
+                  {buyingCredits === pack.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><CreditCard className="w-4 h-4" /> Purchase</>}
+                </Button>
+              </motion.div>
+            ))}
+          </div>
+
           <div className="text-center space-y-2">
             <p className="font-body text-sm text-muted-foreground">
               Earn <span className="text-primary font-semibold">100 credits</span> for every Daily Challenge
