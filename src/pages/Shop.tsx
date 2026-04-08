@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShoppingBag, Coins, Check, Loader2, Crown, Lock } from "lucide-react";
+import { ShoppingBag, Coins, Check, Loader2, Crown, Lock, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+
+const CREDIT_PACKS = [
+  { id: "credits_5000", name: "5,000 Credits", credits: 5000, price: "$0.99", emoji: "💰" },
+  { id: "credits_25000", name: "25,000 Credits", credits: 25000, price: "$2.99", emoji: "💎" },
+];
 
 const AVATARS = [
   { id: "avatar_cyber_skull", name: "Cyber Skull", emoji: "💀", price: 500, proOnly: false },
