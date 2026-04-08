@@ -223,6 +223,51 @@ export default function Shop() {
             })}
           </div>
 
+          {/* Themes */}
+          <div className="flex items-center gap-2 mb-3">
+            <Palette className="w-4 h-4 text-accent" />
+            <h2 className="font-display text-sm font-bold text-accent uppercase tracking-wider">Themes</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {APP_THEMES.map((theme, i) => {
+              const isOwned = ownedThemes.has(theme.id);
+              const isActive = currentTheme === theme.id;
+              const locked = theme.proOnly && !isPro && !isOwned;
+              return (
+                <motion.div key={theme.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                  className={`glass rounded-xl border p-4 text-center relative ${
+                    isActive ? "border-accent/60 box-glow-purple" : locked ? "border-border/30 opacity-70" : "border-border/50"
+                  }`}>
+                  {locked && (
+                    <div className="absolute inset-0 rounded-xl bg-background/50 flex items-center justify-center z-10">
+                      <div className="text-center">
+                        <Lock className="w-6 h-6 text-neon-amber mx-auto mb-1" />
+                        <Button variant="link" className="text-neon-amber text-xs p-0 h-auto" onClick={() => navigate("/pro")}>Get Pro</Button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="text-4xl mb-2">{theme.emoji}</div>
+                  <p className="font-display text-sm font-bold text-foreground mb-0.5">{theme.name}</p>
+                  <p className="font-body text-[10px] text-muted-foreground mb-2">{theme.description}</p>
+                  {isActive ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-body text-accent"><Check className="w-3 h-3" /> Active</span>
+                  ) : isOwned ? (
+                    <Button variant="neon-outline" size="sm" className="w-full mt-1" onClick={() => handleEquipTheme(theme.id)}>Apply</Button>
+                  ) : theme.price === 0 ? (
+                    <Button variant="neon-outline" size="sm" className="w-full mt-1" onClick={() => handleEquipTheme(theme.id)}>Apply</Button>
+                  ) : !locked ? (
+                    <>
+                      <p className="flex items-center justify-center gap-1 text-xs font-body text-neon-amber mb-1"><Coins className="w-3 h-3" /> {theme.price.toLocaleString()}</p>
+                      <Button variant="neon" size="sm" className="w-full" onClick={() => handleBuyTheme(theme)} disabled={busy === theme.id}>
+                        {busy === theme.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Buy"}
+                      </Button>
+                    </>
+                  ) : null}
+                </motion.div>
+              );
+            })}
+          </div>
+
           {/* Credit Packs */}
           <div className="flex items-center gap-2 mb-3">
             <CreditCard className="w-4 h-4 text-primary" />
