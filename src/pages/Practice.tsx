@@ -97,7 +97,7 @@ export default function Practice() {
               <div className="flex justify-center mb-6">
                 <ToggleGroup type="single" value={category ?? ""} onValueChange={handleCategoryChange}
                   className="bg-secondary/50 rounded-lg p-1 border border-border/30 flex-wrap">
-                  {(["", "math", "logic", "patterns", "visual", "word"] as const).map(v => (
+                  {(["", "math", "logic", "patterns", "visual", "word", "cipher", "spatial", "trivia", "code"] as const).map(v => (
                     <ToggleGroupItem key={v} value={v}
                       className="font-body text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md px-3">
                       {v === "" ? "All" : v.charAt(0).toUpperCase() + v.slice(1)}
@@ -148,6 +148,13 @@ export default function Practice() {
                 </>
               )}
             </div>
+
+            {/* Ad below puzzle for free users on mobile */}
+            {!isPro && (
+              <div className="mt-6 lg:hidden">
+                <AdPlaceholder />
+              </div>
+            )}
           </motion.div>
 
           {!isPro && (
