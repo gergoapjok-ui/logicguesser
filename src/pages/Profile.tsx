@@ -135,6 +135,20 @@ export default function Profile() {
           </div>
         </motion.div>
       </div>
+      {/* Floating Pro upgrade button for free users */}
+      {!profile.is_pro && (
+        <motion.button
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate("/pro")}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 rounded-full bg-neon-amber text-background font-display font-bold shadow-lg shadow-neon-amber/30 border-2 border-neon-amber/60 hover:shadow-neon-amber/50 transition-shadow"
+        >
+          <Crown className="w-5 h-5" />
+          <span>Go Pro</span>
+        </motion.button>
+      )}
     </div>
   );
 }
