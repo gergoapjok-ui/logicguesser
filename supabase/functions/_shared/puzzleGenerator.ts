@@ -282,6 +282,45 @@ function spatialBlocks(): ServerPuzzle {
   return { question: `A stack has ${bottom} blocks on the bottom row and ${top} on top. How many blocks total?`, answer: String(bottom + top) };
 }
 
+// ─── Trivia ───────────────────────────────────────────────────
+
+const triviaPool: ServerPuzzle[] = [
+  { question: "What planet is known as the Red Planet?", answer: "mars" },
+  { question: "How many bones does an adult human body have?", answer: "206" },
+  { question: "What is the chemical symbol for gold?", answer: "au" },
+  { question: "In what year did the Titanic sink?", answer: "1912" },
+  { question: "What is the smallest prime number?", answer: "2" },
+  { question: "How many continents are there?", answer: "7" },
+  { question: "What is the hardest natural substance on Earth?", answer: "diamond" },
+  { question: "How many sides does a hexagon have?", answer: "6" },
+  { question: "What is the boiling point of water in Celsius?", answer: "100" },
+  { question: "What is the largest ocean on Earth?", answer: "pacific" },
+  { question: "How many planets are in our solar system?", answer: "8" },
+  { question: "What is the chemical formula for water?", answer: "h2o" },
+  { question: "What is the atomic number of carbon?", answer: "6" },
+  { question: "How many chromosomes do humans have?", answer: "46" },
+  { question: "What is the most abundant gas in Earth's atmosphere?", answer: "nitrogen" },
+];
+
+// ─── Code Output ────────────────────────────────────────────────
+
+function codeOutput(): ServerPuzzle {
+  const puzzles: [string, string][] = [
+    ["x = 5; x = x + 3; print(x) — What does this print?", "8"],
+    ["a = [1,2,3]; print(len(a)) — What does this print?", "3"],
+    ["s = 'hello'; print(s[1]) — What does this print?", "e"],
+    ["x = 0; for i in range(5): x += i; print(x) — What does this print?", "10"],
+    ["s = 'world'; print(s[::-1]) — What does this print?", "dlrow"],
+    ["a = 15; b = 4; print(a % b) — What does this print?", "3"],
+    ["s = 'abc' * 3; print(len(s)) — What does this print?", "9"],
+    ["a = 7; b = 2; print(a // b) — What does this print?", "3"],
+    ["x = 2 ** 8; print(x) — What does this print?", "256"],
+    ["x = '5' + '3'; print(x) — What does this print? (string concatenation)", "53"],
+  ];
+  const [q, a] = puzzles[Math.floor(Math.random() * puzzles.length)];
+  return { question: q, answer: a };
+}
+
 export function generateServerPuzzle(): ServerPuzzle {
   const generators = [
     mathBasic, mathHard, mathMissingOp, mathPercentage, mathSqrt, mathPower,
@@ -293,6 +332,8 @@ export function generateServerPuzzle(): ServerPuzzle {
     logicDeduction, wordAnagram, wordRiddle, wordCompound,
     cipherCaesar, cipherMorse, cipherSubstitution, cipherReverse,
     spatialMirrorLetter, spatialFolding, spatialBlocks,
+    () => triviaPool[Math.floor(Math.random() * triviaPool.length)],
+    codeOutput,
   ];
   return generators[Math.floor(Math.random() * generators.length)]();
 }
