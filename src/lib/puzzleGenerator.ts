@@ -1,6 +1,6 @@
 // Shared puzzle generator with rich puzzle types including visual puzzles
 
-export type PuzzleCategory = "math" | "logic" | "patterns" | "visual" | "word" | "cipher" | "spatial";
+export type PuzzleCategory = "math" | "logic" | "patterns" | "visual" | "word" | "cipher" | "spatial" | "trivia" | "code";
 
 export interface Puzzle {
   question: string;
@@ -863,6 +863,108 @@ function spatialCounting3D(): Puzzle {
   return { question: `How many blocks are there in total?`, answer: String(total), visual: svg, category: "spatial" };
 }
 
+// ─── Trivia Puzzles ─────────────────────────────────────────────
+
+const triviaPuzzles: Puzzle[] = [
+  { question: "What planet is known as the Red Planet?", answer: "mars", category: "trivia" },
+  { question: "How many bones does an adult human body have?", answer: "206", category: "trivia" },
+  { question: "What is the chemical symbol for gold?", answer: "au", category: "trivia" },
+  { question: "In what year did the Titanic sink?", answer: "1912", category: "trivia" },
+  { question: "What is the smallest prime number?", answer: "2", category: "trivia" },
+  { question: "How many continents are there?", answer: "7", category: "trivia" },
+  { question: "What gas do plants absorb from the atmosphere?", answer: "carbon dioxide", category: "trivia" },
+  { question: "What is the speed of light in km/s (rounded to thousands)?", answer: "300000", category: "trivia" },
+  { question: "What is the hardest natural substance on Earth?", answer: "diamond", category: "trivia" },
+  { question: "How many sides does a hexagon have?", answer: "6", category: "trivia" },
+  { question: "What element does 'O' represent on the periodic table?", answer: "oxygen", category: "trivia" },
+  { question: "What is the boiling point of water in Celsius?", answer: "100", category: "trivia" },
+  { question: "How many teeth does an adult human typically have?", answer: "32", category: "trivia" },
+  { question: "What is the largest ocean on Earth?", answer: "pacific", category: "trivia" },
+  { question: "Who painted the Mona Lisa?", answer: "leonardo da vinci", category: "trivia" },
+  { question: "What is the capital of Japan?", answer: "tokyo", category: "trivia" },
+  { question: "How many planets are in our solar system?", answer: "8", category: "trivia" },
+  { question: "What is the chemical formula for water?", answer: "h2o", category: "trivia" },
+  { question: "What is the longest river in the world?", answer: "nile", category: "trivia" },
+  { question: "What year was the first iPhone released?", answer: "2007", category: "trivia" },
+  { question: "What is the atomic number of carbon?", answer: "6", category: "trivia" },
+  { question: "How many chromosomes do humans have?", answer: "46", category: "trivia" },
+  { question: "What is the most abundant gas in Earth's atmosphere?", answer: "nitrogen", category: "trivia" },
+  { question: "What is the square root of 256?", answer: "16", category: "trivia" },
+  { question: "What country has the most people?", answer: "india", category: "trivia" },
+];
+
+// ─── Code Output Puzzles ────────────────────────────────────────
+
+function codeOutput(): Puzzle {
+  const puzzles: [string, string, string][] = [
+    ["x = 5\nx = x + 3\nprint(x)", "What does this print?", "8"],
+    ["a = [1, 2, 3]\nprint(len(a))", "What does this print?", "3"],
+    ["x = 10\nif x > 5:\n  print('yes')\nelse:\n  print('no')", "What does this print?", "yes"],
+    ["s = 'hello'\nprint(s[1])", "What does this print?", "e"],
+    ["x = 0\nfor i in range(5):\n  x += i\nprint(x)", "What does this print?", "10"],
+    ["a = [3, 1, 4, 1, 5]\nprint(max(a))", "What does this print?", "5"],
+    ["s = 'world'\nprint(s[::-1])", "What does this print?", "dlrow"],
+    ["x = True\ny = False\nprint(x and y)", "What does this print?", "false"],
+    ["a = 15\nb = 4\nprint(a % b)", "What does this print?", "3"],
+    ["s = 'abc' * 3\nprint(len(s))", "What does this print?", "9"],
+    ["x = [1,2,3]\nx.append(4)\nprint(x[-1])", "What does this print?", "4"],
+    ["a = 7\nb = 2\nprint(a // b)", "What does this print?", "3"],
+    ["s = 'Hello World'\nprint(s.count('l'))", "How many 'l' characters?", "3"],
+    ["x = 2 ** 8\nprint(x)", "What does this print?", "256"],
+    ["a = [5,3,8,1]\na.sort()\nprint(a[0])", "What does this print?", "1"],
+  ];
+  const [code, q, a] = puzzles[Math.floor(Math.random() * puzzles.length)];
+  const escapedCode = code.replace(/\n/g, "\\n");
+  
+  // Create a visual code block
+  const lines = code.split("\n");
+  const lineHeight = 16;
+  const svgH = Math.max(lines.length * lineHeight + 40, 80);
+  let codeText = "";
+  lines.forEach((line, i) => {
+    const escaped = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    codeText += `<text x="15" y="${25 + i * lineHeight}" fill="#22d3ee" font-family="monospace" font-size="12">${escaped}</text>`;
+  });
+  const svg = `<svg viewBox="0 0 300 ${svgH}" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="${svgH}" rx="12" fill="#0d1117"/><rect x="5" y="5" width="290" height="${svgH - 10}" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>${codeText}</svg>`;
+  
+  return { question: q, answer: a, visual: svg, category: "code" };
+}
+
+function codeDebug(): Puzzle {
+  const puzzles: [string, string, string][] = [
+    ["def add(a, b):\n  return a - b\nprint(add(3, 2))", "This function should add, but prints the wrong result. What does it actually print?", "1"],
+    ["x = [1, 2, 3]\nprint(x[3])", "This code has a bug. What kind of error occurs? (index/name/type)", "index"],
+    ["for i in range(3):\n  print(i, end=' ')", "What is the output? (space-separated)", "0 1 2"],
+    ["x = '5' + '3'\nprint(x)", "What does this print? (hint: string concatenation)", "53"],
+    ["a = 10\nb = '5'\nprint(a + int(b))", "What does this print?", "15"],
+  ];
+  const [code, q, a] = puzzles[Math.floor(Math.random() * puzzles.length)];
+  
+  const lines = code.split("\n");
+  const lineHeight = 16;
+  const svgH = Math.max(lines.length * lineHeight + 40, 80);
+  let codeText = "";
+  lines.forEach((line, i) => {
+    const escaped = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    codeText += `<text x="15" y="${25 + i * lineHeight}" fill="#f59e0b" font-family="monospace" font-size="12">${escaped}</text>`;
+  });
+  const svg = `<svg viewBox="0 0 300 ${svgH}" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="${svgH}" rx="12" fill="#0d1117"/><rect x="5" y="5" width="290" height="${svgH - 10}" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>${codeText}<text x="150" y="${svgH - 8}" text-anchor="middle" fill="#ef4444" font-size="9">🐛 Debug this!</text></svg>`;
+  
+  return { question: q, answer: a, visual: svg, category: "code" };
+}
+
+function codeBigO(): Puzzle {
+  const puzzles: [string, string][] = [
+    ["A loop that iterates through n items once. What is the time complexity? (e.g. O(n))", "o(n)"],
+    ["A nested loop where both iterate n times. What is the time complexity?", "o(n^2)"],
+    ["Binary search on a sorted array. What is the time complexity?", "o(log n)"],
+    ["Accessing an element by index in an array. What is the time complexity?", "o(1)"],
+    ["Sorting an array with merge sort. What is the time complexity?", "o(n log n)"],
+  ];
+  const [q, a] = puzzles[Math.floor(Math.random() * puzzles.length)];
+  return { question: q, answer: a, category: "code" };
+}
+
 // ─── Generator ──────────────────────────────────────────────────
 
 const allGenerators: Record<PuzzleCategory, (() => Puzzle)[]> = {
@@ -873,10 +975,12 @@ const allGenerators: Record<PuzzleCategory, (() => Puzzle)[]> = {
   visual: [visualCountShapes, visualPatternGrid, visualBarChart, visualDiceCount, visualClockAngle, visualMaze, visualPieChart, visualSymmetry, visualCountColor, visualNumberGrid, visualCompareAreas, visualLineGraph],
   cipher: [cipherCaesar, cipherMorse, cipherSubstitution, cipherReverse, cipherEmoji],
   spatial: [spatialRotation, spatialMirror, spatialCubeNet, spatialFolding, spatialCounting3D],
+  trivia: [() => triviaPuzzles[Math.floor(Math.random() * triviaPuzzles.length)]],
+  code: [codeOutput, codeDebug, codeBigO],
 };
 
 export function generatePuzzle(category?: PuzzleCategory): Puzzle {
-  const cats: PuzzleCategory[] = category ? [category] : ["math", "logic", "patterns", "visual", "word", "cipher", "spatial"];
+  const cats: PuzzleCategory[] = category ? [category] : ["math", "logic", "patterns", "visual", "word", "cipher", "spatial", "trivia", "code"];
   const cat = cats[Math.floor(Math.random() * cats.length)];
   const generators = allGenerators[cat];
   return generators[Math.floor(Math.random() * generators.length)]();
