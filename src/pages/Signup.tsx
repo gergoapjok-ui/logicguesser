@@ -24,8 +24,7 @@ export default function Signup() {
       password,
       options: {
         data: { username },
-        emailRedirectTo: window.location.origin,
-        // Email verification redirects to the main site
+        emailRedirectTo: "https://logicguesser.com",
       },
     });
     setLoading(false);
