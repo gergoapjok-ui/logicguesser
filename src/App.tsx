@@ -27,6 +27,8 @@ import ResetPassword from "./pages/ResetPassword";
 import SubmitPuzzle from "./pages/SubmitPuzzle";
 import CommunityPuzzles from "./pages/CommunityPuzzles";
 import AdminPuzzles from "./pages/AdminPuzzles";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient();
 
