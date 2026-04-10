@@ -64,6 +64,8 @@ const App = () => (
             <Route path="/admin/puzzles" element={<AdminPuzzles />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <SpeedInsights />
+          <Analytics />
           </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>
