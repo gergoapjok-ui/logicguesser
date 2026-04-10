@@ -25,6 +25,7 @@ export default function Signup() {
       options: {
         data: { username },
         emailRedirectTo: window.location.origin,
+        // Email verification redirects to the main site
       },
     });
     setLoading(false);
