@@ -22,6 +22,8 @@ import Lobbies from "./pages/Lobbies";
 import ProUpgrade from "./pages/ProUpgrade";
 import SettingsPage from "./pages/Settings";
 import BattleInvitePopup from "./components/BattleInvitePopup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +52,8 @@ const App = () => (
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </ThemeProvider>
