@@ -140,6 +140,42 @@ export type Database = {
           },
         ]
       }
+      community_puzzles: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string
+          created_by: string
+          difficulty: string
+          id: string
+          likes: number
+          plays: number
+          question: string
+        }
+        Insert: {
+          answer: string
+          category?: string
+          created_at?: string
+          created_by: string
+          difficulty?: string
+          id?: string
+          likes?: number
+          plays?: number
+          question: string
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string
+          created_by?: string
+          difficulty?: string
+          id?: string
+          likes?: number
+          plays?: number
+          question?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -526,6 +562,45 @@ export type Database = {
         }
         Relationships: []
       }
+      puzzle_submissions: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string
+          difficulty: string
+          id: string
+          question: string
+          reviewed_at: string | null
+          reviewer_notes: string | null
+          status: string
+          submitted_by: string
+        }
+        Insert: {
+          answer: string
+          category?: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          question: string
+          reviewed_at?: string | null
+          reviewer_notes?: string | null
+          status?: string
+          submitted_by: string
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          question?: string
+          reviewed_at?: string | null
+          reviewer_notes?: string | null
+          status?: string
+          submitted_by?: string
+        }
+        Relationships: []
+      }
       puzzles: {
         Row: {
           answer: string
@@ -600,6 +675,24 @@ export type Database = {
           item_id?: string
           item_type?: string
           purchased_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
         Relationships: []
@@ -719,6 +812,13 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -742,6 +842,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       friend_status: "pending" | "accepted" | "rejected" | "blocked"
     }
     CompositeTypes: {
@@ -870,6 +971,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       friend_status: ["pending", "accepted", "rejected", "blocked"],
     },
   },

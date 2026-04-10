@@ -24,6 +24,9 @@ import SettingsPage from "./pages/Settings";
 import BattleInvitePopup from "./components/BattleInvitePopup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import SubmitPuzzle from "./pages/SubmitPuzzle";
+import CommunityPuzzles from "./pages/CommunityPuzzles";
+import AdminPuzzles from "./pages/AdminPuzzles";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +57,9 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/submit-puzzle" element={<SubmitPuzzle />} />
+            <Route path="/community" element={<CommunityPuzzles />} />
+            <Route path="/admin/puzzles" element={<AdminPuzzles />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </ThemeProvider>
