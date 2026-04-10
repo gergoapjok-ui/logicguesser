@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { isAnswerCorrect } from "@/lib/fuzzyMatch";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
-import AdPlaceholder from "@/components/AdPlaceholder";
+import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { generatePuzzle, type PuzzleCategory, type Puzzle } from "@/lib/puzzleGenerator";
 
@@ -152,15 +152,15 @@ export default function Practice() {
             {/* Ad below puzzle for free users on mobile */}
             {!isPro && (
               <div className="mt-6 lg:hidden">
-                <AdPlaceholder />
+                <AdPlaceholder slot={AD_SLOTS.inContent} />
               </div>
             )}
           </motion.div>
 
           {!isPro && (
             <aside className="hidden lg:block w-64 flex-shrink-0 pt-4">
-              <AdPlaceholder />
-              <AdPlaceholder className="mt-4" />
+              <AdPlaceholder slot={AD_SLOTS.sidebar} />
+              <AdPlaceholder slot={AD_SLOTS.sidebar} className="mt-4" />
             </aside>
           )}
         </div>

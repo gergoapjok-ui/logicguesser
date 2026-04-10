@@ -4,7 +4,7 @@ import { Trophy, Medal, Clock, Loader2, Star, Crown, UserPlus, Check } from "luc
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
-import AdPlaceholder from "@/components/AdPlaceholder";
+import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
 import { getLevel } from "@/lib/leveling";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -193,8 +193,8 @@ export default function Leaderboard() {
           </motion.div>
           {!isPro && (
             <aside className="hidden lg:block w-64 flex-shrink-0 pt-16">
-              <AdPlaceholder />
-              <AdPlaceholder className="mt-4" />
+              <AdPlaceholder slot={AD_SLOTS.sidebar} />
+              <AdPlaceholder slot={AD_SLOTS.sidebar} className="mt-4" />
             </aside>
           )}
         </div>

@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
-import AdPlaceholder from "@/components/AdPlaceholder";
+import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -367,7 +367,7 @@ export default function DailyChallenge() {
 
           {!isPro && (
             <aside className="hidden lg:block w-64 flex-shrink-0 self-start pt-4">
-              <AdPlaceholder />
+              <AdPlaceholder slot={AD_SLOTS.sidebar} />
             </aside>
           )}
         </div>
