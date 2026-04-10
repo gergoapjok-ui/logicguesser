@@ -5,7 +5,7 @@ import { Mail, Lock, User, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+import { signInWithManagedOAuth } from "@/lib/cloudAuth";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 
@@ -39,7 +39,7 @@ export default function Signup() {
   };
 
   const handleGoogleSignup = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
+    const result = await signInWithManagedOAuth("google", {
       redirect_uri: "https://logicguesser.com",
     });
     if (result.error) {
@@ -52,7 +52,7 @@ export default function Signup() {
   };
 
   const handleAppleSignup = async () => {
-    const result = await lovable.auth.signInWithOAuth("apple", {
+    const result = await signInWithManagedOAuth("apple", {
       redirect_uri: "https://logicguesser.com",
     });
     if (result.error) {
