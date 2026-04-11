@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Settings as SettingsIcon, Bell, Volume2, VolumeX, Swords, Coins, Users, Loader2, Save, Mail } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Volume2, VolumeX, Swords, Coins, Users, Loader2, Save, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,12 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Password change
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -68,6 +75,31 @@ export default function SettingsPage() {
     toast.success("Settings saved!");
   };
 
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast.error("Please fill in both password fields");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match!");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setChangingPassword(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Password updated successfully!");
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+  };
+
   const toggle = (key: keyof UserSettings) => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));
   };
@@ -97,6 +129,7 @@ export default function SettingsPage() {
             </h1>
           </div>
 
+          {/* Notification Settings */}
           <div className="glass rounded-2xl border border-border/50 p-6 space-y-1">
             {settingRows.map(({ key, label, description, icon: Icon, disabled }) => (
               <div key={key} className={`flex items-center justify-between py-4 ${disabled ? "opacity-50" : ""}`}>
@@ -117,6 +150,67 @@ export default function SettingsPage() {
           <Button variant="neon" size="xl" className="w-full mt-6" onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5" /> Save Settings</>}
           </Button>
+
+          {/* Change Password Section */}
+          <div className="glass rounded-2xl border border-border/50 p-6 mt-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
+                <Lock className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="font-display text-sm font-bold text-foreground">Change Password</p>
+                <p className="font-body text-xs text-muted-foreground">Update your account password</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="New password (min 6 chars)"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="pl-10 pr-10 bg-secondary/50 border-border/50 font-body"
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="pl-10 bg-secondary/50 border-border/50 font-body"
+                  minLength={6}
+                />
+              </div>
+              <Button
+                variant="neon-outline"
+                size="lg"
+                className="w-full"
+                onClick={handleChangePassword}
+                disabled={changingPassword || !newPassword || !confirmPassword}
+              >
+                {changingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+                {changingPassword ? "Updating..." : "Update Password"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Account Info */}
+          <div className="glass rounded-2xl border border-border/50 p-6 mt-8">
+            <p className="font-body text-xs text-muted-foreground">
+              Logged in as: <span className="text-foreground font-semibold">{user?.email}</span>
+            </p>
+          </div>
         </motion.div>
       </div>
     </div>
