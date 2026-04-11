@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,7 @@ export default function NotificationBell() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -33,6 +34,24 @@ export default function NotificationBell() {
 
     return () => { supabase.removeChannel(channel); };
   }, [user?.id]);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    // Delay adding the listener to prevent immediate close
+    const timer = setTimeout(() => {
+      document.addEventListener("mousedown", handler);
+    }, 10);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("mousedown", handler);
+    };
+  }, [open]);
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -67,13 +86,12 @@ export default function NotificationBell() {
   if (!user) return null;
 
   return (
-    <div className="relative flex-shrink-0">
+    <div className="relative flex-shrink-0" ref={containerRef}>
       <Button
         variant="ghost"
         size="icon"
         className="relative w-8 h-8 sm:w-9 sm:h-9"
-        onClick={(e) => {
-          e.stopPropagation();
+        onClick={() => {
           const next = !open;
           setOpen(next);
           if (next) markAllRead();
@@ -89,41 +107,38 @@ export default function NotificationBell() {
 
       <AnimatePresence>
         {open && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.95 }}
-              className="fixed left-2 right-2 top-[4rem] z-50 sm:absolute sm:left-auto sm:right-0 sm:top-10 sm:w-72 max-h-[60vh] overflow-y-auto glass rounded-xl border border-border/50 shadow-xl"
-            >
-              <div className="p-3 border-b border-border/30 flex items-center justify-between">
-                <p className="font-display text-xs font-bold text-foreground uppercase tracking-wider">Notifications</p>
-                {notifications.length > 0 && (
-                  <button onClick={clearAll} className="font-body text-[10px] text-muted-foreground hover:text-destructive transition-colors">
-                    Clear all
-                  </button>
-                )}
-              </div>
-              {notifications.length === 0 ? (
-                <div className="p-4 text-center">
-                  <p className="font-body text-xs text-muted-foreground">No notifications yet</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-border/20">
-                  {notifications.map(n => (
-                    <div key={n.id} className={`p-3 ${!n.read ? "bg-primary/5" : ""}`}>
-                      <p className="font-display text-xs font-bold text-foreground">{n.title}</p>
-                      <p className="font-body text-xs text-muted-foreground mt-0.5">{n.body}</p>
-                      <p className="font-body text-[10px] text-muted-foreground/60 mt-1">
-                        {new Date(n.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.95 }}
+            className="fixed left-2 right-2 top-[4rem] z-50 sm:absolute sm:left-auto sm:right-0 sm:top-10 sm:w-72 max-h-[60vh] overflow-y-auto glass rounded-xl border border-border/50 shadow-xl"
+          >
+            <div className="p-3 border-b border-border/30 flex items-center justify-between">
+              <p className="font-display text-xs font-bold text-foreground uppercase tracking-wider">Notifications</p>
+              {notifications.length > 0 && (
+                <button onClick={clearAll} className="font-body text-[10px] text-muted-foreground hover:text-destructive transition-colors">
+                  Clear all
+                </button>
               )}
-            </motion.div>
-          </>
+            </div>
+            {notifications.length === 0 ? (
+              <div className="p-4 text-center">
+                <p className="font-body text-xs text-muted-foreground">No notifications yet</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-border/20">
+                {notifications.map(n => (
+                  <div key={n.id} className={`p-3 ${!n.read ? "bg-primary/5" : ""}`}>
+                    <p className="font-display text-xs font-bold text-foreground">{n.title}</p>
+                    <p className="font-body text-xs text-muted-foreground mt-0.5">{n.body}</p>
+                    <p className="font-body text-[10px] text-muted-foreground/60 mt-1">
+                      {new Date(n.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

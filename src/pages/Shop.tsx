@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShoppingBag, Coins, Check, Loader2, Crown, Lock, CreditCard, Palette } from "lucide-react";
+import { ShoppingBag, Coins, Check, Loader2, Crown, Lock, CreditCard, Palette, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme, APP_THEMES } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+
+const TITLE_BADGES = [
+  { id: "badge_puzzle_master", name: "Puzzle Master", emoji: "🧩", price: 800, proOnly: false },
+  { id: "badge_speed_demon", name: "Speed Demon", emoji: "⚡", price: 600, proOnly: false },
+  { id: "badge_brain_surgeon", name: "Brain Surgeon", emoji: "🧠", price: 1000, proOnly: false },
+  { id: "badge_night_owl", name: "Night Owl", emoji: "🌙", price: 500, proOnly: false },
+  { id: "badge_fire_starter", name: "Fire Starter", emoji: "🔥", price: 400, proOnly: false },
+  { id: "badge_legend", name: "Legend", emoji: "👑", price: 2000, proOnly: true },
+  { id: "badge_shadow", name: "Shadow", emoji: "🌑", price: 1500, proOnly: true },
+  { id: "badge_diamond", name: "Diamond Mind", emoji: "💎", price: 1800, proOnly: true },
+];
 
 const CREDIT_PACKS = [
   { id: "credits_5000", name: "5,000 Credits", credits: 5000, price: "$0.99", emoji: "💰" },
@@ -260,6 +271,45 @@ export default function Shop() {
                       <p className="flex items-center justify-center gap-1 text-xs font-body text-neon-amber mb-1"><Coins className="w-3 h-3" /> {theme.price.toLocaleString()}</p>
                       <Button variant="neon" size="sm" className="w-full" onClick={() => handleBuyTheme(theme)} disabled={busy === theme.id}>
                         {busy === theme.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Buy"}
+                      </Button>
+                    </>
+                  ) : null}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Title Badges */}
+          <div className="flex items-center gap-2 mb-3">
+            <Award className="w-4 h-4 text-primary" />
+            <h2 className="font-display text-sm font-bold text-primary uppercase tracking-wider">Title Badges</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {TITLE_BADGES.map((badge, i) => {
+              const isOwned = owned.has(badge.id);
+              const locked = badge.proOnly && !isPro && !isOwned;
+              return (
+                <motion.div key={badge.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                  className={`glass rounded-xl border p-4 text-center relative ${
+                    isOwned ? "border-primary/60" : locked ? "border-border/30 opacity-70" : "border-border/50"
+                  }`}>
+                  {locked && (
+                    <div className="absolute inset-0 rounded-xl bg-background/50 flex items-center justify-center z-10">
+                      <div className="text-center">
+                        <Lock className="w-6 h-6 text-neon-amber mx-auto mb-1" />
+                        <Button variant="link" className="text-neon-amber text-xs p-0 h-auto" onClick={() => navigate("/pro")}>Get Pro</Button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="text-4xl mb-2">{badge.emoji}</div>
+                  <p className="font-display text-sm font-bold text-foreground mb-0.5">{badge.name}</p>
+                  {isOwned ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-body text-primary"><Check className="w-3 h-3" /> Owned</span>
+                  ) : !locked ? (
+                    <>
+                      <p className="flex items-center justify-center gap-1 text-xs font-body text-neon-amber mb-1"><Coins className="w-3 h-3" /> {badge.price}</p>
+                      <Button variant="neon" size="sm" className="w-full" onClick={() => handleBuy({ ...badge } as any)} disabled={busy === badge.id}>
+                        {busy === badge.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Buy"}
                       </Button>
                     </>
                   ) : null}

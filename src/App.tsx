@@ -27,6 +27,7 @@ import ResetPassword from "./pages/ResetPassword";
 import SubmitPuzzle from "./pages/SubmitPuzzle";
 import CommunityPuzzles from "./pages/CommunityPuzzles";
 import AdminPuzzles from "./pages/AdminPuzzles";
+import ComingSoon from "./pages/ComingSoon";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/submit-puzzle" element={<SubmitPuzzle />} />
             <Route path="/community" element={<CommunityPuzzles />} />
             <Route path="/admin/puzzles" element={<AdminPuzzles />} />
+            <Route path="/coming-soon" element={<ComingSoon />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <SpeedInsights />
