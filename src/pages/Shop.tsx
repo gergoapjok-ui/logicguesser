@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShoppingBag, Coins, Check, Loader2, Crown, Lock, CreditCard, Palette } from "lucide-react";
+import { ShoppingBag, Coins, Check, Loader2, Crown, Lock, CreditCard, Palette, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme, APP_THEMES } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+
+const TITLE_BADGES = [
+  { id: "badge_puzzle_master", name: "Puzzle Master", emoji: "🧩", price: 800, proOnly: false },
+  { id: "badge_speed_demon", name: "Speed Demon", emoji: "⚡", price: 600, proOnly: false },
+  { id: "badge_brain_surgeon", name: "Brain Surgeon", emoji: "🧠", price: 1000, proOnly: false },
+  { id: "badge_night_owl", name: "Night Owl", emoji: "🌙", price: 500, proOnly: false },
+  { id: "badge_fire_starter", name: "Fire Starter", emoji: "🔥", price: 400, proOnly: false },
+  { id: "badge_legend", name: "Legend", emoji: "👑", price: 2000, proOnly: true },
+  { id: "badge_shadow", name: "Shadow", emoji: "🌑", price: 1500, proOnly: true },
+  { id: "badge_diamond", name: "Diamond Mind", emoji: "💎", price: 1800, proOnly: true },
+];
 
 const CREDIT_PACKS = [
   { id: "credits_5000", name: "5,000 Credits", credits: 5000, price: "$0.99", emoji: "💰" },
