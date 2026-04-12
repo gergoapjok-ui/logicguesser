@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,10 +13,12 @@ interface Notification {
   body: string;
   read: boolean;
   created_at: string;
+  data?: Record<string, any> | null;
 }
 
 export default function NotificationBell() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,6 +86,22 @@ export default function NotificationBell() {
     setNotifications([]);
   };
 
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!user) return;
+
+    if (!notification.read) {
+      await supabase.from("notifications").update({ read: true } as any).eq("id", notification.id);
+      setNotifications((prev) => prev.map((item) => item.id === notification.id ? { ...item, read: true } : item));
+    }
+
+    setOpen(false);
+
+    const battleId = notification.data?.battle_id || notification.data?.battle_invite_id;
+    if (battleId) return navigate(`/battle/${battleId}`);
+    if (notification.type === "friend_request" || notification.type === "friend_accept") return navigate("/friends");
+    if (notification.type === "credit_reward") return navigate("/profile");
+  };
+
   if (!user) return null;
 
   return (
@@ -128,13 +147,18 @@ export default function NotificationBell() {
             ) : (
               <div className="divide-y divide-border/20">
                 {notifications.map(n => (
-                  <div key={n.id} className={`p-3 ${!n.read ? "bg-primary/5" : ""}`}>
+                  <button
+                    key={n.id}
+                    type="button"
+                    onClick={() => handleNotificationClick(n)}
+                    className={`block w-full p-3 text-left transition-colors hover:bg-secondary/40 ${!n.read ? "bg-primary/5" : ""}`}
+                  >
                     <p className="font-display text-xs font-bold text-foreground">{n.title}</p>
                     <p className="font-body text-xs text-muted-foreground mt-0.5">{n.body}</p>
                     <p className="font-body text-[10px] text-muted-foreground/60 mt-1">
                       {new Date(n.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </p>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}

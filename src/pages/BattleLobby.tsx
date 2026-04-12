@@ -137,20 +137,24 @@ export default function BattleLobby() {
       }, (payload) => {
         const updated = payload.new as Battle;
         setBattle(updated);
+        const isMe = user?.id === updated.creator_id;
+        const myAnswersArr = ((isMe ? updated.creator_answers : updated.opponent_answers) as any[]) || [];
+        const myScoreObj = isMe ? updated.creator_score : updated.opponent_score;
+        if (myScoreObj) setMyScore(myScoreObj);
 
-        // If battle just transitioned to playing and we don't have puzzles yet (opponent in realtime)
         if (updated.status === "playing" && updated.battle_puzzles?.length > 0) {
-          setPuzzles(prev => {
-            if (prev.length > 0) return prev;
-            const bp = updated.battle_puzzles;
-            if (updated.realtime_mode) {
-              // Realtime: auto-start for both players
-              setCurrentRound(updated.current_round || 1);
-              setElapsed(0);
-              setRunning(true);
-            }
-            return bp.map((p: any, i: number) => ({ round: i + 1, question: p.question }));
-          });
+          const bp = updated.battle_puzzles;
+          setPuzzles(bp.map((p: any, i: number) => ({ round: i + 1, question: p.question })));
+
+          if (updated.realtime_mode) {
+            setCurrentRound(updated.current_round || 1);
+            setElapsed(0);
+            setRunning(true);
+          } else {
+            const playerFinished = myAnswersArr.length >= bp.length;
+            setPlayerDone(playerFinished);
+            setCurrentRound(playerFinished ? bp.length : myAnswersArr.length + 1);
+          }
         }
 
         // Real-time mode: sync current_round
@@ -165,13 +169,7 @@ export default function BattleLobby() {
           });
         }
 
-        // Sync scores
         if (updated.status === "playing" || updated.status === "finished") {
-          const isMe = user?.id === updated.creator_id;
-          const myAnswersArr = isMe ? updated.creator_answers : updated.opponent_answers;
-          const myScoreObj = isMe ? updated.creator_score : updated.opponent_score;
-          if (myScoreObj) setMyScore(myScoreObj);
-
           if (!updated.realtime_mode) {
             if (myAnswersArr && updated.battle_puzzles && myAnswersArr.length >= updated.battle_puzzles.length) {
               setPlayerDone(true);
@@ -202,6 +200,21 @@ export default function BattleLobby() {
 
   const startBattle = async () => {
     if (!battle || !user) return;
+
+    if (!battle.realtime_mode && battle.status === "playing" && battle.battle_puzzles?.length > 0) {
+      const isCreatorView = user.id === battle.creator_id;
+      const myAnswers = ((isCreatorView ? battle.creator_answers : battle.opponent_answers) as any[]) || [];
+      const myScoreObj = (isCreatorView ? battle.creator_score : battle.opponent_score) || { correct: 0, penalties: 0, total_time: 0 };
+
+      setPuzzles(battle.battle_puzzles.map((p: any, i: number) => ({ round: i + 1, question: p.question })));
+      setMyScore(myScoreObj);
+      setCurrentRound(Math.min(myAnswers.length + 1, battle.battle_puzzles.length));
+      setElapsed(0);
+      setPlayerDone(myAnswers.length >= battle.battle_puzzles.length);
+      setRunning(myAnswers.length < battle.battle_puzzles.length);
+      return;
+    }
+
     setStarting(true);
     const fnName = battle.realtime_mode ? "battle-start-realtime" : "battle-start";
     const { data, error } = await supabase.functions.invoke(fnName, {
