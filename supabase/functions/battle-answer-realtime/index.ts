@@ -68,13 +68,9 @@ Deno.serve(async (req) => {
     if (!correct) {
       // Wrong answer — penalty but don't advance round
       const penaltyTime = battle.allow_penalties ? (battle.penalty_seconds || 5) : 0;
-      const answersKey = isCreator ? "creator_answers" : "opponent_answers";
       const scoreKey = isCreator ? "creator_score" : "opponent_score";
-      const currentAnswers = ((battle as any)[answersKey] as any[]) || [];
       const currentScore = (battle as any)[scoreKey] || { correct: 0, penalties: 0, total_time: 0 };
 
-      // Record wrong attempt but don't advance
-      const updatedAnswers = [...currentAnswers, { round, correct: false, time: elapsed || 0, penalty: penaltyTime }];
       const newScore = {
         correct: currentScore.correct,
         penalties: currentScore.penalties + penaltyTime,
@@ -82,7 +78,6 @@ Deno.serve(async (req) => {
       };
 
       await adminClient.from("battles").update({
-        [answersKey]: updatedAnswers,
         [scoreKey]: newScore,
       }).eq("id", battle_id);
 

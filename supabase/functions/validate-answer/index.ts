@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (typeof task_number !== "number" || task_number < 1 || task_number > 5) {
+    if (typeof task_number !== "number" || task_number < 1) {
       return new Response(JSON.stringify({ error: "Invalid task_number" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -72,6 +72,13 @@ Deno.serve(async (req) => {
     if (puzzleError || !puzzle) {
       return new Response(JSON.stringify({ error: "Puzzle not found" }), {
         status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (puzzle.task_number !== task_number) {
+      return new Response(JSON.stringify({ error: "Task mismatch" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
