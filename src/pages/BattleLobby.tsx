@@ -103,7 +103,7 @@ export default function BattleLobby() {
           // Real-time: sync to server's current_round
           setCurrentRound(b.current_round || 1);
           const myCorrectCount = myAnswers.filter((a: any) => a.correct).length;
-          if (b.status === "finished" || myCorrectCount >= bp.length) {
+          if (myCorrectCount >= bp.length) {
             setPlayerDone(true);
           } else {
             setRunning(true);
