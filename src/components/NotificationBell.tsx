@@ -46,7 +46,6 @@ export default function NotificationBell() {
         setOpen(false);
       }
     };
-    // Delay adding the listener to prevent immediate close
     const timer = setTimeout(() => {
       document.addEventListener("mousedown", handler);
     }, 10);
@@ -130,9 +129,12 @@ export default function NotificationBell() {
             initial={{ opacity: 0, y: -8, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
-            className="fixed left-2 right-2 top-[4rem] z-50 sm:absolute sm:left-auto sm:right-0 sm:top-10 sm:w-72 max-h-[60vh] overflow-y-auto glass rounded-xl border border-border/50 shadow-xl"
+            className="fixed left-2 right-2 top-[4rem] z-50 
+              sm:absolute sm:left-auto sm:right-0 sm:top-10 sm:w-80 
+              landscape:sm:w-96 landscape:max-h-[50vh]
+              max-h-[60vh] overflow-y-auto glass rounded-xl border border-border/50 shadow-xl"
           >
-            <div className="p-3 border-b border-border/30 flex items-center justify-between">
+            <div className="p-3 border-b border-border/30 flex items-center justify-between sticky top-0 glass z-10">
               <p className="font-display text-xs font-bold text-foreground uppercase tracking-wider">Notifications</p>
               {notifications.length > 0 && (
                 <button onClick={clearAll} className="font-body text-[10px] text-muted-foreground hover:text-destructive transition-colors">
@@ -151,10 +153,10 @@ export default function NotificationBell() {
                     key={n.id}
                     type="button"
                     onClick={() => handleNotificationClick(n)}
-                    className={`block w-full p-3 text-left transition-colors hover:bg-secondary/40 ${!n.read ? "bg-primary/5" : ""}`}
+                    className={`block w-full p-3 text-left transition-colors hover:bg-secondary/40 cursor-pointer ${!n.read ? "bg-primary/5" : ""}`}
                   >
                     <p className="font-display text-xs font-bold text-foreground">{n.title}</p>
-                    <p className="font-body text-xs text-muted-foreground mt-0.5">{n.body}</p>
+                    <p className="font-body text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>
                     <p className="font-body text-[10px] text-muted-foreground/60 mt-1">
                       {new Date(n.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </p>

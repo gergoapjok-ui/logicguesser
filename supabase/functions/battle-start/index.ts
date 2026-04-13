@@ -50,15 +50,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (battle.status !== "accepted") {
-      return new Response(JSON.stringify({ error: "Battle not accepted" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     if (user.id !== battle.creator_id && user.id !== battle.opponent_id) {
       return new Response(JSON.stringify({ error: "Not a participant" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // If battle is already playing (async mode - second player starting), return existing puzzles
+    if (battle.status === "playing" && battle.battle_puzzles && (battle.battle_puzzles as any[]).length > 0) {
+      const bp = battle.battle_puzzles as any[];
+      const clientPuzzles = bp.map((p: any, i: number) => ({ round: i + 1, question: p.question }));
+      return new Response(JSON.stringify({ success: true, puzzles: clientPuzzles, rounds: battle.rounds || bp.length }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (battle.status !== "accepted") {
+      return new Response(JSON.stringify({ error: "Battle not accepted" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 

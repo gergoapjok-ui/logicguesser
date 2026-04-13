@@ -38,6 +38,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Re-fetch to get latest state
     const { data: battle } = await adminClient.from("battles").select("*").eq("id", battle_id).single();
     if (!battle || battle.status !== "playing") {
       return new Response(JSON.stringify({ error: "Battle not active" }), {
@@ -56,8 +57,14 @@ Deno.serve(async (req) => {
     const puzzles = (battle.battle_puzzles as any[]) || [];
     const currentRound = battle.current_round || 1;
 
+    // If submitting for an old round, tell client the current round
     if (round !== currentRound) {
-      return new Response(JSON.stringify({ error: "Not the current round", current_round: currentRound }), {
+      return new Response(JSON.stringify({ 
+        correct: false, 
+        error: "Not the current round", 
+        current_round: currentRound,
+        battle_finished: battle.status === "finished",
+      }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -65,12 +72,12 @@ Deno.serve(async (req) => {
     const puzzle = puzzles[round - 1];
     const correct = isAnswerCorrect(answer, puzzle.answer);
 
+    const scoreKey = isCreator ? "creator_score" : "opponent_score";
+    const currentScore = (battle as any)[scoreKey] || { correct: 0, penalties: 0, total_time: 0 };
+
     if (!correct) {
       // Wrong answer — penalty but don't advance round
       const penaltyTime = battle.allow_penalties ? (battle.penalty_seconds || 5) : 0;
-      const scoreKey = isCreator ? "creator_score" : "opponent_score";
-      const currentScore = (battle as any)[scoreKey] || { correct: 0, penalties: 0, total_time: 0 };
-
       const newScore = {
         correct: currentScore.correct,
         penalties: currentScore.penalties + penaltyTime,
@@ -82,7 +89,9 @@ Deno.serve(async (req) => {
       }).eq("id", battle_id);
 
       return new Response(JSON.stringify({
-        correct: false, penalty: penaltyTime, round_won_by: null, current_round: currentRound, score: newScore,
+        correct: false, penalty: penaltyTime, round_won_by: null, 
+        current_round: currentRound, score: newScore,
+        battle_finished: false,
       }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -90,9 +99,7 @@ Deno.serve(async (req) => {
 
     // Correct answer — this player wins the round
     const answersKey = isCreator ? "creator_answers" : "opponent_answers";
-    const scoreKey = isCreator ? "creator_score" : "opponent_score";
     const currentAnswers = ((battle as any)[answersKey] as any[]) || [];
-    const currentScore = (battle as any)[scoreKey] || { correct: 0, penalties: 0, total_time: 0 };
 
     const roundElapsed = typeof elapsed === "number" ? elapsed : 0;
     const updatedAnswers = [...currentAnswers, { round, correct: true, time: roundElapsed, penalty: 0, won_round: true }];
@@ -110,12 +117,18 @@ Deno.serve(async (req) => {
     // Advance to next round or finish
     const nextRound = currentRound + 1;
     if (nextRound > puzzles.length) {
-      // Battle finished
-      const creatorFinalScore = isCreator ? newScore : (battle.creator_score as any);
-      const opponentFinalScore = isOpponent ? newScore : (battle.opponent_score as any);
+      // Battle finished — determine winner by correct count, tiebreak by time
+      const creatorFinalScore = isCreator ? newScore : ((battle.creator_score as any) || { correct: 0, total_time: 0 });
+      const opponentFinalScore = isOpponent ? newScore : ((battle.opponent_score as any) || { correct: 0, total_time: 0 });
 
-      const winnerId = (creatorFinalScore?.correct ?? 0) >= (opponentFinalScore?.correct ?? 0)
-        ? battle.creator_id : battle.opponent_id;
+      let winnerId;
+      if ((creatorFinalScore.correct ?? 0) !== (opponentFinalScore.correct ?? 0)) {
+        winnerId = (creatorFinalScore.correct ?? 0) > (opponentFinalScore.correct ?? 0)
+          ? battle.creator_id : battle.opponent_id;
+      } else {
+        winnerId = (creatorFinalScore.total_time ?? 0) <= (opponentFinalScore.total_time ?? 0)
+          ? battle.creator_id : battle.opponent_id;
+      }
 
       updateData.status = "finished";
       updateData.finished_at = new Date().toISOString();
@@ -131,7 +144,7 @@ Deno.serve(async (req) => {
       correct: true,
       round_won_by: user.id,
       current_round: updateData.current_round || currentRound,
-      battle_finished: !!updateData.status && updateData.status === "finished",
+      battle_finished: updateData.status === "finished",
       winner_id: updateData.winner_id || null,
       score: newScore,
     }), {
