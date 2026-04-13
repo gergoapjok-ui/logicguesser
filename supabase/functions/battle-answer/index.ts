@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Re-fetch battle to get latest state (prevents race conditions)
     const { data: battle } = await adminClient.from("battles").select("*").eq("id", battle_id).single();
     if (!battle || battle.status !== "playing") {
       return new Response(JSON.stringify({ error: "Battle not active" }), {
@@ -76,19 +77,43 @@ Deno.serve(async (req) => {
     const currentAnswers = ((battle as any)[answersKey] as any[]) || [];
     const currentScore = (battle as any)[scoreKey] || { correct: 0, penalties: 0, total_time: 0 };
 
-    // Check if this round was already answered by this player
-    if (currentAnswers.some((a: any) => a.round === round)) {
-      return new Response(JSON.stringify({ error: "Round already answered", correct }), {
+    // Wrong answer: just return penalty, don't record
+    if (!correct) {
+      // Update penalty in score without recording round answer
+      const newScore = {
+        correct: currentScore.correct,
+        penalties: currentScore.penalties + penaltyTime,
+        total_time: currentScore.total_time + penaltyTime,
+      };
+      await adminClient.from("battles").update({
+        [scoreKey]: newScore,
+      }).eq("id", battle_id);
+
+      return new Response(JSON.stringify({
+        correct: false,
+        penalty: penaltyTime,
+        player_done: false,
+        battle_finished: false,
+        score: newScore,
+        winner_id: null,
+      }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Correct answer: check if already answered this round
+    if (currentAnswers.some((a: any) => a.round === round && a.correct)) {
+      return new Response(JSON.stringify({ error: "Round already answered", correct: true }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const roundElapsed = typeof elapsed === "number" ? elapsed : 0;
-    const updatedAnswers = [...currentAnswers, { round, correct, time: roundElapsed, penalty: penaltyTime }];
+    const updatedAnswers = [...currentAnswers.filter((a: any) => a.round !== round), { round, correct: true, time: roundElapsed, penalty: 0 }];
     const newScore = {
-      correct: currentScore.correct + (correct ? 1 : 0),
-      penalties: currentScore.penalties + penaltyTime,
-      total_time: currentScore.total_time + roundElapsed + penaltyTime,
+      correct: currentScore.correct + 1,
+      penalties: currentScore.penalties,
+      total_time: currentScore.total_time + roundElapsed,
     };
 
     const updateData: any = {
@@ -100,11 +125,12 @@ Deno.serve(async (req) => {
     // Check if both players are done
     const otherAnswersKey = isCreator ? "opponent_answers" : "creator_answers";
     const otherAnswers = ((battle as any)[otherAnswersKey] as any[]) || [];
-    const playerDone = updatedAnswers.length >= puzzles.length;
-    const otherDone = otherAnswers.length >= puzzles.length;
+    const correctAnswers = updatedAnswers.filter((a: any) => a.correct);
+    const otherCorrectAnswers = otherAnswers.filter((a: any) => a.correct);
+    const playerDone = correctAnswers.length >= puzzles.length;
+    const otherDone = otherCorrectAnswers.length >= puzzles.length;
 
     if (playerDone && otherDone) {
-      // Battle finished
       const creatorFinalScore = isCreator ? newScore : (battle.creator_score as any);
       const opponentFinalScore = isOpponent ? newScore : (battle.opponent_score as any);
 
@@ -114,7 +140,6 @@ Deno.serve(async (req) => {
       } else if (battle.point_system === "accuracy") {
         winnerId = creatorFinalScore.correct >= opponentFinalScore.correct ? battle.creator_id : battle.opponent_id;
       } else {
-        // Combined: more correct wins, tie-break by speed
         if (creatorFinalScore.correct !== opponentFinalScore.correct) {
           winnerId = creatorFinalScore.correct > opponentFinalScore.correct ? battle.creator_id : battle.opponent_id;
         } else {
@@ -130,8 +155,8 @@ Deno.serve(async (req) => {
     await adminClient.from("battles").update(updateData).eq("id", battle_id);
 
     return new Response(JSON.stringify({
-      correct,
-      penalty: penaltyTime,
+      correct: true,
+      penalty: 0,
       player_done: playerDone,
       battle_finished: playerDone && otherDone,
       score: newScore,
