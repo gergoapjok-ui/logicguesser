@@ -89,28 +89,34 @@ export default function BattleLobby() {
         if (b.opponent_id) setOpponentProfile(map.get(b.opponent_id) ?? null);
       }
 
-      // Resume in-progress async battle
+      // Resume in-progress battle
       if (b.status === "playing" && b.battle_puzzles?.length > 0) {
         const bp = b.battle_puzzles;
         setPuzzles(bp.map((p: any, i: number) => ({ round: i + 1, question: p.question })));
-        const isCreator = user.id === b.creator_id;
-        const myAnswers = isCreator ? b.creator_answers : b.opponent_answers;
-        const myScoreObj = isCreator ? b.creator_score : b.opponent_score;
+        const isCreatorView = user.id === b.creator_id;
+        const myAnswers = ((isCreatorView ? b.creator_answers : b.opponent_answers) as any[]) || [];
+        const myScoreObj = (isCreatorView ? b.creator_score : b.opponent_score) || { correct: 0, penalties: 0, total_time: 0 };
 
-        if (myAnswers?.length > 0) {
-          if (myAnswers.length >= bp.length) {
+        if (myScoreObj) setMyScore(myScoreObj);
+
+        if (b.realtime_mode) {
+          // Real-time: sync to server's current_round
+          setCurrentRound(b.current_round || 1);
+          const myCorrectCount = myAnswers.filter((a: any) => a.correct).length;
+          if (b.status === "finished" || myCorrectCount >= bp.length) {
             setPlayerDone(true);
-            if (myScoreObj) setMyScore(myScoreObj);
           } else {
-            setCurrentRound(myAnswers.length + 1);
-            if (myScoreObj) setMyScore(myScoreObj);
             setRunning(true);
           }
-        }
-        // For async mode: don't auto-start the timer — user must press Start
-        // For realtime mode: if already playing, start the timer
-        if (b.realtime_mode && (!myAnswers || myAnswers.length < bp.length)) {
-          setRunning(true);
+        } else {
+          // Async: count correct answers for progress
+          const correctAnswers = myAnswers.filter((a: any) => a.correct);
+          if (correctAnswers.length >= bp.length) {
+            setPlayerDone(true);
+          } else {
+            setCurrentRound(correctAnswers.length + 1);
+            // Don't auto-start timer for async - user must press Start
+          }
         }
       }
 
@@ -138,7 +144,6 @@ export default function BattleLobby() {
         const updated = payload.new as Battle;
         setBattle(updated);
         const isMe = user?.id === updated.creator_id;
-        const myAnswersArr = ((isMe ? updated.creator_answers : updated.opponent_answers) as any[]) || [];
         const myScoreObj = isMe ? updated.creator_score : updated.opponent_score;
         if (myScoreObj) setMyScore(myScoreObj);
 
@@ -147,33 +152,20 @@ export default function BattleLobby() {
           setPuzzles(bp.map((p: any, i: number) => ({ round: i + 1, question: p.question })));
 
           if (updated.realtime_mode) {
-            setCurrentRound(updated.current_round || 1);
+            // Real-time: always sync to server's current_round
+            const serverRound = updated.current_round || 1;
+            setCurrentRound(serverRound);
             setElapsed(0);
+            setAnswer("");
             setRunning(true);
           } else {
-            const playerFinished = myAnswersArr.length >= bp.length;
+            // Async: update based on own answers
+            const myAnswersArr = ((isMe ? updated.creator_answers : updated.opponent_answers) as any[]) || [];
+            const correctAnswers = myAnswersArr.filter((a: any) => a.correct);
+            const playerFinished = correctAnswers.length >= bp.length;
             setPlayerDone(playerFinished);
-            setCurrentRound(playerFinished ? bp.length : myAnswersArr.length + 1);
-          }
-        }
-
-        // Real-time mode: sync current_round
-        if (updated.realtime_mode && updated.status === "playing" && updated.current_round) {
-          setCurrentRound(prev => {
-            if (updated.current_round! > prev) {
-              setElapsed(0);
-              setAnswer("");
-              return updated.current_round!;
-            }
-            return prev;
-          });
-        }
-
-        if (updated.status === "playing" || updated.status === "finished") {
-          if (!updated.realtime_mode) {
-            if (myAnswersArr && updated.battle_puzzles && myAnswersArr.length >= updated.battle_puzzles.length) {
-              setPlayerDone(true);
-              setRunning(false);
+            if (!playerFinished) {
+              setCurrentRound(correctAnswers.length + 1);
             }
           }
         }
@@ -200,22 +192,8 @@ export default function BattleLobby() {
 
   const startBattle = async () => {
     if (!battle || !user) return;
-
-    if (!battle.realtime_mode && battle.status === "playing" && battle.battle_puzzles?.length > 0) {
-      const isCreatorView = user.id === battle.creator_id;
-      const myAnswers = ((isCreatorView ? battle.creator_answers : battle.opponent_answers) as any[]) || [];
-      const myScoreObj = (isCreatorView ? battle.creator_score : battle.opponent_score) || { correct: 0, penalties: 0, total_time: 0 };
-
-      setPuzzles(battle.battle_puzzles.map((p: any, i: number) => ({ round: i + 1, question: p.question })));
-      setMyScore(myScoreObj);
-      setCurrentRound(Math.min(myAnswers.length + 1, battle.battle_puzzles.length));
-      setElapsed(0);
-      setPlayerDone(myAnswers.length >= battle.battle_puzzles.length);
-      setRunning(myAnswers.length < battle.battle_puzzles.length);
-      return;
-    }
-
     setStarting(true);
+
     const fnName = battle.realtime_mode ? "battle-start-realtime" : "battle-start";
     const { data, error } = await supabase.functions.invoke(fnName, {
       body: { battle_id: battle.id },
@@ -252,7 +230,7 @@ export default function BattleLobby() {
       return;
     }
 
-    setMyScore(data.score);
+    if (data.score) setMyScore(data.score);
     setAnswer("");
 
     if (battle.realtime_mode) {
@@ -262,6 +240,7 @@ export default function BattleLobby() {
         setPlayerDone(true);
         toast.success("Battle finished!");
       }
+      // Round advancement happens via realtime subscription
     } else {
       if (data.player_done) {
         setRunning(false);
@@ -292,22 +271,20 @@ export default function BattleLobby() {
   const modeIcon = battle.game_mode === "survival" ? Shield : battle.game_mode === "blitz" ? Clock : Zap;
   const currentPuzzle = puzzles[currentRound - 1] ?? null;
 
-  // For async (non-realtime) battles: the opponent should see a "Start" button rather than auto-starting
-  const isAsyncAndAccepted = battle.status === "accepted" && !battle.realtime_mode;
-  const isAsyncPlayingButNotStarted = battle.status === "playing" && !battle.realtime_mode && puzzles.length > 0 && !running && !playerDone && currentRound === 1 && elapsed === 0;
-  const showStartButton = (
-    (battle.status === "accepted") ||
-    (isAsyncPlayingButNotStarted && isOpponent)
-  );
+  // Show start button when:
+  // 1. Battle is accepted (either player can start)
+  // 2. Battle is playing + async + this player hasn't started yet
+  const isAsyncNotStartedYet = battle.status === "playing" && !battle.realtime_mode && puzzles.length > 0 && !running && !playerDone;
+  const showStartButton = battle.status === "accepted" || isAsyncNotStartedYet;
 
   return (
     <div className="min-h-screen bg-background grid-pattern">
       <Navbar />
-      <div className="pt-24 pb-16 container mx-auto px-4 max-w-lg">
+      <div className="pt-24 pb-16 container mx-auto px-4 max-w-lg landscape:max-w-2xl">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="text-center mb-6">
-            <Swords className="w-12 h-12 text-primary mx-auto mb-3" />
-            <h1 className="font-display text-3xl font-bold text-foreground">
+          <div className="text-center mb-6 landscape:mb-3">
+            <Swords className="w-12 h-12 landscape:w-8 landscape:h-8 text-primary mx-auto mb-3 landscape:mb-1" />
+            <h1 className="font-display text-3xl landscape:text-2xl font-bold text-foreground">
               BATTLE <span className="text-primary text-glow">
                 {battle.status === "playing" ? "ARENA" : battle.status === "finished" ? "RESULTS" : "LOBBY"}
               </span>
@@ -324,10 +301,10 @@ export default function BattleLobby() {
           </div>
 
           {/* Players */}
-          <div className="glass rounded-2xl border border-border/50 p-6 mb-6">
+          <div className="glass rounded-2xl border border-border/50 p-6 landscape:p-4 mb-6 landscape:mb-3">
             <div className="flex items-center justify-between">
               <div className="text-center flex-1">
-                <span className="text-4xl block mb-2">
+                <span className="text-4xl landscape:text-2xl block mb-2 landscape:mb-1">
                   {creatorProfile?.avatar_url && AVATARS_MAP[creatorProfile.avatar_url] ? AVATARS_MAP[creatorProfile.avatar_url] : "👤"}
                 </span>
                 <p className="font-body font-semibold text-foreground text-sm">{creatorProfile?.username ?? "Creator"}</p>
@@ -343,7 +320,7 @@ export default function BattleLobby() {
                 <p className="font-display text-xs text-muted-foreground mt-1">VS</p>
               </div>
               <div className="text-center flex-1">
-                <span className="text-4xl block mb-2">
+                <span className="text-4xl landscape:text-2xl block mb-2 landscape:mb-1">
                   {opponentProfile?.avatar_url && AVATARS_MAP[opponentProfile.avatar_url] ? AVATARS_MAP[opponentProfile.avatar_url] : "👤"}
                 </span>
                 <p className="font-body font-semibold text-foreground text-sm">{opponentProfile?.username ?? "Waiting..."}</p>
@@ -358,8 +335,8 @@ export default function BattleLobby() {
           </div>
 
           {/* Battle settings (shown when not playing) */}
-          {battle.status !== "playing" && (
-            <div className="glass rounded-2xl border border-border/50 p-6 mb-6 space-y-3">
+          {battle.status !== "playing" && battle.status !== "finished" && (
+            <div className="glass rounded-2xl border border-border/50 p-6 landscape:p-4 mb-6 landscape:mb-3 space-y-3">
               <h3 className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-3">Battle Settings</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-secondary/30 rounded-xl p-3 border border-border/20">
@@ -421,16 +398,16 @@ export default function BattleLobby() {
 
           {/* PLAYING — game area */}
           {battle.status === "playing" && !playerDone && running && currentPuzzle && (
-            <div className="glass rounded-2xl border border-border/50 p-6">
-              <div className="flex justify-between items-center mb-4">
+            <div className="glass rounded-2xl border border-border/50 p-6 landscape:p-4">
+              <div className="flex justify-between items-center mb-4 landscape:mb-2">
                 <span className="font-body text-xs text-muted-foreground">Round {currentRound}/{puzzles.length}</span>
                 <div className="flex items-center gap-2">
                   <Timer className="w-4 h-4 text-primary" />
-                  <span className="font-display text-2xl font-bold tabular-nums text-foreground">{formatTime(elapsed)}</span>
+                  <span className="font-display text-2xl landscape:text-xl font-bold tabular-nums text-foreground">{formatTime(elapsed)}</span>
                 </div>
               </div>
 
-              <div className="h-2 bg-secondary/50 rounded-full overflow-hidden mb-4">
+              <div className="h-2 bg-secondary/50 rounded-full overflow-hidden mb-4 landscape:mb-2">
                 <motion.div className="h-full bg-primary rounded-full" animate={{ width: `${((currentRound - 1) / puzzles.length) * 100}%` }} />
               </div>
 
@@ -440,15 +417,15 @@ export default function BattleLobby() {
                   initial={{ opacity: 0, x: 30 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -30 }}
-                  className={`rounded-xl p-5 mb-4 border transition-colors ${
+                  className={`rounded-xl p-5 landscape:p-3 mb-4 landscape:mb-2 border transition-colors ${
                     wrongFlash ? "bg-destructive/20 border-destructive/50" : "bg-secondary/50 border-border/30"
                   }`}
                 >
-                  <p className="font-body text-foreground text-lg">{currentPuzzle.question}</p>
+                  <p className="font-body text-foreground text-lg landscape:text-base">{currentPuzzle.question}</p>
                 </motion.div>
               </AnimatePresence>
 
-              <div className="flex items-center gap-2 mb-4 text-xs font-body text-muted-foreground">
+              <div className="flex items-center gap-2 mb-4 landscape:mb-2 text-xs font-body text-muted-foreground">
                 <span>Score: {myScore.correct} correct</span>
                 {myScore.penalties > 0 && <span className="text-destructive">+{myScore.penalties}s penalties</span>}
               </div>
