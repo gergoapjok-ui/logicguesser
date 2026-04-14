@@ -30,6 +30,17 @@ const THEMES: Record<string, { price: number; proOnly: boolean }> = {
   theme_hacker: { price: 20000, proOnly: false },
 };
 
+const BADGES: Record<string, { price: number; proOnly: boolean }> = {
+  badge_puzzle_master: { price: 800, proOnly: false },
+  badge_speed_demon: { price: 600, proOnly: false },
+  badge_brain_surgeon: { price: 1000, proOnly: false },
+  badge_night_owl: { price: 500, proOnly: false },
+  badge_fire_starter: { price: 400, proOnly: false },
+  badge_legend: { price: 2000, proOnly: true },
+  badge_shadow: { price: 1500, proOnly: true },
+  badge_diamond: { price: 1800, proOnly: true },
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -61,7 +72,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { avatar_id, item_type } = body;
     const isTheme = item_type === "theme";
-    const catalog = isTheme ? THEMES : AVATARS;
+    const isBadge = item_type === "badge";
+    const catalog = isTheme ? THEMES : isBadge ? BADGES : AVATARS;
 
     if (!avatar_id || typeof avatar_id !== "string" || !catalog[avatar_id]) {
       return new Response(JSON.stringify({ error: isTheme ? "Invalid theme" : "Invalid avatar" }), {
@@ -125,7 +137,7 @@ Deno.serve(async (req) => {
     // Add to inventory
     const { error: invErr } = await adminClient
       .from("user_inventory")
-      .insert({ user_id: user.id, item_id: avatar_id, item_type: isTheme ? "theme" : "avatar" });
+      .insert({ user_id: user.id, item_id: avatar_id, item_type: isTheme ? "theme" : isBadge ? "badge" : "avatar" });
 
     if (invErr) {
       // Rollback

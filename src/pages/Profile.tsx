@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LogOut, User, Loader2, Star, Flame, Coins, Crown } from "lucide-react";
+import { LogOut, User, Loader2, Star, Flame, Coins, Crown, Pencil, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,9 @@ export default function Profile() {
   const { user, loading: authLoading, profile, signOut, refreshProfile } = useAuth();
   const [solvedCount, setSolvedCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [editingBio, setEditingBio] = useState(false);
+  const [bioText, setBioText] = useState("");
+  const [savingBio, setSavingBio] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,8 +94,42 @@ export default function Profile() {
               )}
             </div>
             <p className="font-body text-xs text-muted-foreground mb-1">{user?.email}</p>
-            {profile.bio && (
-              <p className="font-body text-sm text-muted-foreground mb-4">{profile.bio}</p>
+            {editingBio ? (
+              <div className="flex items-center gap-2 mb-4 px-2">
+                <Input
+                  value={bioText}
+                  onChange={(e) => setBioText(e.target.value)}
+                  placeholder="Write something about yourself..."
+                  className="flex-1 bg-secondary/50 border-border/50 font-body text-sm"
+                  maxLength={150}
+                />
+                <Button size="icon" variant="ghost" className="w-8 h-8" disabled={savingBio} onClick={async () => {
+                  setSavingBio(true);
+                  await supabase.rpc("update_profile_safe" as any, { _bio: bioText });
+                  await refreshProfile();
+                  setSavingBio(false);
+                  setEditingBio(false);
+                }}>
+                  <Check className="w-4 h-4 text-primary" />
+                </Button>
+                <Button size="icon" variant="ghost" className="w-8 h-8" onClick={() => setEditingBio(false)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="mb-4 px-2">
+                {profile.bio ? (
+                  <p className="font-body text-sm text-muted-foreground mb-1">{profile.bio}</p>
+                ) : (
+                  <p className="font-body text-xs text-muted-foreground/60 italic mb-1">No bio yet</p>
+                )}
+                <button
+                  className="font-body text-xs text-primary hover:underline"
+                  onClick={() => { setBioText(profile.bio || ""); setEditingBio(true); }}
+                >
+                  <Pencil className="w-3 h-3 inline mr-1" />{profile.bio ? "Edit bio" : "Add bio"}
+                </button>
+              </div>
             )}
 
             {/* XP bar */}
