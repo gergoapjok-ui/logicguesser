@@ -28,6 +28,7 @@ interface ProfilePublic {
   username: string | null;
   avatar_url: string | null;
   xp: number;
+  bio: string | null;
 }
 
 export default function Friends() {
@@ -60,7 +61,7 @@ export default function Friends() {
     if (otherIds.length > 0) {
       const { data: profiles } = await supabase
         .from("profiles_public" as any)
-        .select("user_id, username, avatar_url, xp")
+        .select("user_id, username, avatar_url, xp, bio")
         .in("user_id", otherIds);
       if (profiles) {
         (profiles as any[]).forEach(p => profileMap.set(p.user_id, p));
@@ -243,9 +244,14 @@ export default function Friends() {
                     animate={{ opacity: 1, x: 0 }}
                     className="glass rounded-xl border border-border/50 p-4 flex items-center justify-between"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{f.profile.avatar_url && AVATARS_MAP[f.profile.avatar_url] ? AVATARS_MAP[f.profile.avatar_url] : "👤"}</span>
-                      <span className="font-body font-semibold text-foreground">{f.profile.username ?? "Anonymous"}</span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-2xl flex-shrink-0">{f.profile.avatar_url && AVATARS_MAP[f.profile.avatar_url] ? AVATARS_MAP[f.profile.avatar_url] : "👤"}</span>
+                      <div className="min-w-0">
+                        <span className="font-body font-semibold text-foreground block">{f.profile.username ?? "Anonymous"}</span>
+                        {f.profile.bio && (
+                          <span className="font-body text-xs text-muted-foreground block truncate max-w-[200px]">{f.profile.bio}</span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <Button size="sm" variant="ghost" onClick={() => navigate(`/chat/${f.profile.user_id}`)}>
