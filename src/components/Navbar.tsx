@@ -72,7 +72,7 @@ export default function Navbar() {
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary flex items-center justify-center box-glow">
             <span className="font-display text-primary-foreground text-xs sm:text-sm font-bold">L</span>
           </div>
-          <span className="font-display text-base sm:text-lg font-bold tracking-wider text-foreground">
+          <span className="font-display text-xs xs:text-base sm:text-lg font-bold tracking-wider text-foreground hidden min-[360px]:inline">
             LOGIC<span className="text-primary">GUESSER</span>
           </span>
         </Link>

@@ -741,6 +741,7 @@ export type Database = {
       profiles_public: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           current_streak: number | null
           is_pro: boolean | null
           user_id: string | null
@@ -749,6 +750,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           current_streak?: number | null
           is_pro?: boolean | null
           user_id?: string | null
@@ -757,6 +759,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           current_streak?: number | null
           is_pro?: boolean | null
           user_id?: string | null

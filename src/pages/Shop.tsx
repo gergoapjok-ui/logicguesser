@@ -131,6 +131,26 @@ export default function Shop() {
     toast.success("Theme applied!");
   };
 
+  const handleBuyBadge = async (badge: typeof TITLE_BADGES[0]) => {
+    if (!user || busy) return;
+    if (badge.proOnly && !isPro) { toast.error("This badge is Pro-exclusive!"); return; }
+    if (credits < badge.price) { toast.error("Not enough credits!"); return; }
+    setBusy(badge.id);
+    const { data, error } = await supabase.functions.invoke("purchase-avatar", {
+      body: { avatar_id: badge.id, item_type: "badge" },
+    });
+    if (error || !data?.success) {
+      toast.error(data?.error || "Purchase failed.");
+      setBusy(null);
+      return;
+    }
+    setCredits(data.new_credits);
+    setOwned(prev => new Set(prev).add(badge.id));
+    toast.success(`Purchased ${badge.name}!`);
+    refreshProfile();
+    setBusy(null);
+  };
+
   const handleEquip = async (avatarId: string) => {
     if (!user || busy) return;
     setBusy(avatarId);
@@ -308,7 +328,7 @@ export default function Shop() {
                   ) : !locked ? (
                     <>
                       <p className="flex items-center justify-center gap-1 text-xs font-body text-neon-amber mb-1"><Coins className="w-3 h-3" /> {badge.price}</p>
-                      <Button variant="neon" size="sm" className="w-full" onClick={() => handleBuy({ ...badge } as any)} disabled={busy === badge.id}>
+                      <Button variant="neon" size="sm" className="w-full" onClick={() => handleBuyBadge(badge)} disabled={busy === badge.id}>
                         {busy === badge.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Buy"}
                       </Button>
                     </>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, LogIn } from "lucide-react";
+import { Mail, Lock, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,12 +102,18 @@ export default function Login() {
                 Forgot your password?
               </Link>
             </p>
-            <p className="text-center mt-3 font-body text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link to="/signup" className="text-primary hover:underline">
-                Sign up
+
+            <div className="mt-6 p-4 rounded-xl bg-secondary/50 border border-border/50 text-center">
+              <p className="font-body text-sm text-muted-foreground mb-3">
+                Can't log in? Maybe you don't have an account yet?
+              </p>
+              <Link to="/signup">
+                <Button variant="neon" size="lg" className="w-full">
+                  <UserPlus className="w-5 h-5" />
+                  Create an Account
+                </Button>
               </Link>
-            </p>
+            </div>
           </div>
         </motion.div>
       </div>

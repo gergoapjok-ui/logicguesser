@@ -1,22 +1,40 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Mail, Lock, User, UserPlus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Mail, Lock, User, UserPlus, CheckCircle, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 
+const BANNED_WORDS = [
+  "nigger","nigga","faggot","retard","cunt","fuck","shit","bitch","cock","dick",
+  "pussy","asshole","bastard","whore","slut","wanker","twat","prick","bollocks",
+  "motherfucker","negro","chink","spic","kike","gook","tranny","dyke",
+];
+
+function containsBannedWord(name: string): boolean {
+  const lower = name.toLowerCase().replace(/[^a-z]/g, "");
+  return BANNED_WORDS.some(w => lower.includes(w));
+}
+
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (containsBannedWord(username)) {
+      toast.error("That username contains inappropriate language. Please choose another.");
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
@@ -32,8 +50,7 @@ export default function Signup() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Account created! You can sign in now.");
-      navigate("/login");
+      setSignupSuccess(true);
     }
   };
 
@@ -47,6 +64,36 @@ export default function Signup() {
           className="w-full max-w-md"
         >
           <div className="glass rounded-2xl border border-border/50 p-8">
+            <AnimatePresence mode="wait">
+            {signupSuccess ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-6"
+              >
+                <div className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center mx-auto mb-6 box-glow">
+                  <Inbox className="w-10 h-10 text-primary" />
+                </div>
+                <h2 className="font-display text-3xl font-bold text-foreground mb-3">
+                  CHECK YOUR <span className="text-primary text-glow">INBOX</span>
+                </h2>
+                <p className="font-body text-lg text-muted-foreground mb-2">
+                  We sent a verification email to:
+                </p>
+                <p className="font-display text-lg font-bold text-primary mb-6">{email}</p>
+                <p className="font-body text-sm text-muted-foreground mb-6">
+                  Click the link in the email to verify your account, then come back and log in.
+                </p>
+                <Link to="/login">
+                  <Button variant="neon" size="lg" className="w-full">
+                    <CheckCircle className="w-5 h-5" />
+                    Go to Login
+                  </Button>
+                </Link>
+              </motion.div>
+            ) : (
+            <>
             <div className="text-center mb-8">
               <h1 className="font-display text-3xl font-bold text-foreground mb-2">
                 SIGN <span className="text-primary text-glow">UP</span>
@@ -124,6 +171,9 @@ export default function Signup() {
                 Log in
               </Link>
             </p>
+            </>
+            )}
+            </AnimatePresence>
           </div>
         </motion.div>
       </div>
