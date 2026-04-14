@@ -1,37 +1,36 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins, Users, Crown, Swords, Settings, Lightbulb, Globe } from "lucide-react";
+import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins, Users, Crown, Swords, Settings, Globe, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/NotificationBell";
+import { useLanguage, LANGUAGE_LABELS, LANGUAGE_FLAGS, Language } from "@/contexts/LanguageContext";
 
 const AVATARS_MAP: Record<string, string> = {
-  avatar_cyber_skull: "💀",
-  avatar_neon_cat: "🐱",
-  avatar_glitch_bot: "🤖",
-  avatar_plasma_fox: "🦊",
-  avatar_quantum_owl: "🦉",
-  avatar_void_wolf: "🐺",
-  avatar_pixel_dragon: "🐉",
-  avatar_star_panda: "🐼",
+  avatar_cyber_skull: "💀", avatar_neon_cat: "🐱", avatar_glitch_bot: "🤖",
+  avatar_plasma_fox: "🦊", avatar_quantum_owl: "🦉", avatar_void_wolf: "🐺",
+  avatar_pixel_dragon: "🐉", avatar_star_panda: "🐼",
 };
 
-const navItems = [
-  { label: "Home", path: "/", icon: Home },
-  { label: "Leaderboard", path: "/leaderboard", icon: Trophy },
-  { label: "Practice", path: "/practice", icon: Dumbbell },
-  { label: "Shop", path: "/shop", icon: ShoppingBag },
-  { label: "Friends", path: "/friends", icon: Users },
-  { label: "Lobbies", path: "/lobbies", icon: Swords },
-  { label: "Community", path: "/community", icon: Globe },
+const NAV_KEYS = [
+  { key: "nav.home", path: "/", icon: Home },
+  { key: "nav.leaderboard", path: "/leaderboard", icon: Trophy },
+  { key: "nav.practice", path: "/practice", icon: Dumbbell },
+  { key: "nav.shop", path: "/shop", icon: ShoppingBag },
+  { key: "nav.friends", path: "/friends", icon: Users },
+  { key: "nav.lobbies", path: "/lobbies", icon: Swords },
+  { key: "nav.community", path: "/community", icon: Globe },
 ];
 
 export default function Navbar() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
+  const { t, language, setLanguage } = useLanguage();
   const [dark, setDark] = useState(() => {
     const saved = localStorage.getItem("logicguesser-theme");
     if (saved) return saved === "dark";
@@ -48,22 +47,21 @@ export default function Navbar() {
 
   const avatarEmoji = profile?.avatar_url ? AVATARS_MAP[profile.avatar_url] : null;
 
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [location.pathname]);
+  useEffect(() => { setMobileOpen(false); setLangOpen(false); }, [location.pathname]);
 
   useEffect(() => {
-    if (!mobileOpen) return;
-
+    if (!mobileOpen && !langOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (navRef.current && !navRef.current.contains(event.target as Node)) {
+      if (langOpen && langRef.current && !langRef.current.contains(event.target as Node)) {
+        setLangOpen(false);
+      }
+      if (mobileOpen && navRef.current && !navRef.current.contains(event.target as Node)) {
         setMobileOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [mobileOpen]);
+  }, [mobileOpen, langOpen]);
 
   return (
     <nav ref={navRef} className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
@@ -78,52 +76,26 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-1">
-          {navItems.map((item) => {
+          {NAV_KEYS.map((item) => {
             const active = location.pathname === item.path;
             return (
               <Link key={item.path} to={item.path}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn("relative gap-2 font-body", active && "text-primary")}
-                >
+                <Button variant="ghost" size="sm" className={cn("relative gap-2 font-body", active && "text-primary")}>
                   <item.icon className="w-4 h-4" />
-                  {item.label}
-                  {active && (
-                    <motion.div
-                      layoutId="nav-indicator"
-                      className="absolute bottom-0 left-2 right-2 h-0.5 bg-primary rounded-full"
-                    />
-                  )}
+                  {t(item.key)}
+                  {active && <motion.div layoutId="nav-indicator" className="absolute bottom-0 left-2 right-2 h-0.5 bg-primary rounded-full" />}
                 </Button>
               </Link>
             );
           })}
-
           <Link to={user ? "/profile" : "/login"}>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "relative gap-2 font-body",
-                (location.pathname === "/profile" || location.pathname === "/login") && "text-primary"
-              )}
-            >
-              {user ? (
-                avatarEmoji ? (
-                  <span className="text-base">{avatarEmoji}</span>
-                ) : (
-                  <User className="w-4 h-4" />
-                )
-              ) : (
-                <LogIn className="w-4 h-4" />
-              )}
-              {user ? "Profile" : "Login"}
+            <Button variant="ghost" size="sm" className={cn("relative gap-2 font-body", (location.pathname === "/profile" || location.pathname === "/login") && "text-primary")}>
+              {user ? (avatarEmoji ? <span className="text-base">{avatarEmoji}</span> : <User className="w-4 h-4" />) : <LogIn className="w-4 h-4" />}
+              {user ? t("nav.profile") : t("nav.login")}
             </Button>
           </Link>
         </div>
 
-        {/* Right side icons — scrollable on small screens */}
         <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto flex-shrink-0 max-w-[50vw] sm:max-w-none scrollbar-hide">
           {user && profile?.is_pro && (
             <div className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-full bg-neon-amber/10 border border-neon-amber/30 flex-shrink-0">
@@ -131,38 +103,58 @@ export default function Navbar() {
               <span className="font-display text-[10px] sm:text-xs font-bold text-neon-amber">PRO</span>
             </div>
           )}
-
           {user && profile && profile.current_streak > 0 && (
             <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-destructive/10 border border-destructive/20 flex-shrink-0">
               <Flame className="w-3.5 h-3.5 text-destructive" />
               <span className="font-display text-xs font-bold text-destructive">{profile.current_streak}</span>
             </div>
           )}
-
           {user && profile && (
             <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 border border-primary/20 flex-shrink-0">
               <Coins className="w-3.5 h-3.5 text-primary text-glow" />
               <span className="font-display text-xs font-bold text-foreground">{profile.credits}</span>
             </div>
           )}
-
           {user && <NotificationBell />}
+
+          {/* Language switcher */}
+          <div className="relative flex-shrink-0" ref={langRef}>
+            <Button variant="ghost" size="icon" className="w-8 h-8 sm:w-9 sm:h-9" onClick={() => setLangOpen(!langOpen)}>
+              <span className="text-sm">{LANGUAGE_FLAGS[language]}</span>
+            </Button>
+            <AnimatePresence>
+              {langOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
+                  className="absolute right-0 top-full mt-1 w-40 glass rounded-lg border border-border/50 shadow-lg overflow-hidden z-50"
+                >
+                  {(Object.keys(LANGUAGE_LABELS) as Language[]).map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => { setLanguage(lang); setLangOpen(false); }}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-3 py-2 text-sm font-body hover:bg-primary/10 transition-colors",
+                        language === lang && "bg-primary/20 text-primary font-bold"
+                      )}
+                    >
+                      <span>{LANGUAGE_FLAGS[lang]}</span>
+                      <span>{LANGUAGE_LABELS[lang]}</span>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {user && (
             <Link to="/settings" className="flex-shrink-0">
               <Button variant="ghost" size="icon" className="w-8 h-8 sm:w-9 sm:h-9"><Settings className="w-4 h-4" /></Button>
             </Link>
           )}
-
           <Button variant="ghost" size="icon" onClick={toggleDark} className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0">
             {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
+          <Button variant="ghost" size="icon" className="md:hidden w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
         </div>
@@ -170,13 +162,7 @@ export default function Navbar() {
 
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="md:hidden glass border-b border-border/50 px-4 pb-4 max-h-[70vh] overflow-y-auto"
-          >
-            {/* Mobile streak + credits */}
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="md:hidden glass border-b border-border/50 px-4 pb-4 max-h-[70vh] overflow-y-auto">
             {user && profile && (
               <div className="flex items-center gap-3 mb-2 pt-2 flex-wrap">
                 {profile.current_streak > 0 && (
@@ -191,17 +177,13 @@ export default function Navbar() {
                 </div>
               </div>
             )}
-
-            {navItems.map((item) => {
+            {NAV_KEYS.map((item) => {
               const active = location.pathname === item.path;
               return (
                 <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)}>
-                  <Button
-                    variant="ghost"
-                    className={cn("w-full justify-start gap-3 my-1", active && "text-primary bg-primary/10")}
-                  >
+                  <Button variant="ghost" className={cn("w-full justify-start gap-3 my-1", active && "text-primary bg-primary/10")}>
                     <item.icon className="w-4 h-4" />
-                    {item.label}
+                    {t(item.key)}
                   </Button>
                 </Link>
               );
@@ -209,14 +191,14 @@ export default function Navbar() {
             <Link to={user ? "/profile" : "/login"} onClick={() => setMobileOpen(false)}>
               <Button variant="ghost" className="w-full justify-start gap-3 my-1">
                 {user ? <User className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
-                {user ? "Profile" : "Login"}
+                {user ? t("nav.profile") : t("nav.login")}
               </Button>
             </Link>
             {user && (
               <Link to="/settings" onClick={() => setMobileOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start gap-3 my-1">
                   <Settings className="w-4 h-4" />
-                  Settings
+                  {t("nav.settings")}
                 </Button>
               </Link>
             )}

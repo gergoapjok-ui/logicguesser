@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import DailyChallenge from "./pages/DailyChallenge";
 import Leaderboard from "./pages/Leaderboard";
@@ -41,6 +42,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <ThemeProvider>
+          <LanguageProvider>
           <BattleInvitePopup />
           <Routes>
             <Route path="/" element={<Index />} />
@@ -68,6 +70,7 @@ const App = () => (
           </Routes>
           <SpeedInsights />
           <Analytics />
+          </LanguageProvider>
           </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>
