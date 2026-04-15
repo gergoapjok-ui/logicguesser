@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -30,13 +31,13 @@ interface PuzzleTask {
 export default function DailyChallenge() {
   const { user, loading: authLoading, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const isPro = profile?.is_pro ?? false;
 
   const [tasks, setTasks] = useState<PuzzleTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const [completedTime, setCompletedTime] = useState<number | null>(null);
-
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [answer, setAnswer] = useState("");
   const [elapsed, setElapsed] = useState(0);
@@ -50,7 +51,6 @@ export default function DailyChallenge() {
   const [retrying, setRetrying] = useState(false);
   const [creditRestarting, setCreditRestarting] = useState(false);
 
-  // Determine credit restart cost
   const today = new Date();
   const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
   const isDiscountDay = dayOfYear % 4 === 0;
@@ -60,35 +60,15 @@ export default function DailyChallenge() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate("/login"); return; }
-
     const load = async () => {
       const today = new Date().toISOString().split("T")[0];
-      const { data: puzzleData } = await supabase
-        .from("puzzles_public" as any)
-        .select("id, question, difficulty, task_number")
-        .eq("puzzle_date", today)
-        .order("task_number", { ascending: true });
-
+      const { data: puzzleData } = await supabase.from("puzzles_public" as any).select("id, question, difficulty, task_number").eq("puzzle_date", today).order("task_number", { ascending: true });
       if (!puzzleData || puzzleData.length === 0) { setTasks([]); setLoading(false); return; }
       setTasks(puzzleData as any);
-
-      const { data: existing } = await supabase
-        .from("leaderboard")
-        .select("time_taken")
-        .eq("user_id", user.id)
-        .eq("completed_date", today)
-        .maybeSingle();
-
-      if (existing) {
-        setAlreadyCompleted(true);
-        setCompletedTime(existing.time_taken);
-      } else {
-        const { data: progress } = await supabase
-          .from("challenge_progress" as any)
-          .select("task_number")
-          .eq("user_id", user.id)
-          .eq("puzzle_date", today);
-
+      const { data: existing } = await supabase.from("leaderboard").select("time_taken").eq("user_id", user.id).eq("completed_date", today).maybeSingle();
+      if (existing) { setAlreadyCompleted(true); setCompletedTime(existing.time_taken); }
+      else {
+        const { data: progress } = await supabase.from("challenge_progress" as any).select("task_number").eq("user_id", user.id).eq("puzzle_date", today);
         if (progress && progress.length > 0) {
           const completedNums = new Set((progress as any[]).map(p => p.task_number));
           const nextIncomplete = (puzzleData as any[]).findIndex(t => !completedNums.has(t.task_number));
@@ -101,9 +81,7 @@ export default function DailyChallenge() {
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    if (running) {
-      intervalRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
-    }
+    if (running) intervalRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [running]);
 
@@ -112,22 +90,10 @@ export default function DailyChallenge() {
   const handleRetry = async () => {
     setRetrying(true);
     const { data, error } = await supabase.functions.invoke("daily-retry");
-    if (error || !data?.success) {
-      toast.error(data?.error || "Failed to retry");
-      setRetrying(false);
-      return;
-    }
+    if (error || !data?.success) { toast.error(data?.error || "Failed"); setRetrying(false); return; }
     toast.success(`Retry activated! ${data.retries_remaining} retries remaining`);
-    setAlreadyCompleted(false);
-    setCompletedTime(null);
-    setCurrentTaskIndex(0);
-    setAllDone(false);
-    setStarted(false);
-    setElapsed(0);
-    setPenalties(0);
-    setEarnedCredits(null);
-    await refreshProfile();
-    setRetrying(false);
+    setAlreadyCompleted(false); setCompletedTime(null); setCurrentTaskIndex(0); setAllDone(false); setStarted(false); setElapsed(0); setPenalties(0); setEarnedCredits(null);
+    await refreshProfile(); setRetrying(false);
   };
 
   const currentTask = tasks[currentTaskIndex] ?? null;
@@ -139,44 +105,24 @@ export default function DailyChallenge() {
     const trimmed = answer.trim();
     if (!trimmed) return;
     setSubmitting(true);
-
     const { data, error } = await supabase.functions.invoke("validate-answer", {
-      body: {
-        puzzle_id: currentTask.id,
-        answer: trimmed,
-        task_number: currentTask.task_number,
-        total_elapsed: elapsed,
-        total_penalties: penalties,
-      },
+      body: { puzzle_id: currentTask.id, answer: trimmed, task_number: currentTask.task_number, total_elapsed: elapsed, total_penalties: penalties },
     });
     setSubmitting(false);
-
-    if (error) { toast.error("Failed to submit."); return; }
+    if (error) { toast.error("Failed"); return; }
     if (!data.correct) {
-      setPenalties(p => p + 5);
-      setWrongFlash(true);
-      setTimeout(() => setWrongFlash(false), 600);
-      toast.error("Wrong! +5 seconds penalty");
-      setAnswer("");
-      return;
+      setPenalties(p => p + 5); setWrongFlash(true); setTimeout(() => setWrongFlash(false), 600);
+      toast.error(t("daily.wrong5s")); setAnswer(""); return;
     }
-    if (data.already_completed) {
-      setAnswer("");
-      if (currentTaskIndex < tasks.length - 1) setCurrentTaskIndex(i => i + 1);
-      return;
-    }
+    if (data.already_completed) { setAnswer(""); if (currentTaskIndex < tasks.length - 1) setCurrentTaskIndex(i => i + 1); return; }
     if (data.all_done) {
-      setRunning(false);
-      setAllDone(true);
-      setEarnedCredits(data.credit_reward);
-      refreshProfile();
-      toast.success(`All tasks complete! Total time: ${formatTime(data.time_taken)} — +${data.credit_reward} Credits! +50 XP`);
+      setRunning(false); setAllDone(true); setEarnedCredits(data.credit_reward); refreshProfile();
+      toast.success(`${t("daily.allComplete")} ${formatTime(data.time_taken)} — +${data.credit_reward} ${t("daily.credits")}! +50 XP`);
     } else {
-      toast.success(`Task ${currentTask.task_number} correct! Next task...`);
-      setAnswer("");
-      setCurrentTaskIndex(i => i + 1);
+      toast.success(`${t("daily.task")} ${currentTask.task_number} ${t("daily.correct")}`);
+      setAnswer(""); setCurrentTaskIndex(i => i + 1);
     }
-  }, [answer, currentTask, user, elapsed, penalties, submitting, refreshProfile, currentTaskIndex, tasks.length]);
+  }, [answer, currentTask, user, elapsed, penalties, submitting, refreshProfile, currentTaskIndex, tasks.length, t]);
 
   if (authLoading || loading) {
     return <div className="min-h-screen bg-background"><Navbar /><div className="flex items-center justify-center min-h-screen"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div></div>;
@@ -189,22 +135,10 @@ export default function DailyChallenge() {
   const handleCreditRestart = async () => {
     setCreditRestarting(true);
     const { data, error } = await supabase.functions.invoke("daily-restart-credits");
-    if (error || !data?.success) {
-      toast.error(data?.error || "Failed to restart");
-      setCreditRestarting(false);
-      return;
-    }
-    toast.success(`Restarted for ${data.cost} credits!`);
-    setAlreadyCompleted(false);
-    setCompletedTime(null);
-    setCurrentTaskIndex(0);
-    setAllDone(false);
-    setStarted(false);
-    setElapsed(0);
-    setPenalties(0);
-    setEarnedCredits(null);
-    await refreshProfile();
-    setCreditRestarting(false);
+    if (error || !data?.success) { toast.error(data?.error || "Failed"); setCreditRestarting(false); return; }
+    toast.success(`${t("daily.restartFor")} ${data.cost} ${t("daily.credits")}!`);
+    setAlreadyCompleted(false); setCompletedTime(null); setCurrentTaskIndex(0); setAllDone(false); setStarted(false); setElapsed(0); setPenalties(0); setEarnedCredits(null);
+    await refreshProfile(); setCreditRestarting(false);
   };
 
   return (
@@ -217,63 +151,58 @@ export default function DailyChallenge() {
               <div className="glass rounded-2xl border border-border/50 p-8 text-center">
                 <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
                 <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-                  CHALLENGE <span className="text-primary text-glow">COMPLETE</span>
+                  {t("daily.complete")} <span className="text-primary text-glow">{t("daily.complete2")}</span>
                 </h1>
                 {profile && profile.current_streak > 0 && (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-destructive/10 border border-destructive/20 mb-3">
                     <Flame className="w-4 h-4 text-destructive" />
-                    <span className="font-display text-sm font-bold text-destructive">{profile.current_streak} day streak</span>
+                    <span className="font-display text-sm font-bold text-destructive">{profile.current_streak} {t("daily.dayStreak")}</span>
                   </div>
                 )}
                 <p className="font-body text-muted-foreground mb-4">
-                  You solved today's challenge in <span className="text-primary font-semibold">{formatTime(completedTime!)}</span>
+                  {t("daily.solvedIn")} <span className="text-primary font-semibold">{formatTime(completedTime!)}</span>
                 </p>
-
                 {canRetry && (
                   <div className="mb-4">
                     <Button variant="neon-outline" onClick={handleRetry} disabled={retrying} className="gap-2">
                       {retrying ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
-                      Retry Challenge
-                      <span className="text-xs text-muted-foreground">({3 - retriesUsed} left)</span>
+                      {t("daily.retryChallenge")}
+                      <span className="text-xs text-muted-foreground">({3 - retriesUsed} {t("daily.left")})</span>
                     </Button>
                     <div className="flex items-center justify-center gap-1 mt-1">
                       <Crown className="w-3 h-3 text-neon-amber" />
-                      <span className="font-body text-[10px] text-neon-amber">Pro perk</span>
+                      <span className="font-body text-[10px] text-neon-amber">{t("daily.proPerk")}</span>
                     </div>
                   </div>
                 )}
-
-                {/* Credit-based restart (available to everyone) */}
                 {canCreditRestart && (
                   <div className="mb-4">
                     <Button variant="neon-outline" onClick={handleCreditRestart} disabled={creditRestarting} className="gap-2">
                       {creditRestarting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Coins className="w-4 h-4" />}
-                      Restart for {restartCost.toLocaleString()} Credits
-                      {isDiscountDay && <span className="text-xs text-primary">(Discount day!)</span>}
+                      {t("daily.restartFor")} {restartCost.toLocaleString()} {t("daily.credits")}
+                      {isDiscountDay && <span className="text-xs text-primary">({t("daily.discountDay")})</span>}
                     </Button>
                   </div>
                 )}
-
                 {!canRetry && !canCreditRestart && (
                   <p className="font-body text-muted-foreground text-sm mb-4">
-                    {isPro && retriesUsed >= 3 ? "All retries used today." : "Come back tomorrow for a new challenge!"}
+                    {isPro && retriesUsed >= 3 ? t("daily.retriesUsed") : t("daily.comeBack")}
                     {!isPro && (
                       <Button variant="link" className="text-neon-amber p-0 h-auto ml-1" onClick={() => navigate("/pro")}>
-                        <Crown className="w-3 h-3 mr-1" /> Get Pro for retries
+                        <Crown className="w-3 h-3 mr-1" /> {t("daily.getProRetries")}
                       </Button>
                     )}
                   </p>
                 )}
-
-                <Button variant="neon-outline" size="lg" onClick={() => navigate("/leaderboard")}>View Leaderboard</Button>
+                <Button variant="neon-outline" size="lg" onClick={() => navigate("/leaderboard")}>{t("daily.viewLeaderboard")}</Button>
               </div>
             )}
 
             {!alreadyCompleted && tasks.length === 0 && (
               <div className="glass rounded-2xl border border-border/50 p-8 text-center">
                 <AlertTriangle className="w-12 h-12 text-neon-amber mx-auto mb-4" />
-                <h2 className="font-display text-2xl font-bold text-foreground mb-2">No Puzzle Today</h2>
-                <p className="font-body text-muted-foreground">Check back tomorrow!</p>
+                <h2 className="font-display text-2xl font-bold text-foreground mb-2">{t("daily.noPuzzle")}</h2>
+                <p className="font-body text-muted-foreground">{t("daily.checkBack")}</p>
               </div>
             )}
 
@@ -281,13 +210,13 @@ export default function DailyChallenge() {
               <div className="glass rounded-2xl border border-border/50 p-8">
                 <div className="text-center mb-4">
                   <h1 className="font-display text-3xl font-bold text-foreground mb-1">
-                    DAILY <span className="text-primary text-glow">CHALLENGE</span>
+                    {t("daily.title")} <span className="text-primary text-glow">{t("daily.title2")}</span>
                   </h1>
                   {profile && profile.current_streak > 0 && (
                     <div className="mt-1 inline-flex items-center gap-1 text-sm font-body text-muted-foreground">
                       <Flame className="w-3.5 h-3.5 text-destructive" />
-                      {profile.current_streak} day streak — {Math.round(getStreakMultiplier(profile.current_streak) * 100)}% credit bonus!
-                      {isPro && <span className="text-neon-amber ml-1">(2× Pro)</span>}
+                      {profile.current_streak} {t("daily.dayStreak")} — {Math.round(getStreakMultiplier(profile.current_streak) * 100)}% {t("daily.creditBonus")}
+                      {isPro && <span className="text-neon-amber ml-1">({t("general.2xPro")})</span>}
                     </div>
                   )}
                 </div>
@@ -295,8 +224,8 @@ export default function DailyChallenge() {
                 {started && !allDone && (
                   <div className="mb-4">
                     <div className="flex justify-between text-xs font-body text-muted-foreground mb-1">
-                      <span>Task {currentTaskIndex + 1} of {tasks.length}</span>
-                      {penalties > 0 && <span className="text-destructive font-semibold">+{penalties}s penalties</span>}
+                      <span>{t("daily.task")} {currentTaskIndex + 1} {t("daily.of")} {tasks.length}</span>
+                      {penalties > 0 && <span className="text-destructive font-semibold">+{penalties}s {t("daily.penalties")}</span>}
                     </div>
                     <div className="h-2 bg-secondary/50 rounded-full overflow-hidden">
                       <motion.div className="h-full bg-primary rounded-full" animate={{ width: `${(currentTaskIndex / tasks.length) * 100}%` }} transition={{ duration: 0.3 }} />
@@ -312,25 +241,23 @@ export default function DailyChallenge() {
                 {!started ? (
                   <div className="text-center">
                     <p className="font-body text-muted-foreground text-sm mb-2">
-                      Today's challenge has <span className="text-primary font-semibold">{tasks.length} tasks</span>.
+                      {t("daily.tasksToday")} <span className="text-primary font-semibold">{tasks.length} {t("daily.tasks")}</span>.
                     </p>
-                    <p className="font-body text-muted-foreground text-xs mb-6">
-                      Wrong answers add +5 seconds. Your total time goes on the leaderboard.
-                    </p>
+                    <p className="font-body text-muted-foreground text-xs mb-6">{t("daily.wrongPenalty")}</p>
                     <Button variant="neon" size="xl" onClick={handleStart}>
-                      <Clock className="w-5 h-5" /> Start Challenge
+                      <Clock className="w-5 h-5" /> {t("daily.start")}
                     </Button>
                   </div>
                 ) : allDone ? (
                   <div className="text-center">
                     <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-3" />
-                    <p className="font-display text-xl font-bold text-foreground mb-1">All Tasks Complete!</p>
+                    <p className="font-display text-xl font-bold text-foreground mb-1">{t("daily.allComplete")}</p>
                     <p className="font-body text-muted-foreground mb-1">
-                      Total Time: <span className="text-primary font-semibold">{formatTime(totalTime)}</span>
+                      {t("daily.totalTime")} <span className="text-primary font-semibold">{formatTime(totalTime)}</span>
                     </p>
-                    {penalties > 0 && <p className="font-body text-destructive text-xs mb-2">Includes {penalties}s in penalties</p>}
-                    {earnedCredits && <p className="font-body text-primary text-sm font-semibold mb-4">+{earnedCredits} Credits · +50 XP</p>}
-                    <Button variant="neon-outline" size="lg" onClick={() => navigate("/leaderboard")}>View Leaderboard</Button>
+                    {penalties > 0 && <p className="font-body text-destructive text-xs mb-2">{t("daily.penaltyIncl")} {penalties}s {t("daily.inPenalties")}</p>}
+                    {earnedCredits && <p className="font-body text-primary text-sm font-semibold mb-4">+{earnedCredits} {t("daily.credits")} · +50 XP</p>}
+                    <Button variant="neon-outline" size="lg" onClick={() => navigate("/leaderboard")}>{t("daily.viewLeaderboard")}</Button>
                   </div>
                 ) : currentTask ? (
                   <>
@@ -339,21 +266,19 @@ export default function DailyChallenge() {
                         className={`rounded-xl p-6 mb-4 border transition-colors ${wrongFlash ? "bg-destructive/20 border-destructive/50" : "bg-secondary/50 border-border/30"}`}>
                         <div className="flex items-center justify-between mb-2">
                           <span className="inline-block px-2 py-0.5 rounded-full text-xs font-body bg-primary/10 text-primary border border-primary/30 capitalize">{currentTask.difficulty}</span>
-                          <span className="text-xs font-body text-muted-foreground">Task {currentTaskIndex + 1}/{tasks.length}</span>
+                          <span className="text-xs font-body text-muted-foreground">{t("daily.task")} {currentTaskIndex + 1}/{tasks.length}</span>
                         </div>
                         <p className="font-body text-foreground text-lg leading-relaxed">{currentTask.question}</p>
                       </motion.div>
                     </AnimatePresence>
-
                     {wrongFlash && (
                       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                         className="flex items-center gap-2 justify-center mb-3 text-destructive">
                         <XCircle className="w-4 h-4" /><span className="font-display text-sm font-bold">+5 SECONDS</span>
                       </motion.div>
                     )}
-
                     <form onSubmit={handleSubmit} className="flex gap-3">
-                      <Input value={answer} onChange={e => setAnswer(e.target.value)} placeholder="Your answer..."
+                      <Input value={answer} onChange={e => setAnswer(e.target.value)} placeholder={t("daily.yourAnswer")}
                         className="flex-1 bg-secondary/50 border-border/50 font-body" autoFocus />
                       <Button type="submit" variant="neon" disabled={!answer.trim() || submitting}>
                         {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -364,7 +289,6 @@ export default function DailyChallenge() {
               </div>
             )}
           </motion.div>
-
           {!isPro && (
             <aside className="hidden lg:block w-64 flex-shrink-0 self-start pt-4">
               <AdPlaceholder slot={AD_SLOTS.sidebar} />

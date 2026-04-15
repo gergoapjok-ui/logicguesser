@@ -11,6 +11,7 @@ import Navbar from "@/components/Navbar";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { generatePuzzle, type PuzzleCategory, type Puzzle } from "@/lib/puzzleGenerator";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -20,6 +21,7 @@ function formatTime(seconds: number) {
 
 export default function Practice() {
   const { user, profile, refreshProfile } = useAuth();
+  const { t } = useLanguage();
   const isPro = profile?.is_pro ?? false;
   const [category, setCategory] = useState<PuzzleCategory | undefined>(undefined);
   const [puzzle, setPuzzle] = useState<Puzzle>(() => generatePuzzle());
@@ -54,11 +56,11 @@ export default function Practice() {
         setShowCredit(true);
         setTimeout(() => setShowCredit(false), 1500);
       }
-      toast.success(`Correct! Solved in ${formatTime(elapsed)}`);
+      toast.success(`${t("practice.correct")} ${t("practice.solvedIn")} ${formatTime(elapsed)}`);
     } else {
-      toast.error("Wrong answer! Try again.");
+      toast.error(t("practice.wrongTryAgain"));
     }
-  }, [answer, puzzle, elapsed, user, refreshProfile]);
+  }, [answer, puzzle, elapsed, user, refreshProfile, t]);
 
   const handleNext = () => {
     setPuzzle(generatePuzzle(category));
@@ -79,18 +81,18 @@ export default function Practice() {
                   <motion.div initial={{ opacity: 1, y: 0 }} animate={{ opacity: 0, y: -60 }} exit={{ opacity: 0 }}
                     transition={{ duration: 1.2 }} className="absolute top-4 right-4 flex items-center gap-1 pointer-events-none z-10">
                     <Coins className="w-4 h-4 text-primary" />
-                    <span className="font-display text-sm font-bold text-primary text-glow">+{creditAmount} Credits</span>
+                    <span className="font-display text-sm font-bold text-primary text-glow">+{creditAmount} {t("daily.credits")}</span>
                   </motion.div>
                 )}
               </AnimatePresence>
 
               <div className="text-center mb-4">
                 <h1 className="font-display text-3xl font-bold text-foreground mb-1">
-                  PRACTICE <span className="text-neon-purple text-glow-purple">MODE</span>
+                  {t("practice.title")} <span className="text-neon-purple text-glow-purple">{t("practice.title2")}</span>
                 </h1>
                 <p className="font-body text-muted-foreground text-sm">
-                  Streak: <span className="text-primary font-semibold">{streak}</span> · +{creditAmount} credits per solve
-                  {isPro && <span className="text-neon-amber ml-1">(2× Pro)</span>}
+                  {t("practice.streak")} <span className="text-primary font-semibold">{streak}</span> · +{creditAmount} {t("practice.perSolve")}
+                  {isPro && <span className="text-neon-amber ml-1">({t("general.2xPro")})</span>}
                 </p>
               </div>
 
@@ -100,7 +102,7 @@ export default function Practice() {
                   {(["", "math", "logic", "patterns", "visual", "word", "cipher", "spatial", "trivia", "code"] as const).map(v => (
                     <ToggleGroupItem key={v} value={v}
                       className="font-body text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-md px-3">
-                      {v === "" ? "All" : v.charAt(0).toUpperCase() + v.slice(1)}
+                      {v === "" ? t("practice.all") : v.charAt(0).toUpperCase() + v.slice(1)}
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
@@ -114,18 +116,15 @@ export default function Practice() {
               {solved ? (
                 <div className="text-center">
                   <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-3" />
-                  <p className="font-display text-xl font-bold text-foreground mb-1">Correct!</p>
-                  <p className="font-body text-muted-foreground mb-6">Solved in <span className="text-primary font-semibold">{formatTime(elapsed)}</span></p>
-                  <Button variant="neon" size="lg" onClick={handleNext}><RotateCcw className="w-4 h-4" /> Next Puzzle</Button>
+                  <p className="font-display text-xl font-bold text-foreground mb-1">{t("practice.correct")}</p>
+                  <p className="font-body text-muted-foreground mb-6">{t("practice.solvedIn")} <span className="text-primary font-semibold">{formatTime(elapsed)}</span></p>
+                  <Button variant="neon" size="lg" onClick={handleNext}><RotateCcw className="w-4 h-4" /> {t("practice.next")}</Button>
                 </div>
               ) : (
                 <>
                   {puzzle.visual && (
                     <div className="mb-4 flex justify-center">
-                      <div
-                        className="rounded-xl overflow-hidden border border-border/30 max-w-[300px] w-full"
-                        dangerouslySetInnerHTML={{ __html: puzzle.visual }}
-                      />
+                      <div className="rounded-xl overflow-hidden border border-border/30 max-w-[300px] w-full" dangerouslySetInnerHTML={{ __html: puzzle.visual }} />
                     </div>
                   )}
                   <div className="bg-secondary/50 rounded-xl p-6 mb-6 border border-border/30">
@@ -136,27 +135,24 @@ export default function Practice() {
                     <p className="font-body text-foreground text-lg leading-relaxed">{puzzle.question}</p>
                   </div>
                   <form onSubmit={handleSubmit} className="flex gap-3">
-                    <Input value={answer} onChange={e => setAnswer(e.target.value)} placeholder="Your answer..."
+                    <Input value={answer} onChange={e => setAnswer(e.target.value)} placeholder={t("practice.yourAnswer")}
                       className="flex-1 bg-secondary/50 border-border/50 font-body" autoFocus />
                     <Button type="submit" variant="neon" disabled={!answer.trim()}><Send className="w-4 h-4" /></Button>
                   </form>
                   <div className="text-center mt-4">
                     <Button variant="ghost" size="sm" onClick={handleNext} className="text-muted-foreground">
-                      <RotateCcw className="w-3 h-3" /> Skip
+                      <RotateCcw className="w-3 h-3" /> {t("practice.skip")}
                     </Button>
                   </div>
                 </>
               )}
             </div>
-
-            {/* Ad below puzzle for free users on mobile */}
             {!isPro && (
               <div className="mt-6 lg:hidden">
                 <AdPlaceholder slot={AD_SLOTS.inContent} />
               </div>
             )}
           </motion.div>
-
           {!isPro && (
             <aside className="hidden lg:block w-64 flex-shrink-0 pt-4">
               <AdPlaceholder slot={AD_SLOTS.sidebar} />

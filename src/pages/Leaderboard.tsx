@@ -8,6 +8,7 @@ import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
 import { getLevel } from "@/lib/leveling";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface LeaderboardEntry {
   id: string;
@@ -37,6 +38,7 @@ const rankColors = ["text-neon-amber", "text-muted-foreground", "text-neon-amber
 
 export default function Leaderboard() {
   const { user, profile } = useAuth();
+  const { t } = useLanguage();
   const isPro = profile?.is_pro ?? false;
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,33 +49,17 @@ export default function Leaderboard() {
   useEffect(() => {
     const fetchData = async () => {
       const today = new Date().toISOString().split("T")[0];
-      const { data } = await supabase
-        .from("leaderboard")
-        .select("id, time_taken, user_id")
-        .eq("completed_date", today)
-        .order("time_taken", { ascending: true })
-        .limit(10);
-
+      const { data } = await supabase.from("leaderboard").select("id, time_taken, user_id").eq("completed_date", today).order("time_taken", { ascending: true }).limit(10);
       if (!data || data.length === 0) { setEntries([]); setLoading(false); return; }
-
       const userIds = data.map(e => e.user_id);
-      const { data: profiles } = await supabase
-        .from("profiles_public")
-        .select("user_id, username, avatar_url, xp, is_pro")
-        .in("user_id", userIds);
-
+      const { data: profiles } = await supabase.from("profiles_public").select("user_id, username, avatar_url, xp, is_pro").in("user_id", userIds);
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
       setEntries(data.map(e => {
         const p = profileMap.get(e.user_id);
         return { id: e.id, user_id: e.user_id, time_taken: e.time_taken, username: p?.username ?? "Anonymous", avatar_url: p?.avatar_url ?? null, xp: p?.xp ?? 0, is_pro: p?.is_pro ?? false };
       }));
-
       if (user) {
-        const { data: friendships } = await supabase
-          .from("friendships" as any)
-          .select("requester_id, addressee_id, status")
-          .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
-
+        const { data: friendships } = await supabase.from("friendships" as any).select("requester_id, addressee_id, status").or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
         const fIds = new Set<string>();
         const pIds = new Set<string>();
         (friendships as any[] ?? []).forEach((f: any) => {
@@ -84,7 +70,6 @@ export default function Leaderboard() {
         setFriendIds(fIds);
         setPendingIds(pIds);
       }
-
       setLoading(false);
     };
     fetchData();
@@ -93,15 +78,12 @@ export default function Leaderboard() {
   const sendFriendRequest = async (targetId: string) => {
     if (!user) return;
     setSendingTo(targetId);
-    const { error } = await supabase.from("friendships" as any).insert({
-      requester_id: user.id,
-      addressee_id: targetId,
-    });
+    const { error } = await supabase.from("friendships" as any).insert({ requester_id: user.id, addressee_id: targetId });
     if (error) {
-      if (error.code === "23505") toast.info("Request already sent!");
-      else toast.error("Failed to send request");
+      if (error.code === "23505") toast.info(t("friends.alreadySent"));
+      else toast.error(t("friends.failed"));
     } else {
-      toast.success("Friend request sent!");
+      toast.success(t("friends.requestSent"));
       setPendingIds(prev => new Set(prev).add(targetId));
     }
     setSendingTo(null);
@@ -116,16 +98,16 @@ export default function Leaderboard() {
             <div className="text-center mb-10">
               <Trophy className="w-10 h-10 text-neon-amber mx-auto mb-3" />
               <h1 className="font-display text-4xl font-bold text-foreground mb-2">
-                LEADER<span className="text-primary text-glow">BOARD</span>
+                {t("leaderboard.title")}<span className="text-primary text-glow">{t("leaderboard.title2")}</span>
               </h1>
-              <p className="font-body text-muted-foreground text-sm">Today's fastest solvers</p>
+              <p className="font-body text-muted-foreground text-sm">{t("leaderboard.subtitle")}</p>
             </div>
 
             {loading ? (
               <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>
             ) : entries.length === 0 ? (
               <div className="glass rounded-xl border border-border/50 p-8 text-center">
-                <p className="font-body text-muted-foreground">No one has completed today's challenge yet. Be the first!</p>
+                <p className="font-body text-muted-foreground">{t("leaderboard.noOne")}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -167,20 +149,10 @@ export default function Leaderboard() {
                           isFriend ? (
                             <span className="text-xs text-primary"><Check className="w-4 h-4" /></span>
                           ) : isPending ? (
-                            <span className="text-xs text-muted-foreground font-body">Sent</span>
+                            <span className="text-xs text-muted-foreground font-body">{t("leaderboard.sent")}</span>
                           ) : (
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              onClick={() => sendFriendRequest(entry.user_id)}
-                              disabled={sendingTo === entry.user_id}
-                            >
-                              {sendingTo === entry.user_id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <UserPlus className="w-4 h-4 text-primary" />
-                              )}
+                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => sendFriendRequest(entry.user_id)} disabled={sendingTo === entry.user_id}>
+                              {sendingTo === entry.user_id ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4 text-primary" />}
                             </Button>
                           )
                         )}

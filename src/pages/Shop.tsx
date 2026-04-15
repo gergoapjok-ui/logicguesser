@@ -8,6 +8,7 @@ import { useTheme, APP_THEMES } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const TITLE_BADGES = [
   { id: "badge_puzzle_master", name: "Puzzle Master", emoji: "🧩", price: 800, proOnly: false },
@@ -34,7 +35,6 @@ const AVATARS = [
   { id: "avatar_void_wolf", name: "Void Wolf", emoji: "🐺", price: 1000, proOnly: false },
   { id: "avatar_pixel_dragon", name: "Pixel Dragon", emoji: "🐉", price: 1200, proOnly: false },
   { id: "avatar_star_panda", name: "Star Panda", emoji: "🐼", price: 350, proOnly: false },
-  // Pro-exclusive avatars
   { id: "avatar_diamond_phoenix", name: "Diamond Phoenix", emoji: "🔥", price: 200, proOnly: true },
   { id: "avatar_golden_unicorn", name: "Golden Unicorn", emoji: "🦄", price: 200, proOnly: true },
   { id: "avatar_crystal_lion", name: "Crystal Lion", emoji: "🦁", price: 200, proOnly: true },
@@ -46,6 +46,7 @@ export default function Shop() {
   const { currentTheme, setTheme, ownedThemes, refreshOwned } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { t } = useLanguage();
   const [credits, setCredits] = useState(0);
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [equipped, setEquipped] = useState<string | null>(null);
@@ -54,19 +55,14 @@ export default function Shop() {
   const [buyingCredits, setBuyingCredits] = useState<string | null>(null);
   const isPro = profile?.is_pro ?? false;
 
-  // Handle credit purchase return
   useEffect(() => {
     const purchased = searchParams.get("credits_purchased");
-    if (purchased) {
-      toast.success(`${purchased} credits added to your account!`);
-      refreshProfile();
-    }
+    if (purchased) { toast.success(`${purchased} credits added!`); refreshProfile(); }
   }, [searchParams]);
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate("/login"); return; }
-
     const load = async () => {
       const [{ data: prof }, { data: inventory }] = await Promise.all([
         supabase.from("profiles").select("credits, avatar_url").eq("user_id", user.id).single(),
@@ -82,80 +78,44 @@ export default function Shop() {
 
   const handleBuy = async (avatar: typeof AVATARS[0]) => {
     if (!user || busy) return;
-    if (avatar.proOnly && !isPro) {
-      toast.error("This avatar is Pro-exclusive!");
-      return;
-    }
-    if (credits < avatar.price) {
-      toast.error("Not enough credits!");
-      return;
-    }
+    if (avatar.proOnly && !isPro) { toast.error("Pro-exclusive!"); return; }
+    if (credits < avatar.price) { toast.error("Not enough credits!"); return; }
     setBusy(avatar.id);
-    const { data, error } = await supabase.functions.invoke("purchase-avatar", {
-      body: { avatar_id: avatar.id },
-    });
-    if (error || !data?.success) {
-      toast.error(data?.error || "Purchase failed.");
-      setBusy(null);
-      return;
-    }
-    setCredits(data.new_credits);
-    setOwned(prev => new Set(prev).add(avatar.id));
-    toast.success(`Purchased ${avatar.name}!`);
-    refreshProfile();
-    setBusy(null);
+    const { data, error } = await supabase.functions.invoke("purchase-avatar", { body: { avatar_id: avatar.id } });
+    if (error || !data?.success) { toast.error(data?.error || "Failed"); setBusy(null); return; }
+    setCredits(data.new_credits); setOwned(prev => new Set(prev).add(avatar.id));
+    toast.success(`Purchased ${avatar.name}!`); refreshProfile(); setBusy(null);
   };
 
   const handleBuyTheme = async (theme: typeof APP_THEMES[0]) => {
     if (!user || busy) return;
-    if (theme.proOnly && !isPro) { toast.error("This theme is Pro-exclusive!"); return; }
+    if (theme.proOnly && !isPro) { toast.error("Pro-exclusive!"); return; }
     if (credits < theme.price) { toast.error("Not enough credits!"); return; }
     setBusy(theme.id);
-    const { data, error } = await supabase.functions.invoke("purchase-avatar", {
-      body: { avatar_id: theme.id, item_type: "theme" },
-    });
-    if (error || !data?.success) {
-      toast.error(data?.error || "Purchase failed.");
-      setBusy(null);
-      return;
-    }
-    setCredits(data.new_credits);
-    await refreshOwned();
-    toast.success(`Purchased ${theme.name} theme!`);
-    refreshProfile();
-    setBusy(null);
+    const { data, error } = await supabase.functions.invoke("purchase-avatar", { body: { avatar_id: theme.id, item_type: "theme" } });
+    if (error || !data?.success) { toast.error(data?.error || "Failed"); setBusy(null); return; }
+    setCredits(data.new_credits); await refreshOwned();
+    toast.success(`Purchased ${theme.name}!`); refreshProfile(); setBusy(null);
   };
 
-  const handleEquipTheme = (themeId: string) => {
-    setTheme(themeId);
-    toast.success("Theme applied!");
-  };
+  const handleEquipTheme = (themeId: string) => { setTheme(themeId); toast.success(t("shop.themeApplied")); };
 
   const handleBuyBadge = async (badge: typeof TITLE_BADGES[0]) => {
     if (!user || busy) return;
-    if (badge.proOnly && !isPro) { toast.error("This badge is Pro-exclusive!"); return; }
+    if (badge.proOnly && !isPro) { toast.error("Pro-exclusive!"); return; }
     if (credits < badge.price) { toast.error("Not enough credits!"); return; }
     setBusy(badge.id);
-    const { data, error } = await supabase.functions.invoke("purchase-avatar", {
-      body: { avatar_id: badge.id, item_type: "badge" },
-    });
-    if (error || !data?.success) {
-      toast.error(data?.error || "Purchase failed.");
-      setBusy(null);
-      return;
-    }
-    setCredits(data.new_credits);
-    setOwned(prev => new Set(prev).add(badge.id));
-    toast.success(`Purchased ${badge.name}!`);
-    refreshProfile();
-    setBusy(null);
+    const { data, error } = await supabase.functions.invoke("purchase-avatar", { body: { avatar_id: badge.id, item_type: "badge" } });
+    if (error || !data?.success) { toast.error(data?.error || "Failed"); setBusy(null); return; }
+    setCredits(data.new_credits); setOwned(prev => new Set(prev).add(badge.id));
+    toast.success(`Purchased ${badge.name}!`); refreshProfile(); setBusy(null);
   };
 
   const handleEquip = async (avatarId: string) => {
     if (!user || busy) return;
     setBusy(avatarId);
     const { error } = await supabase.rpc("update_profile_safe" as any, { _avatar_url: avatarId });
-    if (error) toast.error("Failed to equip.");
+    if (error) toast.error("Failed");
     else { setEquipped(avatarId); toast.success("Avatar equipped!"); refreshProfile(); }
     setBusy(null);
   };
@@ -172,20 +132,18 @@ export default function Shop() {
           <div className="text-center mb-10">
             <ShoppingBag className="w-10 h-10 text-primary mx-auto mb-3" />
             <h1 className="font-display text-4xl font-bold text-foreground mb-2">
-              <span className="text-primary text-glow">SHOP</span>
+              <span className="text-primary text-glow">{t("shop.title")}</span>
             </h1>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/50">
               <Coins className="w-4 h-4 text-neon-amber" />
               <span className="font-display text-lg font-bold text-foreground">{credits}</span>
-              <span className="font-body text-sm text-muted-foreground">Credits</span>
-              {isPro && (
-                <span className="ml-2 px-2 py-0.5 rounded-full bg-neon-amber/20 border border-neon-amber/40 text-neon-amber text-[10px] font-display font-bold">2× EARN</span>
-              )}
+              <span className="font-body text-sm text-muted-foreground">{t("shop.credits")}</span>
+              {isPro && <span className="ml-2 px-2 py-0.5 rounded-full bg-neon-amber/20 border border-neon-amber/40 text-neon-amber text-[10px] font-display font-bold">{t("general.2xEarn")}</span>}
             </div>
           </div>
 
-          {/* Regular avatars */}
-          <h2 className="font-display text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Avatars</h2>
+          {/* Avatars */}
+          <h2 className="font-display text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">{t("shop.avatars")}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {AVATARS.filter(a => !a.proOnly).map((avatar, i) => {
               const isOwned = owned.has(avatar.id);
@@ -196,14 +154,14 @@ export default function Shop() {
                   <div className="text-5xl mb-3">{avatar.emoji}</div>
                   <p className="font-display text-sm font-bold text-foreground mb-1">{avatar.name}</p>
                   {isEquipped ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-body text-primary"><Check className="w-3 h-3" /> Equipped</span>
+                    <span className="inline-flex items-center gap-1 text-xs font-body text-primary"><Check className="w-3 h-3" /> {t("shop.equipped")}</span>
                   ) : isOwned ? (
-                    <Button variant="neon-outline" size="sm" className="w-full mt-2" onClick={() => handleEquip(avatar.id)} disabled={busy === avatar.id}>Equip</Button>
+                    <Button variant="neon-outline" size="sm" className="w-full mt-2" onClick={() => handleEquip(avatar.id)} disabled={busy === avatar.id}>{t("shop.equip")}</Button>
                   ) : (
                     <>
                       <p className="flex items-center justify-center gap-1 text-xs font-body text-neon-amber mb-2"><Coins className="w-3 h-3" /> {avatar.price}</p>
                       <Button variant="neon" size="sm" className="w-full" onClick={() => handleBuy(avatar)} disabled={busy === avatar.id}>
-                        {busy === avatar.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Buy"}
+                        {busy === avatar.id ? <Loader2 className="w-3 h-3 animate-spin" /> : t("shop.buy")}
                       </Button>
                     </>
                   )}
@@ -212,10 +170,10 @@ export default function Shop() {
             })}
           </div>
 
-          {/* Pro-exclusive avatars */}
+          {/* Pro Exclusive */}
           <div className="flex items-center gap-2 mb-3">
             <Crown className="w-4 h-4 text-neon-amber" />
-            <h2 className="font-display text-sm font-bold text-neon-amber uppercase tracking-wider">Pro Exclusive</h2>
+            <h2 className="font-display text-sm font-bold text-neon-amber uppercase tracking-wider">{t("shop.proExclusive")}</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {AVATARS.filter(a => a.proOnly).map((avatar, i) => {
@@ -224,28 +182,26 @@ export default function Shop() {
               const locked = !isPro && !isOwned;
               return (
                 <motion.div key={avatar.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                  className={`glass rounded-xl border p-4 text-center relative ${
-                    isEquipped ? "border-neon-amber/60 box-glow" : locked ? "border-border/30 opacity-70" : "border-neon-amber/30"
-                  }`}>
+                  className={`glass rounded-xl border p-4 text-center relative ${isEquipped ? "border-neon-amber/60 box-glow" : locked ? "border-border/30 opacity-70" : "border-neon-amber/30"}`}>
                   {locked && (
                     <div className="absolute inset-0 rounded-xl bg-background/50 flex items-center justify-center z-10">
                       <div className="text-center">
                         <Lock className="w-6 h-6 text-neon-amber mx-auto mb-1" />
-                        <Button variant="link" className="text-neon-amber text-xs p-0 h-auto" onClick={() => navigate("/pro")}>Get Pro</Button>
+                        <Button variant="link" className="text-neon-amber text-xs p-0 h-auto" onClick={() => navigate("/pro")}>{t("shop.getPro")}</Button>
                       </div>
                     </div>
                   )}
                   <div className="text-5xl mb-3">{avatar.emoji}</div>
                   <p className="font-display text-sm font-bold text-foreground mb-1">{avatar.name}</p>
                   {isEquipped ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-body text-neon-amber"><Check className="w-3 h-3" /> Equipped</span>
+                    <span className="inline-flex items-center gap-1 text-xs font-body text-neon-amber"><Check className="w-3 h-3" /> {t("shop.equipped")}</span>
                   ) : isOwned ? (
-                    <Button variant="neon-outline" size="sm" className="w-full mt-2" onClick={() => handleEquip(avatar.id)} disabled={busy === avatar.id}>Equip</Button>
+                    <Button variant="neon-outline" size="sm" className="w-full mt-2" onClick={() => handleEquip(avatar.id)} disabled={busy === avatar.id}>{t("shop.equip")}</Button>
                   ) : !locked ? (
                     <>
                       <p className="flex items-center justify-center gap-1 text-xs font-body text-neon-amber mb-2"><Coins className="w-3 h-3" /> {avatar.price}</p>
                       <Button variant="neon" size="sm" className="w-full" onClick={() => handleBuy(avatar)} disabled={busy === avatar.id}>
-                        {busy === avatar.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Buy"}
+                        {busy === avatar.id ? <Loader2 className="w-3 h-3 animate-spin" /> : t("shop.buy")}
                       </Button>
                     </>
                   ) : null}
@@ -257,7 +213,7 @@ export default function Shop() {
           {/* Themes */}
           <div className="flex items-center gap-2 mb-3">
             <Palette className="w-4 h-4 text-accent" />
-            <h2 className="font-display text-sm font-bold text-accent uppercase tracking-wider">Themes</h2>
+            <h2 className="font-display text-sm font-bold text-accent uppercase tracking-wider">{t("shop.themes")}</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {APP_THEMES.map((theme, i) => {
@@ -266,14 +222,12 @@ export default function Shop() {
               const locked = theme.proOnly && !isPro && !isOwned;
               return (
                 <motion.div key={theme.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                  className={`glass rounded-xl border p-4 text-center relative ${
-                    isActive ? "border-accent/60 box-glow-purple" : locked ? "border-border/30 opacity-70" : "border-border/50"
-                  }`}>
+                  className={`glass rounded-xl border p-4 text-center relative ${isActive ? "border-accent/60 box-glow-purple" : locked ? "border-border/30 opacity-70" : "border-border/50"}`}>
                   {locked && (
                     <div className="absolute inset-0 rounded-xl bg-background/50 flex items-center justify-center z-10">
                       <div className="text-center">
                         <Lock className="w-6 h-6 text-neon-amber mx-auto mb-1" />
-                        <Button variant="link" className="text-neon-amber text-xs p-0 h-auto" onClick={() => navigate("/pro")}>Get Pro</Button>
+                        <Button variant="link" className="text-neon-amber text-xs p-0 h-auto" onClick={() => navigate("/pro")}>{t("shop.getPro")}</Button>
                       </div>
                     </div>
                   )}
@@ -281,16 +235,16 @@ export default function Shop() {
                   <p className="font-display text-sm font-bold text-foreground mb-0.5">{theme.name}</p>
                   <p className="font-body text-[10px] text-muted-foreground mb-2">{theme.description}</p>
                   {isActive ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-body text-accent"><Check className="w-3 h-3" /> Active</span>
+                    <span className="inline-flex items-center gap-1 text-xs font-body text-accent"><Check className="w-3 h-3" /> {t("shop.active")}</span>
                   ) : isOwned ? (
-                    <Button variant="neon-outline" size="sm" className="w-full mt-1" onClick={() => handleEquipTheme(theme.id)}>Apply</Button>
+                    <Button variant="neon-outline" size="sm" className="w-full mt-1" onClick={() => handleEquipTheme(theme.id)}>{t("shop.apply")}</Button>
                   ) : theme.price === 0 ? (
-                    <Button variant="neon-outline" size="sm" className="w-full mt-1" onClick={() => handleEquipTheme(theme.id)}>Apply</Button>
+                    <Button variant="neon-outline" size="sm" className="w-full mt-1" onClick={() => handleEquipTheme(theme.id)}>{t("shop.apply")}</Button>
                   ) : !locked ? (
                     <>
                       <p className="flex items-center justify-center gap-1 text-xs font-body text-neon-amber mb-1"><Coins className="w-3 h-3" /> {theme.price.toLocaleString()}</p>
                       <Button variant="neon" size="sm" className="w-full" onClick={() => handleBuyTheme(theme)} disabled={busy === theme.id}>
-                        {busy === theme.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Buy"}
+                        {busy === theme.id ? <Loader2 className="w-3 h-3 animate-spin" /> : t("shop.buy")}
                       </Button>
                     </>
                   ) : null}
@@ -302,7 +256,7 @@ export default function Shop() {
           {/* Title Badges */}
           <div className="flex items-center gap-2 mb-3">
             <Award className="w-4 h-4 text-primary" />
-            <h2 className="font-display text-sm font-bold text-primary uppercase tracking-wider">Title Badges</h2>
+            <h2 className="font-display text-sm font-bold text-primary uppercase tracking-wider">{t("shop.titleBadges")}</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {TITLE_BADGES.map((badge, i) => {
@@ -310,26 +264,24 @@ export default function Shop() {
               const locked = badge.proOnly && !isPro && !isOwned;
               return (
                 <motion.div key={badge.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                  className={`glass rounded-xl border p-4 text-center relative ${
-                    isOwned ? "border-primary/60" : locked ? "border-border/30 opacity-70" : "border-border/50"
-                  }`}>
+                  className={`glass rounded-xl border p-4 text-center relative ${isOwned ? "border-primary/60" : locked ? "border-border/30 opacity-70" : "border-border/50"}`}>
                   {locked && (
                     <div className="absolute inset-0 rounded-xl bg-background/50 flex items-center justify-center z-10">
                       <div className="text-center">
                         <Lock className="w-6 h-6 text-neon-amber mx-auto mb-1" />
-                        <Button variant="link" className="text-neon-amber text-xs p-0 h-auto" onClick={() => navigate("/pro")}>Get Pro</Button>
+                        <Button variant="link" className="text-neon-amber text-xs p-0 h-auto" onClick={() => navigate("/pro")}>{t("shop.getPro")}</Button>
                       </div>
                     </div>
                   )}
                   <div className="text-4xl mb-2">{badge.emoji}</div>
                   <p className="font-display text-sm font-bold text-foreground mb-0.5">{badge.name}</p>
                   {isOwned ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-body text-primary"><Check className="w-3 h-3" /> Owned</span>
+                    <span className="inline-flex items-center gap-1 text-xs font-body text-primary"><Check className="w-3 h-3" /> {t("shop.owned")}</span>
                   ) : !locked ? (
                     <>
                       <p className="flex items-center justify-center gap-1 text-xs font-body text-neon-amber mb-1"><Coins className="w-3 h-3" /> {badge.price}</p>
                       <Button variant="neon" size="sm" className="w-full" onClick={() => handleBuyBadge(badge)} disabled={busy === badge.id}>
-                        {busy === badge.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Buy"}
+                        {busy === badge.id ? <Loader2 className="w-3 h-3 animate-spin" /> : t("shop.buy")}
                       </Button>
                     </>
                   ) : null}
@@ -341,7 +293,7 @@ export default function Shop() {
           {/* Credit Packs */}
           <div className="flex items-center gap-2 mb-3">
             <CreditCard className="w-4 h-4 text-primary" />
-            <h2 className="font-display text-sm font-bold text-primary uppercase tracking-wider">Buy Credits</h2>
+            <h2 className="font-display text-sm font-bold text-primary uppercase tracking-wider">{t("shop.buyCredits")}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             {CREDIT_PACKS.map((pack) => (
@@ -350,27 +302,18 @@ export default function Shop() {
                 <div className="text-4xl mb-2">{pack.emoji}</div>
                 <p className="font-display text-lg font-bold text-foreground">{pack.name}</p>
                 <p className="font-display text-xl font-bold text-primary mt-1">{pack.price}</p>
-                <Button
-                  variant="neon"
-                  size="sm"
-                  className="w-full mt-3"
-                  disabled={buyingCredits === pack.id}
+                <Button variant="neon" size="sm" className="w-full mt-3" disabled={buyingCredits === pack.id}
                   onClick={async () => {
                     if (!user) { navigate("/login"); return; }
                     setBuyingCredits(pack.id);
                     try {
-                      const { data, error } = await supabase.functions.invoke("create-checkout", {
-                        body: { type: "credits", pack_id: pack.id },
-                      });
+                      const { data, error } = await supabase.functions.invoke("create-checkout", { body: { type: "credits", pack_id: pack.id } });
                       if (error) throw error;
                       if (data?.url) window.open(data.url, "_blank");
-                    } catch {
-                      toast.error("Failed to start checkout");
-                    }
+                    } catch { toast.error("Failed to start checkout"); }
                     setBuyingCredits(null);
-                  }}
-                >
-                  {buyingCredits === pack.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><CreditCard className="w-4 h-4" /> Purchase</>}
+                  }}>
+                  {buyingCredits === pack.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><CreditCard className="w-4 h-4" /> {t("shop.purchase")}</>}
                 </Button>
               </motion.div>
             ))}
@@ -378,12 +321,12 @@ export default function Shop() {
 
           <div className="text-center space-y-2">
             <p className="font-body text-sm text-muted-foreground">
-              Earn <span className="text-primary font-semibold">100 credits</span> for every Daily Challenge
-              {isPro && <span className="text-neon-amber font-semibold"> (2× with Pro!)</span>}
+              {t("shop.earnDaily")} <span className="text-primary font-semibold">100 {t("shop.earnDailyCredits")}</span> {t("shop.forEveryDaily")}
+              {isPro && <span className="text-neon-amber font-semibold"> ({t("general.2xPro")}!)</span>}
             </p>
             {!isPro && (
               <Button variant="link" className="text-neon-amber" onClick={() => navigate("/pro")}>
-                <Crown className="w-4 h-4 mr-1" /> Upgrade to Pro for exclusive avatars & 2× credits
+                <Crown className="w-4 h-4 mr-1" /> {t("shop.upgradeProShop")}
               </Button>
             )}
           </div>
