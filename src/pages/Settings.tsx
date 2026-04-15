@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Settings as SettingsIcon, Bell, Volume2, VolumeX, Swords, Coins, Users, Loader2, Save, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Volume2, VolumeX, Swords, Coins, Users, Loader2, Save, Mail, Lock, Eye, EyeOff, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -9,6 +9,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import { useLanguage, LANGUAGE_LABELS, LANGUAGE_FLAGS, Language } from "@/contexts/LanguageContext";
+import { cn } from "@/lib/utils";
 
 interface UserSettings {
   notifications_enabled: boolean;
@@ -31,6 +33,7 @@ const defaultSettings: UserSettings = {
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t, language, setLanguage } = useLanguage();
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -72,7 +75,7 @@ export default function SettingsPage() {
     } as any, { onConflict: "user_id" });
     setSaving(false);
     if (error) { toast.error("Failed to save settings"); return; }
-    toast.success("Settings saved!");
+    toast.success(t("general.success"));
   };
 
   const handleChangePassword = async () => {
@@ -109,12 +112,12 @@ export default function SettingsPage() {
   }
 
   const settingRows: { key: keyof UserSettings; label: string; description: string; icon: any; disabled?: boolean }[] = [
-    { key: "notifications_enabled", label: "Notifications", description: "Enable in-app notifications", icon: Bell },
-    { key: "notify_battle_invites", label: "Battle Invites", description: "Get notified when someone invites you to battle", icon: Swords, disabled: !settings.notifications_enabled },
-    { key: "notify_credits", label: "Credit Rewards", description: "Get notified when you earn credits", icon: Coins, disabled: !settings.notifications_enabled },
-    { key: "notify_friend_requests", label: "Friend Requests", description: "Get notified about new friend requests", icon: Users, disabled: !settings.notifications_enabled },
-    { key: "sound_enabled", label: "Sound Effects", description: "Play sounds for game events", icon: settings.sound_enabled ? Volume2 : VolumeX },
-    { key: "email_notifications_enabled", label: "Email Notifications", description: "Receive email alerts for important events", icon: Mail },
+    { key: "notifications_enabled", label: t("settings.notifications"), description: t("settings.notificationsDesc"), icon: Bell },
+    { key: "notify_battle_invites", label: t("settings.battleInvites"), description: t("settings.battleInvitesDesc"), icon: Swords, disabled: !settings.notifications_enabled },
+    { key: "notify_credits", label: t("settings.creditRewards"), description: t("settings.creditRewardsDesc"), icon: Coins, disabled: !settings.notifications_enabled },
+    { key: "notify_friend_requests", label: t("settings.friendRequests"), description: t("settings.friendRequestsDesc"), icon: Users, disabled: !settings.notifications_enabled },
+    { key: "sound_enabled", label: t("settings.sound"), description: t("settings.soundDesc"), icon: settings.sound_enabled ? Volume2 : VolumeX },
+    { key: "email_notifications_enabled", label: t("settings.email"), description: t("settings.emailDesc"), icon: Mail },
   ];
 
   return (
@@ -125,8 +128,38 @@ export default function SettingsPage() {
           <div className="text-center mb-8">
             <SettingsIcon className="w-10 h-10 text-primary mx-auto mb-3" />
             <h1 className="font-display text-3xl font-bold text-foreground">
-              <span className="text-primary text-glow">SETTINGS</span>
+              <span className="text-primary text-glow">{t("settings.title")}</span>
             </h1>
+          </div>
+
+          {/* Language Selector */}
+          <div className="glass rounded-2xl border border-border/50 p-6 mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
+                <Languages className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="font-display text-sm font-bold text-foreground">{t("settings.language")}</p>
+                <p className="font-body text-xs text-muted-foreground">{t("settings.languageDesc")}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {(Object.keys(LANGUAGE_LABELS) as Language[]).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setLanguage(lang)}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-body transition-all",
+                    language === lang
+                      ? "bg-primary/20 border-primary/50 text-primary font-bold shadow-sm"
+                      : "bg-secondary/30 border-border/50 text-foreground hover:bg-primary/10 hover:border-primary/30"
+                  )}
+                >
+                  <span className="text-lg">{LANGUAGE_FLAGS[lang]}</span>
+                  <span>{LANGUAGE_LABELS[lang]}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Notification Settings */}
@@ -148,7 +181,7 @@ export default function SettingsPage() {
           </div>
 
           <Button variant="neon" size="xl" className="w-full mt-6" onClick={handleSave} disabled={saving}>
-            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5" /> Save Settings</>}
+            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5" /> {t("settings.save")}</>}
           </Button>
 
           {/* Change Password Section */}
@@ -158,8 +191,8 @@ export default function SettingsPage() {
                 <Lock className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <p className="font-display text-sm font-bold text-foreground">Change Password</p>
-                <p className="font-body text-xs text-muted-foreground">Update your account password</p>
+                <p className="font-display text-sm font-bold text-foreground">{t("settings.changePassword")}</p>
+                <p className="font-body text-xs text-muted-foreground">{t("settings.changePasswordDesc")}</p>
               </div>
             </div>
             <div className="space-y-3">
@@ -167,7 +200,7 @@ export default function SettingsPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="New password (min 6 chars)"
+                  placeholder={t("settings.newPassword")}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="pl-10 pr-10 bg-secondary/50 border-border/50 font-body"
@@ -185,7 +218,7 @@ export default function SettingsPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Confirm new password"
+                  placeholder={t("settings.confirmPassword")}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="pl-10 bg-secondary/50 border-border/50 font-body"
@@ -200,7 +233,7 @@ export default function SettingsPage() {
                 disabled={changingPassword || !newPassword || !confirmPassword}
               >
                 {changingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-                {changingPassword ? "Updating..." : "Update Password"}
+                {changingPassword ? t("settings.updating") : t("settings.updatePassword")}
               </Button>
             </div>
           </div>
@@ -208,7 +241,7 @@ export default function SettingsPage() {
           {/* Account Info */}
           <div className="glass rounded-2xl border border-border/50 p-6 mt-8">
             <p className="font-body text-xs text-muted-foreground">
-              Logged in as: <span className="text-foreground font-semibold">{user?.email}</span>
+              {t("settings.loggedInAs")} <span className="text-foreground font-semibold">{user?.email}</span>
             </p>
           </div>
         </motion.div>

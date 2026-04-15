@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins, Users, Crown, Swords, Settings, Globe, Languages } from "lucide-react";
+import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins, Users, Crown, Swords, Settings, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/NotificationBell";
-import { useLanguage, LANGUAGE_LABELS, LANGUAGE_FLAGS, Language } from "@/contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const AVATARS_MAP: Record<string, string> = {
   avatar_cyber_skull: "💀", avatar_neon_cat: "🐱", avatar_glitch_bot: "🤖",
@@ -27,10 +27,8 @@ const NAV_KEYS = [
 export default function Navbar() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [langOpen, setLangOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
-  const langRef = useRef<HTMLDivElement>(null);
-  const { t, language, setLanguage } = useLanguage();
+  const { t } = useLanguage();
   const [dark, setDark] = useState(() => {
     const saved = localStorage.getItem("logicguesser-theme");
     if (saved) return saved === "dark";
@@ -47,34 +45,33 @@ export default function Navbar() {
 
   const avatarEmoji = profile?.avatar_url ? AVATARS_MAP[profile.avatar_url] : null;
 
-  useEffect(() => { setMobileOpen(false); setLangOpen(false); }, [location.pathname]);
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
   useEffect(() => {
-    if (!mobileOpen && !langOpen) return;
+    if (!mobileOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (langOpen && langRef.current && !langRef.current.contains(event.target as Node)) {
-        setLangOpen(false);
-      }
       if (mobileOpen && navRef.current && !navRef.current.contains(event.target as Node)) {
         setMobileOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [mobileOpen, langOpen]);
+  }, [mobileOpen]);
 
   return (
     <nav ref={navRef} className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
       <div className="container mx-auto flex items-center justify-between h-14 sm:h-16 px-4">
-        <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+        {/* Logo - smaller on mobile */}
+        <Link to="/" className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary flex items-center justify-center box-glow">
             <span className="font-display text-primary-foreground text-xs sm:text-sm font-bold">L</span>
           </div>
-          <span className="font-display text-xs xs:text-base sm:text-lg font-bold tracking-wider text-foreground hidden min-[360px]:inline">
+          <span className="font-display text-[11px] sm:text-sm md:text-base font-bold tracking-wider text-foreground hidden min-[340px]:inline">
             LOGIC<span className="text-primary">GUESSER</span>
           </span>
         </Link>
 
+        {/* Desktop nav links */}
         <div className="hidden md:flex items-center gap-1">
           {NAV_KEYS.map((item) => {
             const active = location.pathname === item.path;
@@ -96,9 +93,10 @@ export default function Navbar() {
           </Link>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto flex-shrink-0 max-w-[50vw] sm:max-w-none scrollbar-hide">
+        {/* Right side icons */}
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {user && profile?.is_pro && (
-            <div className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-full bg-neon-amber/10 border border-neon-amber/30 flex-shrink-0">
+            <div className="hidden sm:flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-full bg-neon-amber/10 border border-neon-amber/30 flex-shrink-0">
               <Crown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-neon-amber" />
               <span className="font-display text-[10px] sm:text-xs font-bold text-neon-amber">PRO</span>
             </div>
@@ -116,36 +114,6 @@ export default function Navbar() {
             </div>
           )}
           {user && <NotificationBell />}
-
-          {/* Language switcher */}
-          <div className="relative flex-shrink-0" ref={langRef}>
-            <Button variant="ghost" size="icon" className="w-8 h-8 sm:w-9 sm:h-9" onClick={() => setLangOpen(!langOpen)}>
-              <span className="text-sm">{LANGUAGE_FLAGS[language]}</span>
-            </Button>
-            <AnimatePresence>
-              {langOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
-                  className="absolute right-0 top-full mt-1 w-40 glass rounded-lg border border-border/50 shadow-lg overflow-hidden z-50"
-                >
-                  {(Object.keys(LANGUAGE_LABELS) as Language[]).map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => { setLanguage(lang); setLangOpen(false); }}
-                      className={cn(
-                        "w-full flex items-center gap-2 px-3 py-2 text-sm font-body hover:bg-primary/10 transition-colors",
-                        language === lang && "bg-primary/20 text-primary font-bold"
-                      )}
-                    >
-                      <span>{LANGUAGE_FLAGS[lang]}</span>
-                      <span>{LANGUAGE_LABELS[lang]}</span>
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
           {user && (
             <Link to="/settings" className="flex-shrink-0">
               <Button variant="ghost" size="icon" className="w-8 h-8 sm:w-9 sm:h-9"><Settings className="w-4 h-4" /></Button>
@@ -160,11 +128,18 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="md:hidden glass border-b border-border/50 px-4 pb-4 max-h-[70vh] overflow-y-auto">
             {user && profile && (
               <div className="flex items-center gap-3 mb-2 pt-2 flex-wrap">
+                {profile.is_pro && (
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-neon-amber/10 border border-neon-amber/30">
+                    <Crown className="w-3.5 h-3.5 text-neon-amber" />
+                    <span className="font-display text-xs font-bold text-neon-amber">PRO</span>
+                  </div>
+                )}
                 {profile.current_streak > 0 && (
                   <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-destructive/10 border border-destructive/20">
                     <Flame className="w-3.5 h-3.5 text-destructive" />
