@@ -2,14 +2,17 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Zap, Brain, Trophy, Target } from "lucide-react";
-
-const stats = [
-  { icon: Brain, label: "Puzzles Solved", value: "2.4M+" },
-  { icon: Trophy, label: "Active Players", value: "85K+" },
-  { icon: Target, label: "Daily Challenges", value: "365" },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function HeroSection() {
+  const { t } = useLanguage();
+
+  const stats = [
+    { icon: Brain, label: t("hero.statPuzzles"), value: "2.4M+" },
+    { icon: Trophy, label: t("hero.statPlayers"), value: "85K+" },
+    { icon: Target, label: t("hero.statDaily"), value: "365" },
+  ];
+
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden grid-pattern">
       {/* Ambient glow orbs */}
@@ -30,18 +33,17 @@ export default function HeroSection() {
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-primary text-sm font-body mb-8"
           >
             <Zap className="w-4 h-4" />
-            New Daily Challenge Available
+            {t("hero.badge")}
           </motion.div>
 
           {/* Title */}
-          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6">
-            <span className="text-foreground">LOGIC</span>
-            <span className="text-primary text-glow">GUESSER</span>
+          <h1 className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6">
+            <span className="text-foreground">{t("hero.title")}</span>
+            <span className="text-primary text-glow">{t("hero.title2")}</span>
           </h1>
 
-          <p className="font-body text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-            Challenge your mind with daily logic puzzles. Compete globally,
-            climb the leaderboard, and prove you're the sharpest thinker.
+          <p className="font-body text-muted-foreground text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+            {t("hero.subtitle")}
           </p>
 
           {/* CTA Buttons */}
@@ -50,14 +52,14 @@ export default function HeroSection() {
               <Link to="/daily">
                 <Button variant="neon" size="xl">
                   <Zap className="w-5 h-5" />
-                  Start Daily Challenge
+                  {t("hero.daily")}
                 </Button>
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link to="/practice">
                 <Button variant="neon-outline" size="lg">
-                  Practice Mode
+                  {t("hero.practice")}
                 </Button>
               </Link>
             </motion.div>
