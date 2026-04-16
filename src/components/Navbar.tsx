@@ -64,9 +64,7 @@ export default function Navbar() {
       <div className="container mx-auto flex items-center justify-between h-14 sm:h-16 px-4">
         {/* Logo - smaller on mobile */}
         <Link to="/" className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary flex items-center justify-center box-glow">
-            <span className="font-display text-primary-foreground text-xs sm:text-sm font-bold">L</span>
-          </div>
+          <img src={logoImg} alt="LogicGuesser" className="w-7 h-7 sm:w-8 sm:h-8" width={32} height={32} />
           <span className="font-display text-[11px] sm:text-sm md:text-base font-bold tracking-wider text-foreground hidden min-[340px]:inline">
             LOGIC<span className="text-primary">GUESSER</span>
           </span>
