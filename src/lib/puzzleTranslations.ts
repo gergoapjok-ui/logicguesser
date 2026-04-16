@@ -88,7 +88,7 @@ export function pt(key: string, lang: PuzzleLang, vars?: Record<string, string |
   let result = tmpl[lang] || tmpl.en;
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
-      result = result.replaceAll(`{${k}}`, String(v));
+      result = result.split(`{${k}}`).join(String(v));
     }
   }
   return result;
