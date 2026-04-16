@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/NotificationBell";
 import { useLanguage } from "@/contexts/LanguageContext";
+import logoImg from "@/assets/logo.png";
 
 const AVATARS_MAP: Record<string, string> = {
   avatar_cyber_skull: "💀", avatar_neon_cat: "🐱", avatar_glitch_bot: "🤖",
