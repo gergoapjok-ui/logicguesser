@@ -1,4 +1,5 @@
 // Shared puzzle generator with rich puzzle types including visual puzzles
+import { pt, type PuzzleLang } from "./puzzleTranslations";
 
 export type PuzzleCategory = "math" | "logic" | "patterns" | "visual" | "word" | "cipher" | "spatial" | "trivia" | "code";
 
