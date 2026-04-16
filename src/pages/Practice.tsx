@@ -12,6 +12,7 @@ import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { generatePuzzle, type PuzzleCategory, type Puzzle } from "@/lib/puzzleGenerator";
 import { useLanguage } from "@/contexts/LanguageContext";
+import type { PuzzleLang } from "@/lib/puzzleTranslations";
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -21,10 +22,11 @@ function formatTime(seconds: number) {
 
 export default function Practice() {
   const { user, profile, refreshProfile } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const puzzleLang = language as PuzzleLang;
   const isPro = profile?.is_pro ?? false;
   const [category, setCategory] = useState<PuzzleCategory | undefined>(undefined);
-  const [puzzle, setPuzzle] = useState<Puzzle>(() => generatePuzzle());
+  const [puzzle, setPuzzle] = useState<Puzzle>(() => generatePuzzle(undefined, puzzleLang));
   const [answer, setAnswer] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(true);
@@ -41,7 +43,7 @@ export default function Practice() {
   const handleCategoryChange = (val: string) => {
     const cat = (val || undefined) as PuzzleCategory | undefined;
     setCategory(cat);
-    setPuzzle(generatePuzzle(cat));
+    setPuzzle(generatePuzzle(cat, puzzleLang));
     setAnswer(""); setElapsed(0); setSolved(false); setRunning(true);
   };
 
@@ -63,7 +65,7 @@ export default function Practice() {
   }, [answer, puzzle, elapsed, user, refreshProfile, t]);
 
   const handleNext = () => {
-    setPuzzle(generatePuzzle(category));
+    setPuzzle(generatePuzzle(category, puzzleLang));
     setAnswer(""); setElapsed(0); setSolved(false); setRunning(true);
   };
 

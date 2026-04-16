@@ -1,4 +1,5 @@
 // Shared puzzle generator with rich puzzle types including visual puzzles
+import { pt, type PuzzleLang } from "./puzzleTranslations";
 
 export type PuzzleCategory = "math" | "logic" | "patterns" | "visual" | "word" | "cipher" | "spatial" | "trivia" | "code";
 
@@ -965,6 +966,126 @@ function codeBigO(): Puzzle {
   return { question: q, answer: a, category: "code" };
 }
 
+// ─── Translation map for post-processing ────────────────────────
+const questionTranslationMap: [RegExp, string, (match: RegExpMatchArray) => Record<string, string | number>][] = [
+  // Math
+  [/^What is (\d+) × (\d+) ([+−-]) (\d+)\?$/, "what_is", m => ({})],
+  [/^What is (\d+)% of (\d+)\?$/, "what_is_pct_of", m => ({ pct: m[1], base: m[2] })],
+  [/^What is √(\d+)\?$/, "what_is_sqrt", m => ({ n: m[1] })],
+  [/^What is (\d+)\^(\d+)\?$/, "what_is_power", m => ({ base: m[1], exp: m[2] })],
+  [/^What is the remainder when (\d+) is divided by (\d+)\?$/, "remainder", m => ({ a: m[1], b: m[2] })],
+  [/^What is \|(\d+) − (\d+)\|\?$/, "abs_value", m => ({ a: m[1], b: m[2] })],
+  [/^What is (\d+)! \((\d+) factorial\)\?$/, "factorial", m => ({ n: m[1] })],
+  [/^What is the GCD .+ of (\d+) and (\d+)\?$/, "gcd_of", m => ({ a: m[1], b: m[2] })],
+  [/^What is log base (\d+) of (\d+)\?$/, "log_base", m => ({ base: m[1], val: m[2] })],
+  [/^How many ways can you choose (\d+) items from (\d+)\?/, "choose_items", m => ({ r: m[1], n: m[2] })],
+  // Patterns
+  [/^What comes next: (.+), \.\.\.\?$/, "what_comes_next", m => ({})],
+  // Visual
+  [/^How many (circles|squares) are in this image\?$/, "how_many_shapes", m => ({})],
+  [/^What is the total shown on the dice\?$/, "dice_total", _ => ({})],
+  [/^What is the product of the dice values\?$/, "dice_product", _ => ({})],
+  [/^What is the total sum of all bars\?$/, "bar_sum", _ => ({})],
+  [/^What is the difference between the tallest and shortest bar\?$/, "bar_diff", _ => ({})],
+  [/^Which segment is the largest\?$/, "largest_segment", _ => ({})],
+  [/^Each row sums to 15\. What number replaces the "\?"\?$/, "row_sum_missing", _ => ({})],
+  [/^Which shape has a larger area\?/, "larger_area", _ => ({})],
+  [/^How many blocks are there in total\?$/, "total_blocks", _ => ({})],
+  [/^In this cube net, how many faces does a cube have\?$/, "cube_faces", _ => ({})],
+];
+
+function translateQuestion(puzzle: Puzzle, lang: PuzzleLang): Puzzle {
+  if (lang === "en") return puzzle;
+  
+  // Skip word, cipher categories - they're English-dependent
+  if (puzzle.category === "word" || puzzle.category === "cipher") return puzzle;
+  
+  for (const [regex, key, varExtractor] of questionTranslationMap) {
+    const match = puzzle.question.match(regex);
+    if (match) {
+      const vars = varExtractor(match);
+      
+      // For patterns, keep the sequence but translate the prompt
+      if (key === "what_comes_next") {
+        const seqMatch = puzzle.question.match(/What comes next: (.+), \.\.\.\?/);
+        if (seqMatch) {
+          puzzle = { ...puzzle, question: `${pt("what_comes_next", lang)} ${seqMatch[1]}, ...?` };
+          return puzzle;
+        }
+      }
+      
+      // For shape counting, translate shape name too
+      if (key === "how_many_shapes" && match[1]) {
+        const shapeName = match[1] === "circles" ? pt("circles", lang) : pt("squares", lang);
+        puzzle = { ...puzzle, question: pt(key, lang, { shape: shapeName }) };
+        return puzzle;
+      }
+      
+      // For math with full equation in question, keep equation but translate prefix
+      if (key === "what_is" && match) {
+        const eqPart = puzzle.question.replace(/^What is /, "");
+        puzzle = { ...puzzle, question: `${pt("what_is", lang)} ${eqPart}` };
+        return puzzle;
+      }
+      
+      puzzle = { ...puzzle, question: pt(key, lang, vars) };
+      return puzzle;
+    }
+  }
+  
+  // Fill in the blank
+  if (puzzle.question.startsWith("Fill in the blank:")) {
+    const rest = puzzle.question.replace("Fill in the blank:", "").trim();
+    return { ...puzzle, question: `${pt("fill_blank", lang)} ${rest}` };
+  }
+  
+  // Solve for x
+  if (puzzle.question.startsWith("Solve for x:")) {
+    const rest = puzzle.question.replace("Solve for x:", "").trim();
+    return { ...puzzle, question: `${pt("solve_x", lang)} ${rest}` };
+  }
+  
+  // Trivia translations (exact matches)
+  const triviaMap: Record<string, string> = {
+    "What planet is known as the Red Planet?": "trivia.red_planet",
+    "How many bones does an adult human body have?": "trivia.bones",
+    "What is the chemical symbol for gold?": "trivia.gold_symbol",
+    "In what year did the Titanic sink?": "trivia.titanic",
+    "What is the smallest prime number?": "trivia.smallest_prime",
+    "How many continents are there?": "trivia.continents",
+    "What gas do plants absorb from the atmosphere?": "trivia.plant_gas",
+    "What is the hardest natural substance on Earth?": "trivia.diamond",
+    "How many sides does a hexagon have?": "trivia.hexagon",
+    "What element does 'O' represent on the periodic table?": "trivia.oxygen",
+    "What is the boiling point of water in Celsius?": "trivia.boiling",
+    "How many teeth does an adult human typically have?": "trivia.teeth",
+    "What is the largest ocean on Earth?": "trivia.pacific",
+    "How many planets are in our solar system?": "trivia.planets",
+    "What is the chemical formula for water?": "trivia.h2o",
+    "What is the atomic number of carbon?": "trivia.carbon",
+    "How many chromosomes do humans have?": "trivia.chromosomes",
+    "What is the most abundant gas in Earth's atmosphere?": "trivia.nitrogen",
+    "What is the square root of 256?": "trivia.sqrt256",
+  };
+  
+  const triviaKey = triviaMap[puzzle.question];
+  if (triviaKey) {
+    return { ...puzzle, question: pt(triviaKey, lang) };
+  }
+  
+  // Code puzzles - translate question prompts
+  if (puzzle.category === "code") {
+    if (puzzle.question === "What does this print?") return { ...puzzle, question: pt("what_prints", lang) };
+    if (puzzle.question.includes("What is the output?")) return { ...puzzle, question: pt("code_output", lang) };
+    if (puzzle.question.includes("time complexity")) return { ...puzzle, question: pt("time_complexity", lang) };
+    if (puzzle.question.includes("should add, but")) return { ...puzzle, question: pt("should_add_bug", lang) };
+    if (puzzle.question.includes("has a bug")) return { ...puzzle, question: pt("debug_error", lang) };
+    if (puzzle.question.includes("string concatenation")) return { ...puzzle, question: pt("string_concat", lang) };
+  }
+  
+  return puzzle;
+}
+
 // ─── Generator ──────────────────────────────────────────────────
 
 const allGenerators: Record<PuzzleCategory, (() => Puzzle)[]> = {
@@ -979,9 +1100,10 @@ const allGenerators: Record<PuzzleCategory, (() => Puzzle)[]> = {
   code: [codeOutput, codeDebug, codeBigO],
 };
 
-export function generatePuzzle(category?: PuzzleCategory): Puzzle {
+export function generatePuzzle(category?: PuzzleCategory, lang?: PuzzleLang): Puzzle {
   const cats: PuzzleCategory[] = category ? [category] : ["math", "logic", "patterns", "visual", "word", "cipher", "spatial", "trivia", "code"];
   const cat = cats[Math.floor(Math.random() * cats.length)];
   const generators = allGenerators[cat];
-  return generators[Math.floor(Math.random() * generators.length)]();
+  const puzzle = generators[Math.floor(Math.random() * generators.length)]();
+  return lang ? translateQuestion(puzzle, lang) : puzzle;
 }

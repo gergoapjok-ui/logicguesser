@@ -25,9 +25,13 @@ const THEMES: Record<string, { price: number; proOnly: boolean }> = {
   theme_ocean: { price: 5000, proOnly: false },
   theme_sunset: { price: 8000, proOnly: false },
   theme_arctic: { price: 8000, proOnly: false },
+  theme_sakura: { price: 12000, proOnly: false },
   theme_royal: { price: 15000, proOnly: true },
   theme_blood_moon: { price: 15000, proOnly: true },
+  theme_toxic: { price: 18000, proOnly: true },
   theme_hacker: { price: 20000, proOnly: false },
+  theme_golden_hour: { price: 20000, proOnly: true },
+  theme_galaxy: { price: 25000, proOnly: true },
 };
 
 const BADGES: Record<string, { price: number; proOnly: boolean }> = {
