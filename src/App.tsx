@@ -30,6 +30,7 @@ import SubmitPuzzle from "./pages/SubmitPuzzle";
 import CommunityPuzzles from "./pages/CommunityPuzzles";
 import AdminPuzzles from "./pages/AdminPuzzles";
 import ComingSoon from "./pages/ComingSoon";
+import TryMore from "./pages/TryMore";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -68,6 +69,7 @@ const AnimatedRoutes = () => {
         <Route path="/community" element={wrap(<CommunityPuzzles />)} />
         <Route path="/admin/puzzles" element={wrap(<AdminPuzzles />)} />
         <Route path="/coming-soon" element={wrap(<ComingSoon />)} />
+        <Route path="/try-more" element={wrap(<TryMore />)} />
         <Route path="*" element={wrap(<NotFound />)} />
       </Routes>
     </AnimatePresence>
