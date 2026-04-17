@@ -1,8 +1,15 @@
 import { motion } from "framer-motion";
-import { ExternalLink, Gamepad2, Youtube, Link as LinkIcon, Sparkles, Music, Map, Globe, Swords } from "lucide-react";
+import { ExternalLink, Gamepad2, Youtube, Sparkles, Music, Map, Globe, Swords } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import thumbRoyaleRush from "@/assets/thumb-royalerush.jpg";
+import thumbCorebit from "@/assets/thumb-corebit.jpg";
+import thumbLogicGuesser from "@/assets/thumb-logicguesser.jpg";
+import thumbFdevil from "@/assets/thumb-fdevil.jpg";
+import thumbFnOrdogok from "@/assets/thumb-fnordogok.jpg";
+import thumbRguProd from "@/assets/thumb-rguprod.jpg";
+import thumbKisvarosnezok from "@/assets/thumb-kisvarosnezok.jpg";
 
 interface Item {
   title: string;
@@ -12,6 +19,7 @@ interface Item {
   icon: typeof Gamepad2;
   accent: string;
   cta: string;
+  thumb: string;
 }
 
 const ITEMS: Item[] = [
@@ -24,6 +32,7 @@ const ITEMS: Item[] = [
     icon: Gamepad2,
     accent: "from-neon to-neon-purple",
     cta: "Get on Google Play",
+    thumb: thumbRoyaleRush,
   },
   {
     title: "Corebit Studios on itch.io",
@@ -34,6 +43,7 @@ const ITEMS: Item[] = [
     icon: Sparkles,
     accent: "from-neon-amber to-neon",
     cta: "Visit itch.io page",
+    thumb: thumbCorebit,
   },
   {
     title: "LogicGuesser",
@@ -44,6 +54,7 @@ const ITEMS: Item[] = [
     icon: Globe,
     accent: "from-neon to-neon-amber",
     cta: "Open logicguesser.com",
+    thumb: thumbLogicGuesser,
   },
   {
     title: "Fortnite Maps by fdevil",
@@ -54,6 +65,7 @@ const ITEMS: Item[] = [
     icon: Swords,
     accent: "from-neon-purple to-neon",
     cta: "Play the maps",
+    thumb: thumbFdevil,
   },
   {
     title: "Fortnite Ördögök",
@@ -64,6 +76,7 @@ const ITEMS: Item[] = [
     icon: Youtube,
     accent: "from-destructive to-neon-amber",
     cta: "Watch on YouTube",
+    thumb: thumbFnOrdogok,
   },
   {
     title: "RGU Prod · Music",
@@ -74,6 +87,7 @@ const ITEMS: Item[] = [
     icon: Music,
     accent: "from-neon-purple to-neon-amber",
     cta: "Listen on YouTube",
+    thumb: thumbRguProd,
   },
   {
     title: "Kisvárosnézők",
@@ -84,6 +98,7 @@ const ITEMS: Item[] = [
     icon: Map,
     accent: "from-neon-amber to-neon-purple",
     cta: "Explore the guide",
+    thumb: thumbKisvarosnezok,
   },
 ];
 
@@ -120,23 +135,32 @@ export default function TryMore() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 + i * 0.06 }}
                 whileHover={{ y: -4 }}
-                className="group relative overflow-hidden rounded-2xl border border-border/50 glass p-6 hover:border-neon/60 transition-colors"
+                className="group relative overflow-hidden rounded-2xl border border-border/50 glass hover:border-neon/60 transition-colors flex flex-col"
               >
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br ${item.accent} opacity-0 group-hover:opacity-10 transition-opacity`}
-                  aria-hidden
-                />
-                <div className="relative flex flex-col h-full gap-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div
-                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.accent} flex items-center justify-center shadow-lg`}
-                    >
-                      <Icon className="w-6 h-6 text-background" />
-                    </div>
-                    <ExternalLink className="w-5 h-5 text-muted-foreground group-hover:text-neon transition-colors" />
+                <div className="relative aspect-[16/9] overflow-hidden">
+                  <img
+                    src={item.thumb}
+                    alt={item.title}
+                    width={768}
+                    height={512}
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+                  <div
+                    className={`absolute top-3 left-3 w-10 h-10 rounded-xl bg-gradient-to-br ${item.accent} flex items-center justify-center shadow-lg`}
+                  >
+                    <Icon className="w-5 h-5 text-background" />
                   </div>
+                  <ExternalLink className="absolute top-3 right-3 w-5 h-5 text-foreground/80 group-hover:text-neon transition-colors" />
+                </div>
 
-                  <div>
+                <div className="relative flex flex-col flex-1 gap-3 p-5">
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${item.accent} opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none`}
+                    aria-hidden
+                  />
+                  <div className="relative">
                     <p className="font-body text-xs uppercase tracking-wider text-muted-foreground mb-1">
                       {item.subtitle}
                     </p>
@@ -145,11 +169,11 @@ export default function TryMore() {
                     </h2>
                   </div>
 
-                  <p className="font-body text-sm text-muted-foreground flex-1">
+                  <p className="relative font-body text-sm text-muted-foreground flex-1">
                     {item.description}
                   </p>
 
-                  <Button variant="neon" size="sm" className="w-full sm:w-auto self-start">
+                  <Button variant="neon" size="sm" className="relative w-full sm:w-auto self-start">
                     {item.cta}
                   </Button>
                 </div>
