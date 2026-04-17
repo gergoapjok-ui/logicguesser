@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ExternalLink, Gamepad2, Youtube, Link as LinkIcon, Sparkles } from "lucide-react";
+import { ExternalLink, Gamepad2, Youtube, Link as LinkIcon, Sparkles, Music, Map, Globe, Swords } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,11 @@ interface Item {
 
 const ITEMS: Item[] = [
   {
-    title: "Royale Rush: Pixel Arena",
+    title: "Royale Rush",
     subtitle: "Mobile Game · Google Play",
     description:
-      "A fast-paced pixel-art battle royale where every second counts. Drop in, loot up, and outlast everyone in the arena.",
-    url: "https://play.google.com/store/apps/details?id=com.corebitstudios.royalerush",
+      "A fast-paced battle royale where every second counts. Drop in, loot up, and outlast everyone in the arena.",
+    url: "https://play.google.com/store/apps/details?id=com.royalrush",
     icon: Gamepad2,
     accent: "from-neon to-neon-purple",
     cta: "Get on Google Play",
@@ -30,30 +30,60 @@ const ITEMS: Item[] = [
     subtitle: "Indie Games · itch.io",
     description:
       "Browse our full catalog of indie experiments, prototypes, and full releases — all crafted by Corebit Studios.",
-    url: "https://corebitstudios.itch.io",
+    url: "https://corebit-studios.itch.io/",
     icon: Sparkles,
     accent: "from-neon-amber to-neon",
     cta: "Visit itch.io page",
   },
   {
-    title: "Corebit Studios — Linktree",
-    subtitle: "All Our Links · One Place",
+    title: "LogicGuesser",
+    subtitle: "This Website · logicguesser.com",
     description:
-      "Every project, every social, every release. Find everything Corebit Studios is working on in one tidy hub.",
-    url: "https://linktr.ee/corebitstudios",
-    icon: LinkIcon,
+      "The brain-teasing puzzle platform you're already on. Share it with a friend who loves a daily challenge.",
+    url: "https://logicguesser.com",
+    icon: Globe,
+    accent: "from-neon to-neon-amber",
+    cta: "Open logicguesser.com",
+  },
+  {
+    title: "Fortnite Maps by fdevil",
+    subtitle: "Fortnite Creative",
+    description:
+      "Custom Fortnite islands and creative maps. Jump in, play, and see what we've been building.",
+    url: "https://www.fortnite.com/@fdevil",
+    icon: Swords,
     accent: "from-neon-purple to-neon",
-    cta: "Open Linktree",
+    cta: "Play the maps",
   },
   {
     title: "Fortnite Ördögök",
-    subtitle: "YouTube Channel",
+    subtitle: "YouTube Channel · Hungarian",
     description:
-      "Hungarian Fortnite content — highlights, gameplay, and laughs. Subscribe to keep up with the squad.",
-    url: "https://www.youtube.com/@fortniteordogok",
+      "Hungarian Fortnite content — highlights, gameplay, and laughs from the old squad days.",
+    url: "https://www.youtube.com/@Fortniteordogok",
     icon: Youtube,
     accent: "from-destructive to-neon-amber",
     cta: "Watch on YouTube",
+  },
+  {
+    title: "RGU Prod · Music",
+    subtitle: "YouTube Channel · Music",
+    description:
+      "Original tracks and music productions. Press play and let it ride in the background.",
+    url: "https://www.youtube.com/@rguprod",
+    icon: Music,
+    accent: "from-neon-purple to-neon-amber",
+    cta: "Listen on YouTube",
+  },
+  {
+    title: "Kisvárosnézők",
+    subtitle: "Travel · Budapest Guide",
+    description:
+      "A favourite Budapest travel companion — small-town vibes, hidden spots, and great recommendations.",
+    url: "https://www.kisvarosnezok.hu/",
+    icon: Map,
+    accent: "from-neon-amber to-neon-purple",
+    cta: "Explore the guide",
   },
 ];
 
@@ -73,7 +103,7 @@ export default function TryMore() {
             Try More of Us
           </h1>
           <p className="font-body text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg">
-            Discover other games, channels, and projects from the team behind LogicGuesser.
+            Discover other games, channels, music, and projects from the team behind LogicGuesser.
           </p>
         </motion.div>
 
@@ -88,7 +118,7 @@ export default function TryMore() {
                 rel="noopener noreferrer"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
+                transition={{ duration: 0.4, delay: 0.1 + i * 0.06 }}
                 whileHover={{ y: -4 }}
                 className="group relative overflow-hidden rounded-2xl border border-border/50 glass p-6 hover:border-neon/60 transition-colors"
               >
