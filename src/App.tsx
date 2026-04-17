@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -44,30 +45,8 @@ const App = () => (
           <ThemeProvider>
           <LanguageProvider>
           <BattleInvitePopup />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/daily" element={<DailyChallenge />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/practice" element={<Practice />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/friends" element={<Friends />} />
-            <Route path="/chat/:friendId" element={<Chat />} />
-            <Route path="/battle/create" element={<BattleCreate />} />
-            <Route path="/battle/:battleId" element={<BattleLobby />} />
-            <Route path="/lobbies" element={<Lobbies />} />
-            <Route path="/pro" element={<ProUpgrade />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/submit-puzzle" element={<SubmitPuzzle />} />
-            <Route path="/community" element={<CommunityPuzzles />} />
-            <Route path="/admin/puzzles" element={<AdminPuzzles />} />
-            <Route path="/coming-soon" element={<ComingSoon />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AnimatedRoutes />
+
           <SpeedInsights />
           <Analytics />
           </LanguageProvider>
