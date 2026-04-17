@@ -35,6 +35,45 @@ import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient();
 
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  const fade = {
+    initial: { opacity: 0, y: 8 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -8 },
+    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+  };
+  const wrap = (el: JSX.Element) => <motion.div {...fade}>{el}</motion.div>;
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={wrap(<Index />)} />
+        <Route path="/daily" element={wrap(<DailyChallenge />)} />
+        <Route path="/leaderboard" element={wrap(<Leaderboard />)} />
+        <Route path="/practice" element={wrap(<Practice />)} />
+        <Route path="/shop" element={wrap(<Shop />)} />
+        <Route path="/profile" element={wrap(<Profile />)} />
+        <Route path="/friends" element={wrap(<Friends />)} />
+        <Route path="/chat/:friendId" element={wrap(<Chat />)} />
+        <Route path="/battle/create" element={wrap(<BattleCreate />)} />
+        <Route path="/battle/:battleId" element={wrap(<BattleLobby />)} />
+        <Route path="/lobbies" element={wrap(<Lobbies />)} />
+        <Route path="/pro" element={wrap(<ProUpgrade />)} />
+        <Route path="/settings" element={wrap(<SettingsPage />)} />
+        <Route path="/login" element={wrap(<Login />)} />
+        <Route path="/signup" element={wrap(<Signup />)} />
+        <Route path="/forgot-password" element={wrap(<ForgotPassword />)} />
+        <Route path="/reset-password" element={wrap(<ResetPassword />)} />
+        <Route path="/submit-puzzle" element={wrap(<SubmitPuzzle />)} />
+        <Route path="/community" element={wrap(<CommunityPuzzles />)} />
+        <Route path="/admin/puzzles" element={wrap(<AdminPuzzles />)} />
+        <Route path="/coming-soon" element={wrap(<ComingSoon />)} />
+        <Route path="*" element={wrap(<NotFound />)} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
