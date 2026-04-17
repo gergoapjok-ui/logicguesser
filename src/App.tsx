@@ -69,6 +69,7 @@ const AnimatedRoutes = () => {
         <Route path="/community" element={wrap(<CommunityPuzzles />)} />
         <Route path="/admin/puzzles" element={wrap(<AdminPuzzles />)} />
         <Route path="/coming-soon" element={wrap(<ComingSoon />)} />
+        <Route path="/try-more" element={wrap(<TryMore />)} />
         <Route path="*" element={wrap(<NotFound />)} />
       </Routes>
     </AnimatePresence>
