@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Zap, Brain, Trophy, Target } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import LivePlayersWidget from "@/components/LivePlayersWidget";
 
 export default function HeroSection() {
   const { t } = useLanguage();
@@ -35,6 +36,8 @@ export default function HeroSection() {
             <Zap className="w-4 h-4" />
             {t("hero.badge")}
           </motion.div>
+
+          <div className="mb-6 flex justify-center"><LivePlayersWidget /></div>
 
           {/* Title */}
           <h1 className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6">
