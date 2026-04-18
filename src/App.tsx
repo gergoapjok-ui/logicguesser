@@ -32,6 +32,8 @@ import CommunityPuzzles from "./pages/CommunityPuzzles";
 import AdminPuzzles from "./pages/AdminPuzzles";
 import ComingSoon from "./pages/ComingSoon";
 import TryMore from "./pages/TryMore";
+import MasterAI from "./pages/MasterAI";
+import FloatingMasterAI from "./components/FloatingMasterAI";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -71,6 +73,7 @@ const AnimatedRoutes = () => {
         <Route path="/admin/puzzles" element={wrap(<AdminPuzzles />)} />
         <Route path="/coming-soon" element={wrap(<ComingSoon />)} />
         <Route path="/try-more" element={wrap(<TryMore />)} />
+        <Route path="/ai" element={wrap(<MasterAI />)} />
         <Route path="*" element={wrap(<NotFound />)} />
       </Routes>
     </AnimatePresence>
@@ -89,6 +92,7 @@ const App = () => (
           <UIPrefsProvider>
           <BattleInvitePopup />
           <AnimatedRoutes />
+          <FloatingMasterAI />
 
           <SpeedInsights />
           <Analytics />
