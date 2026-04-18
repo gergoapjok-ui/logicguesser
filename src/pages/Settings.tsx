@@ -35,6 +35,7 @@ export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t, language, setLanguage } = useLanguage();
+  const uiPrefs = useUIPrefs();
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
