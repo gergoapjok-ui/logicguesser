@@ -105,8 +105,8 @@ export default function SettingsPage() {
     }
   };
 
-  const toggle = (key: keyof UserSettings) => {
-    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  const setToggle = (key: keyof UserSettings, value: boolean) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
   };
 
   if (authLoading || loading) {
@@ -203,36 +203,36 @@ export default function SettingsPage() {
               { key: "compactMode" as const, label: "Compact mode", desc: "Tighter spacing & smaller radius", icon: LayoutGrid },
               { key: "highContrast" as const, label: "High contrast", desc: "Boost text & border contrast", icon: Contrast },
             ].map(({ key, label, desc, icon: Icon }) => (
-              <div key={key} className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
+              <label key={key} htmlFor={`uipref-${key}`} className="flex items-center justify-between py-3 cursor-pointer select-none gap-4">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center flex-shrink-0">
                     <Icon className="w-4 h-4 text-primary" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-display text-sm font-bold text-foreground">{label}</p>
                     <p className="font-body text-xs text-muted-foreground">{desc}</p>
                   </div>
                 </div>
-                <Switch checked={uiPrefs[key]} onCheckedChange={(v) => uiPrefs.setPref(key, v)} />
-              </div>
+                <Switch id={`uipref-${key}`} checked={uiPrefs[key]} onCheckedChange={(v) => uiPrefs.setPref(key, v)} className="flex-shrink-0" />
+              </label>
             ))}
           </div>
 
           {/* Notification Settings */}
           <div className="glass rounded-2xl border border-border/50 p-6 space-y-1">
             {settingRows.map(({ key, label, description, icon: Icon, disabled }) => (
-              <div key={key} className={`flex items-center justify-between py-4 ${disabled ? "opacity-50" : ""}`}>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
+              <label key={key} htmlFor={`notif-${key}`} className={`flex items-center justify-between py-4 gap-4 ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"} select-none`}>
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center flex-shrink-0">
                     <Icon className="w-4 h-4 text-primary" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-display text-sm font-bold text-foreground">{label}</p>
                     <p className="font-body text-xs text-muted-foreground">{description}</p>
                   </div>
                 </div>
-                <Switch checked={settings[key]} onCheckedChange={() => toggle(key)} disabled={disabled} />
-              </div>
+                <Switch id={`notif-${key}`} checked={settings[key]} onCheckedChange={(v) => setToggle(key, v)} disabled={disabled} className="flex-shrink-0" />
+              </label>
             ))}
           </div>
 
