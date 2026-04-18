@@ -164,6 +164,60 @@ export default function SettingsPage() {
             </div>
           </div>
 
+          {/* Appearance & Accessibility */}
+          <div className="glass rounded-2xl border border-border/50 p-6 mb-6 space-y-1">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-primary" />
+              </div>
+              <p className="font-display text-sm font-bold text-foreground">Appearance</p>
+            </div>
+
+            {/* Font size */}
+            <div className="py-3">
+              <div className="flex items-center gap-3 mb-2">
+                <Type className="w-4 h-4 text-primary" />
+                <p className="font-display text-sm font-bold text-foreground">Font size</p>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(["small", "medium", "large"] as FontSize[]).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => uiPrefs.setPref("fontSize", s)}
+                    className={cn(
+                      "px-3 py-2 rounded-lg border text-sm font-body capitalize transition-all",
+                      uiPrefs.fontSize === s
+                        ? "bg-primary/20 border-primary/50 text-primary font-bold"
+                        : "bg-secondary/30 border-border/50 hover:bg-primary/10"
+                    )}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {[
+              { key: "animations" as const, label: "Smooth animations", desc: "Page & element animations", icon: Sparkle },
+              { key: "particles" as const, label: "Background grid", desc: "Show neon grid pattern", icon: LayoutGrid },
+              { key: "compactMode" as const, label: "Compact mode", desc: "Tighter spacing & smaller radius", icon: LayoutGrid },
+              { key: "highContrast" as const, label: "High contrast", desc: "Boost text & border contrast", icon: Contrast },
+            ].map(({ key, label, desc, icon: Icon }) => (
+              <div key={key} className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
+                    <Icon className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-display text-sm font-bold text-foreground">{label}</p>
+                    <p className="font-body text-xs text-muted-foreground">{desc}</p>
+                  </div>
+                </div>
+                <Switch checked={uiPrefs[key]} onCheckedChange={(v) => uiPrefs.setPref(key, v)} />
+              </div>
+            ))}
+          </div>
+
           {/* Notification Settings */}
           <div className="glass rounded-2xl border border-border/50 p-6 space-y-1">
             {settingRows.map(({ key, label, description, icon: Icon, disabled }) => (
