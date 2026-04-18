@@ -154,3 +154,30 @@
     display: none;
   }
 }
+
+/* UI Preferences */
+html.no-anim *,
+html.no-anim *::before,
+html.no-anim *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+html.no-particles .grid-pattern {
+  background-image: none !important;
+}
+
+html.compact {
+  --radius: 0.5rem;
+}
+
+html.high-contrast {
+  --border: 0 0% 100%;
+  --foreground: 0 0% 100%;
+  --muted-foreground: 0 0% 85%;
+}
+html.high-contrast.dark {
+  --background: 0 0% 0%;
+}
+
