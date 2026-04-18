@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Settings as SettingsIcon, Bell, Volume2, VolumeX, Swords, Coins, Users, Loader2, Save, Mail, Lock, Eye, EyeOff, Languages } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Volume2, VolumeX, Swords, Coins, Users, Loader2, Save, Mail, Lock, Eye, EyeOff, Languages, Sparkles, Sparkle, Type, LayoutGrid, Contrast } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { useLanguage, LANGUAGE_LABELS, LANGUAGE_FLAGS, Language } from "@/contexts/LanguageContext";
+import { useUIPrefs, FontSize } from "@/contexts/UIPrefsContext";
 import { cn } from "@/lib/utils";
 
 interface UserSettings {
@@ -34,6 +35,7 @@ export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t, language, setLanguage } = useLanguage();
+  const uiPrefs = useUIPrefs();
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -160,6 +162,60 @@ export default function SettingsPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Appearance & Accessibility */}
+          <div className="glass rounded-2xl border border-border/50 p-6 mb-6 space-y-1">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-primary" />
+              </div>
+              <p className="font-display text-sm font-bold text-foreground">Appearance</p>
+            </div>
+
+            {/* Font size */}
+            <div className="py-3">
+              <div className="flex items-center gap-3 mb-2">
+                <Type className="w-4 h-4 text-primary" />
+                <p className="font-display text-sm font-bold text-foreground">Font size</p>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(["small", "medium", "large"] as FontSize[]).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => uiPrefs.setPref("fontSize", s)}
+                    className={cn(
+                      "px-3 py-2 rounded-lg border text-sm font-body capitalize transition-all",
+                      uiPrefs.fontSize === s
+                        ? "bg-primary/20 border-primary/50 text-primary font-bold"
+                        : "bg-secondary/30 border-border/50 hover:bg-primary/10"
+                    )}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {[
+              { key: "animations" as const, label: "Smooth animations", desc: "Page & element animations", icon: Sparkle },
+              { key: "particles" as const, label: "Background grid", desc: "Show neon grid pattern", icon: LayoutGrid },
+              { key: "compactMode" as const, label: "Compact mode", desc: "Tighter spacing & smaller radius", icon: LayoutGrid },
+              { key: "highContrast" as const, label: "High contrast", desc: "Boost text & border contrast", icon: Contrast },
+            ].map(({ key, label, desc, icon: Icon }) => (
+              <div key={key} className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
+                    <Icon className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-display text-sm font-bold text-foreground">{label}</p>
+                    <p className="font-body text-xs text-muted-foreground">{desc}</p>
+                  </div>
+                </div>
+                <Switch checked={uiPrefs[key]} onCheckedChange={(v) => uiPrefs.setPref(key, v)} />
+              </div>
+            ))}
           </div>
 
           {/* Notification Settings */}

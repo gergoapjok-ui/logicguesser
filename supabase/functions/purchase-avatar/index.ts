@@ -21,6 +21,10 @@ const AVATARS: Record<string, { price: number; proOnly: boolean }> = {
 };
 
 const THEMES: Record<string, { price: number; proOnly: boolean }> = {
+  theme_mint: { price: 500, proOnly: false },
+  theme_lavender: { price: 500, proOnly: false },
+  theme_coral: { price: 500, proOnly: false },
+  theme_slate: { price: 500, proOnly: false },
   theme_cyberpunk: { price: 5000, proOnly: false },
   theme_ocean: { price: 5000, proOnly: false },
   theme_sunset: { price: 8000, proOnly: false },
