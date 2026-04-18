@@ -34,6 +34,7 @@ import ComingSoon from "./pages/ComingSoon";
 import TryMore from "./pages/TryMore";
 import MasterAI from "./pages/MasterAI";
 import FloatingMasterAI from "./components/FloatingMasterAI";
+import Unsubscribe from "./pages/Unsubscribe";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -74,6 +75,7 @@ const AnimatedRoutes = () => {
         <Route path="/coming-soon" element={wrap(<ComingSoon />)} />
         <Route path="/try-more" element={wrap(<TryMore />)} />
         <Route path="/ai" element={wrap(<MasterAI />)} />
+        <Route path="/unsubscribe" element={wrap(<Unsubscribe />)} />
         <Route path="*" element={wrap(<NotFound />)} />
       </Routes>
     </AnimatePresence>
