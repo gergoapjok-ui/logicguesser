@@ -52,6 +52,7 @@ export default function Practice() {
     const trimmed = answer.trim();
     if (isAnswerCorrect(trimmed, puzzle.answer)) {
       setRunning(false); setSolved(true); setStreak(s => s + 1);
+      import("@/lib/confetti").then(m => m.celebrate({ particles: 90, duration: 1400 }));
       if (user) {
         await supabase.functions.invoke("practice-reward");
         refreshProfile();

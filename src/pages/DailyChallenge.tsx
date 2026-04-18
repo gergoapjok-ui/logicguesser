@@ -117,6 +117,7 @@ export default function DailyChallenge() {
     if (data.already_completed) { setAnswer(""); if (currentTaskIndex < tasks.length - 1) setCurrentTaskIndex(i => i + 1); return; }
     if (data.all_done) {
       setRunning(false); setAllDone(true); setEarnedCredits(data.credit_reward); refreshProfile();
+      import("@/lib/confetti").then(m => m.celebrate({ particles: 180, duration: 2200 }));
       toast.success(`${t("daily.allComplete")} ${formatTime(data.time_taken)} — +${data.credit_reward} ${t("daily.credits")}! +50 XP`);
     } else {
       toast.success(`${t("daily.task")} ${currentTask.task_number} ${t("daily.correct")}`);
