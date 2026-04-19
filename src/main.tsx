@@ -27,11 +27,14 @@ if (isInIframe || isPreviewHost) {
     });
   }
 } else if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  // Try the vite-plugin-pwa generated SW first; fall back to /sw.js.
   import("virtual:pwa-register")
     .then(({ registerSW }) => {
       registerSW({ immediate: true });
     })
     .catch(() => {
-      /* no-op */
+      navigator.serviceWorker.register("/sw.js").catch(() => {
+        /* no-op */
+      });
     });
 }
