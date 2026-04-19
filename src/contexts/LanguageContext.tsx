@@ -219,6 +219,9 @@ const en: Record<string, string> = {
   "general.welcomeBack": "Welcome back!",
   "general.2xPro": "2× Pro",
   "general.2xEarn": "2× EARN",
+  // AI
+  "ai.title": "LogicGuesser",
+  "ai.subtitle": "The Master AI",
 };
 
 const hu: Record<string, string> = {
@@ -410,6 +413,9 @@ const hu: Record<string, string> = {
   "general.welcomeBack": "Üdv újra!",
   "general.2xPro": "2× Pro",
   "general.2xEarn": "2× KERESÉS",
+  // AI
+  "ai.title": "LogicGuesser",
+  "ai.subtitle": "A Mester AI",
 };
 
 const la: Record<string, string> = {
@@ -601,6 +607,9 @@ const la: Record<string, string> = {
   "general.welcomeBack": "Salve iterum!",
   "general.2xPro": "2× Pro",
   "general.2xEarn": "2× LUCRA",
+  // AI
+  "ai.title": "LogicGuesser",
+  "ai.subtitle": "Magister AI",
 };
 
 const el: Record<string, string> = {
@@ -792,6 +801,9 @@ const el: Record<string, string> = {
   "general.welcomeBack": "Καλώς ήρθες!",
   "general.2xPro": "2× Pro",
   "general.2xEarn": "2× ΚΕΡΔΗ",
+  // AI
+  "ai.title": "LogicGuesser",
+  "ai.subtitle": "The Master AI",
 };
 
 const zh: Record<string, string> = {
@@ -983,6 +995,9 @@ const zh: Record<string, string> = {
   "general.welcomeBack": "欢迎回来！",
   "general.2xPro": "2× Pro",
   "general.2xEarn": "2× 收益",
+  // AI
+  "ai.title": "LogicGuesser",
+  "ai.subtitle": "大师 AI",
 };
 
 const translations: Record<Language, Record<string, string>> = { en, hu, la, el, zh };
