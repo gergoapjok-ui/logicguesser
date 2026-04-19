@@ -1,0 +1,1 @@
+DELETE FROM lobbies WHERE id = '605eea9a-5883-4715-9a07-780528462caf';
