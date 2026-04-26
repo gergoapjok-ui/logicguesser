@@ -142,11 +142,27 @@ export default function Practice() {
                     </div>
                     <p className="font-body text-foreground text-lg leading-relaxed">{puzzle.question}</p>
                   </div>
-                  <form onSubmit={handleSubmit} className="flex gap-3">
-                    <Input value={answer} onChange={e => setAnswer(e.target.value)} placeholder={t("practice.yourAnswer")}
-                      className="flex-1 bg-secondary/50 border-border/50 font-body" autoFocus />
-                    <Button type="submit" variant="neon" disabled={!answer.trim()}><Send className="w-4 h-4" /></Button>
-                  </form>
+                  {puzzle.choices ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {puzzle.choices.map((c) => (
+                        <Button
+                          key={c}
+                          type="button"
+                          variant="outline"
+                          className="font-body text-base h-auto py-3 px-4 whitespace-normal text-left justify-start border-border/60 hover:border-primary hover:bg-primary/10 hover:text-primary transition"
+                          onClick={() => { setAnswer(c); submitAnswer(c); }}
+                        >
+                          {c}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSubmit} className="flex gap-3">
+                      <Input value={answer} onChange={e => setAnswer(e.target.value)} placeholder={t("practice.yourAnswer")}
+                        className="flex-1 bg-secondary/50 border-border/50 font-body" autoFocus />
+                      <Button type="submit" variant="neon" disabled={!answer.trim()}><Send className="w-4 h-4" /></Button>
+                    </form>
+                  )}
                   <div className="text-center mt-4">
                     <Button variant="ghost" size="sm" onClick={handleNext} className="text-muted-foreground">
                       <RotateCcw className="w-3 h-3" /> {t("practice.skip")}
