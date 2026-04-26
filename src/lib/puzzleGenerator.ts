@@ -1115,19 +1115,96 @@ function translateQuestion(puzzle: Puzzle, lang: PuzzleLang): Puzzle {
   return puzzle;
 }
 
+// ─── Choice-augmented wrappers ──────────────────────────────────
+// Hard / ambiguous / riddle / caesar puzzles get 4 multiple-choice options.
+
+function numericDistractors(answerStr: string, count = 6): string[] {
+  const n = Number(answerStr);
+  if (!Number.isFinite(n)) return [];
+  const out = new Set<string>();
+  const offsets = [1, -1, 2, -2, 3, -3, 5, -5, 10, -10];
+  for (const o of offsets) {
+    const v = n + o;
+    if (v >= 0 && v !== n) out.add(String(v));
+    if (out.size >= count) break;
+  }
+  return [...out];
+}
+
+function withCaesarChoices(): Puzzle {
+  const p = cipherCaesar();
+  const pool = ["hello", "world", "logic", "brain", "smart", "puzzle", "tiger", "crown", "flame", "ghost"]
+    .filter(w => w !== p.answer);
+  return withChoices(p, shuffle(pool));
+}
+
+function withRiddleChoices(): Puzzle {
+  const p = wordRiddle();
+  const pool = ["map", "footsteps", "echo", "piano", "towel", "bottle", "stamp", "clock", "comb",
+    "library", "fire", "coin", "window", "sponge", "shadow", "candle", "river", "mirror"]
+    .filter(w => w !== p.answer);
+  return withChoices(p, shuffle(pool));
+}
+
+function withDeductionChoices(): Puzzle {
+  const p = logicDeduction();
+  // Build distractor pool from the other deduction answers
+  const pool = ["carol", "alice", "bob", "3", "2", "4", "aunt", "uncle", "cousin", "yes", "no", "sister", "brother", "1"]
+    .filter(w => w.toLowerCase() !== p.answer.toLowerCase());
+  return withChoices(p, shuffle(pool));
+}
+
+function withHardMathChoices(fn: () => Puzzle): () => Puzzle {
+  return () => {
+    const p = fn();
+    return withChoices(p, shuffle(numericDistractors(p.answer)));
+  };
+}
+
+function withLookAndSayChoices(): Puzzle {
+  const p = patternLookAndSay();
+  return withChoices(p, ["111222", "112211", "122131", "211221", "121122"]);
+}
+
+function withBigOChoices(): Puzzle {
+  const p = codeBigO();
+  const pool = ["o(n)", "o(n^2)", "o(log n)", "o(1)", "o(n log n)", "o(2^n)"]
+    .filter(o => o !== p.answer);
+  return withChoices(p, shuffle(pool));
+}
+
+// Trick logic items whose answers are words/ambiguous → also offer choices.
+function withLogicTrickChoices(): Puzzle {
+  const p = logicTricks[Math.floor(Math.random() * logicTricks.length)];
+  // Only attach choices if the answer isn't a plain number (numbers are clear)
+  if (/^\d+$/.test(p.answer)) return p;
+  const pool = ["meat", "left hand", "seven", "tom", "envelope", "hourglass", "m", "ocean",
+    "ton", "short", "glove", "neither", "up", "sister"]
+    .filter(w => w.toLowerCase() !== p.answer.toLowerCase());
+  return withChoices(p, shuffle(pool));
+}
+
 // ─── Generator ──────────────────────────────────────────────────
 
 const allGenerators: Record<PuzzleCategory, (() => Puzzle)[]> = {
-  math: [mathBasic, mathHard, mathMissingOperator, mathPercentage, mathSquareRoot, mathPower, mathFraction, mathModulo, mathEquation, mathQuadratic, mathLogarithm, mathFactorial, mathGCD, mathCombination, mathChainedOps, mathAbsoluteValue],
-  patterns: [patternArithmetic, patternGeometric, patternFibLike, patternAlternating, patternSquares, patternTriangular, patternPrimes, patternCubes, patternDoubleStep, patternLookAndSay],
-  logic: [() => logicTricks[Math.floor(Math.random() * logicTricks.length)], logicDeduction, logicCryptarithmetic],
-  word: [wordAnagram, wordMissing, wordAcronym, wordCompound],
+  math: [mathBasic, withHardMathChoices(mathHard), mathMissingOperator, mathPercentage, mathSquareRoot, mathPower, mathFraction, mathModulo, mathEquation, withHardMathChoices(mathQuadratic), withHardMathChoices(mathLogarithm), mathFactorial, mathGCD, withHardMathChoices(mathCombination), withHardMathChoices(mathChainedOps), mathAbsoluteValue],
+  patterns: [patternArithmetic, patternGeometric, patternFibLike, patternAlternating, patternSquares, patternTriangular, patternPrimes, patternCubes, patternDoubleStep, withLookAndSayChoices],
+  logic: [withLogicTrickChoices, withDeductionChoices, logicCryptarithmetic],
+  word: [wordAnagram, wordMissing, wordAcronym, wordCompound, withRiddleChoices],
   visual: [visualCountShapes, visualPatternGrid, visualBarChart, visualDiceCount, visualClockAngle, visualMaze, visualPieChart, visualSymmetry, visualCountColor, visualNumberGrid, visualCompareAreas, visualLineGraph],
-  cipher: [cipherCaesar, cipherSubstitution, cipherReverse, cipherEmoji],
+  cipher: [withCaesarChoices, cipherSubstitution, cipherReverse, cipherEmoji],
   spatial: [spatialRotation, spatialMirror, spatialCubeNet, spatialFolding, spatialCounting3D],
   trivia: [() => triviaPuzzles[Math.floor(Math.random() * triviaPuzzles.length)]],
-  code: [codeOutput, codeDebug, codeBigO],
+  code: [codeOutput, codeDebug, withBigOChoices],
 };
+
+export function generatePuzzle(category?: PuzzleCategory, lang?: PuzzleLang): Puzzle {
+  const cats: PuzzleCategory[] = category ? [category] : ["math", "logic", "patterns", "visual", "word", "cipher", "spatial", "trivia", "code"];
+  const cat = cats[Math.floor(Math.random() * cats.length)];
+  const generators = allGenerators[cat];
+  const puzzle = generators[Math.floor(Math.random() * generators.length)]();
+  return lang ? translateQuestion(puzzle, lang) : puzzle;
+}
 
 export function generatePuzzle(category?: PuzzleCategory, lang?: PuzzleLang): Puzzle {
   const cats: PuzzleCategory[] = category ? [category] : ["math", "logic", "patterns", "visual", "word", "cipher", "spatial", "trivia", "code"];
