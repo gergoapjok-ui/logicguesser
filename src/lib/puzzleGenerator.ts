@@ -1205,11 +1205,3 @@ export function generatePuzzle(category?: PuzzleCategory, lang?: PuzzleLang): Pu
   const puzzle = generators[Math.floor(Math.random() * generators.length)]();
   return lang ? translateQuestion(puzzle, lang) : puzzle;
 }
-
-export function generatePuzzle(category?: PuzzleCategory, lang?: PuzzleLang): Puzzle {
-  const cats: PuzzleCategory[] = category ? [category] : ["math", "logic", "patterns", "visual", "word", "cipher", "spatial", "trivia", "code"];
-  const cat = cats[Math.floor(Math.random() * cats.length)];
-  const generators = allGenerators[cat];
-  const puzzle = generators[Math.floor(Math.random() * generators.length)]();
-  return lang ? translateQuestion(puzzle, lang) : puzzle;
-}
