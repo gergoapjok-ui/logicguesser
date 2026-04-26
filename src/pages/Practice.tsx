@@ -47,9 +47,9 @@ export default function Practice() {
     setAnswer(""); setElapsed(0); setSolved(false); setRunning(true);
   };
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = answer.trim();
+  const submitAnswer = useCallback(async (raw: string) => {
+    const trimmed = raw.trim();
+    if (!trimmed) return;
     if (isAnswerCorrect(trimmed, puzzle.answer)) {
       setRunning(false); setSolved(true); setStreak(s => s + 1);
       import("@/lib/confetti").then(m => m.celebrate({ particles: 90, duration: 1400 }));
@@ -63,7 +63,12 @@ export default function Practice() {
     } else {
       toast.error(t("practice.wrongTryAgain"));
     }
-  }, [answer, puzzle, elapsed, user, refreshProfile, t]);
+  }, [puzzle, elapsed, user, refreshProfile, t]);
+
+  const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    submitAnswer(answer);
+  }, [answer, submitAnswer]);
 
   const handleNext = () => {
     setPuzzle(generatePuzzle(category, puzzleLang));
