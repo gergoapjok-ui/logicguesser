@@ -8,6 +8,35 @@ export interface Puzzle {
   answer: string;
   visual?: string;
   category: PuzzleCategory;
+  /** Optional 4 multiple-choice options. When set, UI renders buttons instead of a text input. */
+  choices?: string[];
+}
+
+// ─── Multiple-choice helper ─────────────────────────────────────
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** Attach 4 shuffled multiple-choice options (correct + up to 3 unique distractors). */
+function withChoices(puzzle: Puzzle, distractors: string[]): Puzzle {
+  const seen = new Set<string>([puzzle.answer.toLowerCase()]);
+  const unique: string[] = [];
+  for (const d of distractors) {
+    const key = d.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      unique.push(d);
+    }
+    if (unique.length >= 3) break;
+  }
+  const choices = shuffle([puzzle.answer, ...unique.slice(0, 3)]);
+  return { ...puzzle, choices };
 }
 
 // ─── Math Puzzles ───────────────────────────────────────────────
