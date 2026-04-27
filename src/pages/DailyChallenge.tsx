@@ -186,7 +186,18 @@ export default function DailyChallenge() {
       <div className="flex items-center justify-center min-h-screen pt-16 px-4">
         <div className="flex gap-8 w-full max-w-4xl justify-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg">
-            {alreadyCompleted && (
+            {!user && !guest && (
+              <div className="glass rounded-2xl border border-border/50 p-8 text-center">
+                <h1 className="font-display text-3xl font-bold mb-2">{t("daily.title")} <span className="text-primary text-glow">{t("daily.title2")}</span></h1>
+                <p className="font-body text-muted-foreground mb-6">Play right now — no email needed. Pick a display name and start.</p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button variant="neon" size="lg" onClick={() => setShowGuestPrompt(true)}>Play as guest</Button>
+                  <Button variant="neon-outline" size="lg" onClick={() => navigate("/login")}>Sign in</Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-4">Already a guest? Your stats will transfer to a real account using your claim code.</p>
+              </div>
+            )}
+            {(user || guest) && alreadyCompleted && (
               <div className="glass rounded-2xl border border-border/50 p-8 text-center">
                 <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
                 <h1 className="font-display text-3xl font-bold text-foreground mb-2">
