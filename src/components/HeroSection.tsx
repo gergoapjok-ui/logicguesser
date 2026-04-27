@@ -112,6 +112,7 @@ export default function HeroSection() {
           </motion.div>
         </motion.div>
       </div>
+      <GuestSignupPrompt open={showGuestPrompt} onClose={() => setShowGuestPrompt(false)} />
     </section>
   );
 }
