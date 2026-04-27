@@ -112,10 +112,37 @@ export default function DailyChallenge() {
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentTask || !user || submitting) return;
+    if (!currentTask || submitting) return;
+    if (!user && !guest) return;
     const trimmed = answer.trim();
     if (!trimmed) return;
     setSubmitting(true);
+
+    if (!user && guest) {
+      // Guest path: validate via dedicated endpoint, track locally
+      const { data, error } = await supabase.functions.invoke("guest-validate-answer", {
+        body: { puzzleId: currentTask.id, answer: trimmed },
+      });
+      setSubmitting(false);
+      if (error || !data) { toast.error("Failed"); return; }
+      if (!data.correct) {
+        setPenalties(p => p + 5); setWrongFlash(true); setTimeout(() => setWrongFlash(false), 600);
+        toast.error(t("daily.wrong5s")); setAnswer(""); return;
+      }
+      const isLast = currentTaskIndex >= tasks.length - 1;
+      if (isLast) {
+        const totalT = elapsed + penalties;
+        setRunning(false); setAllDone(true); setEarnedCredits(25);
+        await awardGuest({ addXp: 50, addCredits: 25, completedToday: true, leaderboard: { puzzleId: currentTask.id, timeTaken: totalT } });
+        import("@/lib/confetti").then(m => m.celebrate({ particles: 180, duration: 2200 }));
+        toast.success(`${t("daily.allComplete")} ${formatTime(totalT)} — +25 ${t("daily.credits")}! +50 XP`);
+      } else {
+        toast.success(`${t("daily.task")} ${currentTask.task_number} ${t("daily.correct")}`);
+        setAnswer(""); setCurrentTaskIndex(i => i + 1);
+      }
+      return;
+    }
+
     const { data, error } = await supabase.functions.invoke("validate-answer", {
       body: { puzzle_id: currentTask.id, answer: trimmed, task_number: currentTask.task_number, total_elapsed: elapsed, total_penalties: penalties },
     });
