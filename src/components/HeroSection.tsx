@@ -58,27 +58,34 @@ export default function HeroSection() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/daily">
-                <Button variant="neon" size="xl">
-                  <Zap className="w-5 h-5" />
-                  {t("hero.daily")}
-                </Button>
-              </Link>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/practice">
-                <Button variant="neon-outline" size="lg">
-                  {t("hero.practice")}
-                </Button>
-              </Link>
-            </motion.div>
+          <div className="flex flex-col items-stretch sm:items-center gap-3 mb-8 max-w-md sm:max-w-none mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center w-full sm:w-auto">
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                <Link to="/daily" className="block">
+                  <Button variant="neon" size="lg" className="w-full sm:w-auto sm:h-14 sm:px-10 sm:text-lg">
+                    <Zap className="w-5 h-5" />
+                    {t("hero.daily")}
+                  </Button>
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                <Link to="/practice" className="block">
+                  <Button variant="neon-outline" size="lg" className="w-full sm:w-auto sm:h-14 sm:px-10 sm:text-lg">
+                    {t("hero.practice")}
+                  </Button>
+                </Link>
+              </motion.div>
+            </div>
             {!user && !guest && (
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <Button variant="ghost" size="lg" onClick={() => setShowGuestPrompt(true)} className="text-primary hover:text-primary">
-                  <UserCircle2 className="w-5 h-5" />
-                  Play as guest
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowGuestPrompt(true)}
+                  className="w-full sm:w-auto text-muted-foreground hover:text-primary font-body"
+                >
+                  <UserCircle2 className="w-4 h-4" />
+                  Play as guest — no account needed
                 </Button>
               </motion.div>
             )}
