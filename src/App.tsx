@@ -7,6 +7,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { GuestProvider } from "@/contexts/GuestContext";
+import { PixVersePopup } from "@/components/PixVersePromo";
 import { UIPrefsProvider } from "@/contexts/UIPrefsContext";
 import Index from "./pages/Index";
 import DailyChallenge from "./pages/DailyChallenge";
@@ -91,14 +93,17 @@ const App = () => (
         <AuthProvider>
           <ThemeProvider>
           <LanguageProvider>
+          <GuestProvider>
           <UIPrefsProvider>
           <BattleInvitePopup />
           <AnimatedRoutes />
           <FloatingMasterAI />
+          <PixVersePopup />
 
           <SpeedInsights />
           <Analytics />
           </UIPrefsProvider>
+          </GuestProvider>
           </LanguageProvider>
           </ThemeProvider>
         </AuthProvider>
