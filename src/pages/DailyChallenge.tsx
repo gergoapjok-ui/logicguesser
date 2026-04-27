@@ -256,7 +256,7 @@ export default function DailyChallenge() {
               </div>
             )}
 
-            {!alreadyCompleted && tasks.length > 0 && (
+            {(user || guest) && !alreadyCompleted && tasks.length > 0 && (
               <div className="glass rounded-2xl border border-border/50 p-8">
                 <div className="text-center mb-4">
                   <h1 className="font-display text-3xl font-bold text-foreground mb-1">
