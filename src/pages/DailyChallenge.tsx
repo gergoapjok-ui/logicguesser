@@ -5,10 +5,14 @@ import { Timer, Send, CheckCircle2, Clock, Loader2, AlertTriangle, Flame, XCircl
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGuest } from "@/contexts/GuestContext";
 import { supabase } from "@/integrations/supabase/client";
+import { isAnswerCorrect } from "@/lib/fuzzyMatch";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
+import GuestSignupPrompt from "@/components/GuestSignupPrompt";
+import { PixVerseSidebarCard } from "@/components/PixVersePromo";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 function formatTime(seconds: number) {
@@ -30,9 +34,12 @@ interface PuzzleTask {
 
 export default function DailyChallenge() {
   const { user, loading: authLoading, profile, refreshProfile } = useAuth();
+  const { guest, awardGuest } = useGuest();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const isPro = profile?.is_pro ?? false;
+  const isGuest = !user && !!guest;
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
 
   const [tasks, setTasks] = useState<PuzzleTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,26 +66,30 @@ export default function DailyChallenge() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { navigate("/login"); return; }
+    if (!user && !guest) { setLoading(false); return; }
     const load = async () => {
       const today = new Date().toISOString().split("T")[0];
       const { data: puzzleData } = await supabase.from("puzzles_public" as any).select("id, question, difficulty, task_number").eq("puzzle_date", today).order("task_number", { ascending: true });
       if (!puzzleData || puzzleData.length === 0) { setTasks([]); setLoading(false); return; }
       setTasks(puzzleData as any);
-      const { data: existing } = await supabase.from("leaderboard").select("time_taken").eq("user_id", user.id).eq("completed_date", today).maybeSingle();
-      if (existing) { setAlreadyCompleted(true); setCompletedTime(existing.time_taken); }
-      else {
-        const { data: progress } = await supabase.from("challenge_progress" as any).select("task_number").eq("user_id", user.id).eq("puzzle_date", today);
-        if (progress && progress.length > 0) {
-          const completedNums = new Set((progress as any[]).map(p => p.task_number));
-          const nextIncomplete = (puzzleData as any[]).findIndex(t => !completedNums.has(t.task_number));
-          if (nextIncomplete >= 0) setCurrentTaskIndex(nextIncomplete);
+      if (user) {
+        const { data: existing } = await supabase.from("leaderboard").select("time_taken").eq("user_id", user.id).eq("completed_date", today).maybeSingle();
+        if (existing) { setAlreadyCompleted(true); setCompletedTime(existing.time_taken); }
+        else {
+          const { data: progress } = await supabase.from("challenge_progress" as any).select("task_number").eq("user_id", user.id).eq("puzzle_date", today);
+          if (progress && progress.length > 0) {
+            const completedNums = new Set((progress as any[]).map(p => p.task_number));
+            const nextIncomplete = (puzzleData as any[]).findIndex(t => !completedNums.has(t.task_number));
+            if (nextIncomplete >= 0) setCurrentTaskIndex(nextIncomplete);
+          }
         }
+      } else if (guest && guest.lastCompletedDate === today) {
+        setAlreadyCompleted(true); setCompletedTime(0);
       }
       setLoading(false);
     };
     load();
-  }, [user, authLoading, navigate]);
+  }, [user, guest, authLoading]);
 
   useEffect(() => {
     if (running) intervalRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
@@ -101,10 +112,37 @@ export default function DailyChallenge() {
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentTask || !user || submitting) return;
+    if (!currentTask || submitting) return;
+    if (!user && !guest) return;
     const trimmed = answer.trim();
     if (!trimmed) return;
     setSubmitting(true);
+
+    if (!user && guest) {
+      // Guest path: validate via dedicated endpoint, track locally
+      const { data, error } = await supabase.functions.invoke("guest-validate-answer", {
+        body: { puzzleId: currentTask.id, answer: trimmed },
+      });
+      setSubmitting(false);
+      if (error || !data) { toast.error("Failed"); return; }
+      if (!data.correct) {
+        setPenalties(p => p + 5); setWrongFlash(true); setTimeout(() => setWrongFlash(false), 600);
+        toast.error(t("daily.wrong5s")); setAnswer(""); return;
+      }
+      const isLast = currentTaskIndex >= tasks.length - 1;
+      if (isLast) {
+        const totalT = elapsed + penalties;
+        setRunning(false); setAllDone(true); setEarnedCredits(25);
+        await awardGuest({ addXp: 50, addCredits: 25, completedToday: true, leaderboard: { puzzleId: currentTask.id, timeTaken: totalT } });
+        import("@/lib/confetti").then(m => m.celebrate({ particles: 180, duration: 2200 }));
+        toast.success(`${t("daily.allComplete")} ${formatTime(totalT)} — +25 ${t("daily.credits")}! +50 XP`);
+      } else {
+        toast.success(`${t("daily.task")} ${currentTask.task_number} ${t("daily.correct")}`);
+        setAnswer(""); setCurrentTaskIndex(i => i + 1);
+      }
+      return;
+    }
+
     const { data, error } = await supabase.functions.invoke("validate-answer", {
       body: { puzzle_id: currentTask.id, answer: trimmed, task_number: currentTask.task_number, total_elapsed: elapsed, total_penalties: penalties },
     });
@@ -123,7 +161,7 @@ export default function DailyChallenge() {
       toast.success(`${t("daily.task")} ${currentTask.task_number} ${t("daily.correct")}`);
       setAnswer(""); setCurrentTaskIndex(i => i + 1);
     }
-  }, [answer, currentTask, user, elapsed, penalties, submitting, refreshProfile, currentTaskIndex, tasks.length, t]);
+  }, [answer, currentTask, user, guest, awardGuest, elapsed, penalties, submitting, refreshProfile, currentTaskIndex, tasks.length, t]);
 
   if (authLoading || loading) {
     return <div className="min-h-screen bg-background"><Navbar /><div className="flex items-center justify-center min-h-screen"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div></div>;
@@ -148,7 +186,18 @@ export default function DailyChallenge() {
       <div className="flex items-center justify-center min-h-screen pt-16 px-4">
         <div className="flex gap-8 w-full max-w-4xl justify-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg">
-            {alreadyCompleted && (
+            {!user && !guest && (
+              <div className="glass rounded-2xl border border-border/50 p-8 text-center">
+                <h1 className="font-display text-3xl font-bold mb-2">{t("daily.title")} <span className="text-primary text-glow">{t("daily.title2")}</span></h1>
+                <p className="font-body text-muted-foreground mb-6">Play right now — no email needed. Pick a display name and start.</p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button variant="neon" size="lg" onClick={() => setShowGuestPrompt(true)}>Play as guest</Button>
+                  <Button variant="neon-outline" size="lg" onClick={() => navigate("/login")}>Sign in</Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-4">Already a guest? Your stats will transfer to a real account using your claim code.</p>
+              </div>
+            )}
+            {(user || guest) && alreadyCompleted && (
               <div className="glass rounded-2xl border border-border/50 p-8 text-center">
                 <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
                 <h1 className="font-display text-3xl font-bold text-foreground mb-2">
@@ -207,7 +256,7 @@ export default function DailyChallenge() {
               </div>
             )}
 
-            {!alreadyCompleted && tasks.length > 0 && (
+            {(user || guest) && !alreadyCompleted && tasks.length > 0 && (
               <div className="glass rounded-2xl border border-border/50 p-8">
                 <div className="text-center mb-4">
                   <h1 className="font-display text-3xl font-bold text-foreground mb-1">
@@ -291,12 +340,14 @@ export default function DailyChallenge() {
             )}
           </motion.div>
           {!isPro && (
-            <aside className="hidden lg:block w-64 flex-shrink-0 self-start pt-4">
+            <aside className="hidden lg:block w-64 flex-shrink-0 self-start pt-4 space-y-4">
+              <PixVerseSidebarCard />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
             </aside>
           )}
         </div>
       </div>
+      <GuestSignupPrompt open={showGuestPrompt} onClose={() => setShowGuestPrompt(false)} />
     </div>
   );
 }

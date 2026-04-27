@@ -111,6 +111,9 @@ export default function Signup() {
               {t("signup.haveAccount")}{" "}
               <Link to="/login" className="text-primary hover:underline">{t("signup.signIn")}</Link>
             </p>
+            <p className="text-center mt-2 font-body text-xs text-muted-foreground">
+              Played as a guest before? <Link to="/claim" className="text-primary hover:underline">Claim your stats</Link>
+            </p>
             </>
             )}
             </AnimatePresence>

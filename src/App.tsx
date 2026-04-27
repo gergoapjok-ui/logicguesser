@@ -7,6 +7,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { GuestProvider } from "@/contexts/GuestContext";
+import { PixVersePopup } from "@/components/PixVersePromo";
 import { UIPrefsProvider } from "@/contexts/UIPrefsContext";
 import Index from "./pages/Index";
 import DailyChallenge from "./pages/DailyChallenge";
@@ -35,6 +37,7 @@ import TryMore from "./pages/TryMore";
 import MasterAI from "./pages/MasterAI";
 import FloatingMasterAI from "./components/FloatingMasterAI";
 import Unsubscribe from "./pages/Unsubscribe";
+import ClaimGuest from "./pages/ClaimGuest";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -76,6 +79,7 @@ const AnimatedRoutes = () => {
         <Route path="/try-more" element={wrap(<TryMore />)} />
         <Route path="/ai" element={wrap(<MasterAI />)} />
         <Route path="/unsubscribe" element={wrap(<Unsubscribe />)} />
+        <Route path="/claim" element={wrap(<ClaimGuest />)} />
         <Route path="*" element={wrap(<NotFound />)} />
       </Routes>
     </AnimatePresence>
@@ -91,14 +95,17 @@ const App = () => (
         <AuthProvider>
           <ThemeProvider>
           <LanguageProvider>
+          <GuestProvider>
           <UIPrefsProvider>
           <BattleInvitePopup />
           <AnimatedRoutes />
           <FloatingMasterAI />
+          <PixVersePopup />
 
           <SpeedInsights />
           <Analytics />
           </UIPrefsProvider>
+          </GuestProvider>
           </LanguageProvider>
           </ThemeProvider>
         </AuthProvider>

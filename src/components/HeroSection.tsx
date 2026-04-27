@@ -1,12 +1,20 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Zap, Brain, Trophy, Target } from "lucide-react";
+import { Zap, Brain, Trophy, Target, UserCircle2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LivePlayersWidget from "@/components/LivePlayersWidget";
+import GuestSignupPrompt from "@/components/GuestSignupPrompt";
+import { PixVerseBanner } from "@/components/PixVersePromo";
+import { useAuth } from "@/contexts/AuthContext";
+import { useGuest } from "@/contexts/GuestContext";
 
 export default function HeroSection() {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const { guest } = useGuest();
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
 
   const stats = [
     { icon: Brain, label: t("hero.statPuzzles"), value: "2.4M+" },
@@ -50,7 +58,7 @@ export default function HeroSection() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link to="/daily">
                 <Button variant="neon" size="xl">
@@ -66,6 +74,18 @@ export default function HeroSection() {
                 </Button>
               </Link>
             </motion.div>
+            {!user && !guest && (
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                <Button variant="ghost" size="lg" onClick={() => setShowGuestPrompt(true)} className="text-primary hover:text-primary">
+                  <UserCircle2 className="w-5 h-5" />
+                  Play as guest
+                </Button>
+              </motion.div>
+            )}
+          </div>
+
+          <div className="max-w-xl mx-auto mb-12">
+            <PixVerseBanner />
           </div>
 
           {/* Stats */}
@@ -92,6 +112,7 @@ export default function HeroSection() {
           </motion.div>
         </motion.div>
       </div>
+      <GuestSignupPrompt open={showGuestPrompt} onClose={() => setShowGuestPrompt(false)} />
     </section>
   );
 }
