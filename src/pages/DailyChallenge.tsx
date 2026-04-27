@@ -161,7 +161,7 @@ export default function DailyChallenge() {
       toast.success(`${t("daily.task")} ${currentTask.task_number} ${t("daily.correct")}`);
       setAnswer(""); setCurrentTaskIndex(i => i + 1);
     }
-  }, [answer, currentTask, user, elapsed, penalties, submitting, refreshProfile, currentTaskIndex, tasks.length, t]);
+  }, [answer, currentTask, user, guest, awardGuest, elapsed, penalties, submitting, refreshProfile, currentTaskIndex, tasks.length, t]);
 
   if (authLoading || loading) {
     return <div className="min-h-screen bg-background"><Navbar /><div className="flex items-center justify-center min-h-screen"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div></div>;
