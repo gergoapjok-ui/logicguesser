@@ -732,6 +732,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tech_news_posts: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_date: string
+          summary: string
+          tags: string[]
+          title: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_date: string
+          summary: string
+          tags?: string[]
+          title: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_date?: string
+          summary?: string
+          tags?: string[]
+          title?: string
+        }
+        Relationships: []
+      }
       user_inventory: {
         Row: {
           id: string
