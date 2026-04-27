@@ -340,12 +340,14 @@ export default function DailyChallenge() {
             )}
           </motion.div>
           {!isPro && (
-            <aside className="hidden lg:block w-64 flex-shrink-0 self-start pt-4">
+            <aside className="hidden lg:block w-64 flex-shrink-0 self-start pt-4 space-y-4">
+              <PixVerseSidebarCard />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
             </aside>
           )}
         </div>
       </div>
+      <GuestSignupPrompt open={showGuestPrompt} onClose={() => setShowGuestPrompt(false)} />
     </div>
   );
 }
