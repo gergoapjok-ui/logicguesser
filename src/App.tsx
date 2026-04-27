@@ -38,6 +38,7 @@ import MasterAI from "./pages/MasterAI";
 import FloatingMasterAI from "./components/FloatingMasterAI";
 import Unsubscribe from "./pages/Unsubscribe";
 import ClaimGuest from "./pages/ClaimGuest";
+import TechNews from "./pages/TechNews";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -80,6 +81,7 @@ const AnimatedRoutes = () => {
         <Route path="/ai" element={wrap(<MasterAI />)} />
         <Route path="/unsubscribe" element={wrap(<Unsubscribe />)} />
         <Route path="/claim" element={wrap(<ClaimGuest />)} />
+        <Route path="/news" element={wrap(<TechNews />)} />
         <Route path="*" element={wrap(<NotFound />)} />
       </Routes>
     </AnimatePresence>

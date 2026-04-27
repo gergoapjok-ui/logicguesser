@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins, Users, Crown, Swords, Settings, Globe, Sparkles, Bot } from "lucide-react";
+import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins, Users, Crown, Swords, Settings, Globe, Sparkles, Bot, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,7 @@ const NAV_KEYS = [
   { key: "nav.community", path: "/community", icon: Globe },
   { key: "nav.trymore", path: "/try-more", icon: Sparkles },
   { key: "nav.ai", path: "/ai", icon: Bot },
+  { key: "nav.news", path: "/news", icon: Newspaper },
 ];
 
 export default function Navbar() {
