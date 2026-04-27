@@ -34,9 +34,12 @@ interface PuzzleTask {
 
 export default function DailyChallenge() {
   const { user, loading: authLoading, profile, refreshProfile } = useAuth();
+  const { guest, awardGuest } = useGuest();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const isPro = profile?.is_pro ?? false;
+  const isGuest = !user && !!guest;
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
 
   const [tasks, setTasks] = useState<PuzzleTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,26 +66,30 @@ export default function DailyChallenge() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { navigate("/login"); return; }
+    if (!user && !guest) { setLoading(false); return; }
     const load = async () => {
       const today = new Date().toISOString().split("T")[0];
       const { data: puzzleData } = await supabase.from("puzzles_public" as any).select("id, question, difficulty, task_number").eq("puzzle_date", today).order("task_number", { ascending: true });
       if (!puzzleData || puzzleData.length === 0) { setTasks([]); setLoading(false); return; }
       setTasks(puzzleData as any);
-      const { data: existing } = await supabase.from("leaderboard").select("time_taken").eq("user_id", user.id).eq("completed_date", today).maybeSingle();
-      if (existing) { setAlreadyCompleted(true); setCompletedTime(existing.time_taken); }
-      else {
-        const { data: progress } = await supabase.from("challenge_progress" as any).select("task_number").eq("user_id", user.id).eq("puzzle_date", today);
-        if (progress && progress.length > 0) {
-          const completedNums = new Set((progress as any[]).map(p => p.task_number));
-          const nextIncomplete = (puzzleData as any[]).findIndex(t => !completedNums.has(t.task_number));
-          if (nextIncomplete >= 0) setCurrentTaskIndex(nextIncomplete);
+      if (user) {
+        const { data: existing } = await supabase.from("leaderboard").select("time_taken").eq("user_id", user.id).eq("completed_date", today).maybeSingle();
+        if (existing) { setAlreadyCompleted(true); setCompletedTime(existing.time_taken); }
+        else {
+          const { data: progress } = await supabase.from("challenge_progress" as any).select("task_number").eq("user_id", user.id).eq("puzzle_date", today);
+          if (progress && progress.length > 0) {
+            const completedNums = new Set((progress as any[]).map(p => p.task_number));
+            const nextIncomplete = (puzzleData as any[]).findIndex(t => !completedNums.has(t.task_number));
+            if (nextIncomplete >= 0) setCurrentTaskIndex(nextIncomplete);
+          }
         }
+      } else if (guest && guest.lastCompletedDate === today) {
+        setAlreadyCompleted(true); setCompletedTime(0);
       }
       setLoading(false);
     };
     load();
-  }, [user, authLoading, navigate]);
+  }, [user, guest, authLoading]);
 
   useEffect(() => {
     if (running) intervalRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
