@@ -290,6 +290,83 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_accounts: {
+        Row: {
+          claim_code_hash: string
+          created_at: string
+          credits: number
+          current_streak: number
+          display_name: string
+          display_name_lower: string | null
+          id: string
+          last_completed_date: string | null
+          last_seen_at: string
+          xp: number
+        }
+        Insert: {
+          claim_code_hash: string
+          created_at?: string
+          credits?: number
+          current_streak?: number
+          display_name: string
+          display_name_lower?: string | null
+          id?: string
+          last_completed_date?: string | null
+          last_seen_at?: string
+          xp?: number
+        }
+        Update: {
+          claim_code_hash?: string
+          created_at?: string
+          credits?: number
+          current_streak?: number
+          display_name?: string
+          display_name_lower?: string | null
+          id?: string
+          last_completed_date?: string | null
+          last_seen_at?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      guest_leaderboard_entries: {
+        Row: {
+          completed_date: string
+          created_at: string
+          display_name: string
+          guest_id: string
+          id: string
+          puzzle_id: string
+          time_taken: number
+        }
+        Insert: {
+          completed_date?: string
+          created_at?: string
+          display_name: string
+          guest_id: string
+          id?: string
+          puzzle_id: string
+          time_taken: number
+        }
+        Update: {
+          completed_date?: string
+          created_at?: string
+          display_name?: string
+          guest_id?: string
+          id?: string
+          puzzle_id?: string
+          time_taken?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_leaderboard_entries_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guest_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leaderboard: {
         Row: {
           completed_date: string
@@ -797,6 +874,10 @@ export type Database = {
       }
     }
     Functions: {
+      claim_guest_account: {
+        Args: { _code: string; _name: string }
+        Returns: Json
+      }
       create_notification_if_enabled: {
         Args: {
           _body: string
