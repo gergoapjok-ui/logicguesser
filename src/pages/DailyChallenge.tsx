@@ -5,10 +5,14 @@ import { Timer, Send, CheckCircle2, Clock, Loader2, AlertTriangle, Flame, XCircl
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGuest } from "@/contexts/GuestContext";
 import { supabase } from "@/integrations/supabase/client";
+import { isAnswerCorrect } from "@/lib/fuzzyMatch";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
+import GuestSignupPrompt from "@/components/GuestSignupPrompt";
+import { PixVerseSidebarCard } from "@/components/PixVersePromo";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 function formatTime(seconds: number) {
