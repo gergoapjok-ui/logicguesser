@@ -9,6 +9,8 @@ import { isAnswerCorrect } from "@/lib/fuzzyMatch";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
+import { PixVerseSidebarCard } from "@/components/PixVersePromo";
+import { useGuest } from "@/contexts/GuestContext";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { generatePuzzle, type PuzzleCategory, type Puzzle } from "@/lib/puzzleGenerator";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -22,6 +24,7 @@ function formatTime(seconds: number) {
 
 export default function Practice() {
   const { user, profile, refreshProfile } = useAuth();
+  const { guest, awardGuest } = useGuest();
   const { t, language } = useLanguage();
   const puzzleLang = language as PuzzleLang;
   const isPro = profile?.is_pro ?? false;
@@ -58,12 +61,16 @@ export default function Practice() {
         refreshProfile();
         setShowCredit(true);
         setTimeout(() => setShowCredit(false), 1500);
+      } else if (guest) {
+        await awardGuest({ addXp: 10, addCredits: 5 });
+        setShowCredit(true);
+        setTimeout(() => setShowCredit(false), 1500);
       }
       toast.success(`${t("practice.correct")} ${t("practice.solvedIn")} ${formatTime(elapsed)}`);
     } else {
       toast.error(t("practice.wrongTryAgain"));
     }
-  }, [puzzle, elapsed, user, refreshProfile, t]);
+  }, [puzzle, elapsed, user, guest, awardGuest, refreshProfile, t]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -178,9 +185,10 @@ export default function Practice() {
             )}
           </motion.div>
           {!isPro && (
-            <aside className="hidden lg:block w-64 flex-shrink-0 pt-4">
+            <aside className="hidden lg:block w-64 flex-shrink-0 pt-4 space-y-4">
+              <PixVerseSidebarCard />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
-              <AdPlaceholder slot={AD_SLOTS.sidebar} className="mt-4" />
+              <AdPlaceholder slot={AD_SLOTS.sidebar} />
             </aside>
           )}
         </div>
