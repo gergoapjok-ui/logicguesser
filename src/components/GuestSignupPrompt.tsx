@@ -27,7 +27,7 @@ export default function GuestSignupPrompt({ open, onClose, onCreated }: Props) {
     setLoading(true);
     const res = await createGuest(name.trim());
     setLoading(false);
-    if (!res.ok) { toast.error(res.error); return; }
+    if (!res.ok) { toast.error(("error" in res && res.error) || "Failed"); return; }
     setShowCode(true);
     onCreated?.();
   };
