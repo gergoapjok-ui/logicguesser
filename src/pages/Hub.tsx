@@ -67,7 +67,7 @@ export default function Hub() {
           >
             <div className="relative w-16 h-16 mx-auto mb-4">
               <Smartphone className="w-16 h-16 text-primary mx-auto" />
-              <RotateCw className="w-6 h-6 text-neon-amber absolute -top-1 -right-1 animate-spin-slow" />
+              <RotateCw className="w-6 h-6 text-neon-amber absolute -top-1 -right-1" />
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground mb-2">
               Desktop <span className="text-primary text-glow">Hub</span>
