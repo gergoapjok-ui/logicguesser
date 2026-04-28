@@ -187,8 +187,10 @@ export default function Practice() {
           </motion.div>
           {!isPro && (
             <aside className="hidden lg:block w-64 flex-shrink-0 pt-4 space-y-4">
+              <UpgradeProCTA variant="card" message="Unlimited practice, no cooldowns, double credits." />
               <PixVerseSidebarCard />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
+              <UpgradeProCTA variant="compact" className="block text-center" />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
             </aside>
           )}
