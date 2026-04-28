@@ -732,11 +732,46 @@ export type Database = {
         }
         Relationships: []
       }
+      tech_news_likes: {
+        Row: {
+          client_fingerprint: string | null
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string | null
+        }
+        Insert: {
+          client_fingerprint?: string | null
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id?: string | null
+        }
+        Update: {
+          client_fingerprint?: string | null
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tech_news_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "tech_news_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tech_news_posts: {
         Row: {
           content: string
           created_at: string
           id: string
+          image_alt: string | null
+          image_url: string | null
+          likes: number
           post_date: string
           summary: string
           tags: string[]
@@ -746,6 +781,9 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          image_alt?: string | null
+          image_url?: string | null
+          likes?: number
           post_date: string
           summary: string
           tags?: string[]
@@ -755,6 +793,9 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          image_alt?: string | null
+          image_url?: string | null
+          likes?: number
           post_date?: string
           summary?: string
           tags?: string[]
