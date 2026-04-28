@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { GuestProvider } from "@/contexts/GuestContext";
 import { PixVersePopup } from "@/components/PixVersePromo";
+import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { UIPrefsProvider } from "@/contexts/UIPrefsContext";
 import Index from "./pages/Index";
 import DailyChallenge from "./pages/DailyChallenge";
@@ -105,6 +106,7 @@ const App = () => (
           <AnimatedRoutes />
           <FloatingMasterAI />
           <PixVersePopup />
+          <UpgradeProCTA variant="floating" />
 
           <SpeedInsights />
           <Analytics />
