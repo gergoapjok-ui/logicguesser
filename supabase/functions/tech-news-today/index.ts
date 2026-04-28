@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
       // Also return last 14 days for the archive
       const { data: recent } = await supabase
         .from("tech_news_posts")
-        .select("id, post_date, title, summary, tags")
+        .select("id, post_date, title, summary, tags, image_url, likes")
         .order("post_date", { ascending: false })
         .limit(14);
       return new Response(JSON.stringify({ post: existing, recent: recent ?? [] }), {
@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
                   content: {
                     type: "string",
                     description:
-                      "Full post body in markdown. 3-5 short paragraphs. Use bold for key names. No images.",
+                      "Full post body in markdown. 4-6 short paragraphs with subheadings. Use bold for key names. Do not embed images.",
                   },
                   tags: {
                     type: "array",
@@ -131,6 +131,37 @@ Deno.serve(async (req) => {
     }
     const args = JSON.parse(toolCall.function.arguments);
 
+    // 2b. Generate a hero image (best-effort, non-fatal)
+    let imageUrl: string | null = null;
+    let imageAlt: string | null = null;
+    try {
+      const imgPrompt = `Editorial hero illustration for a tech news article titled "${args.title}". Theme: ${(args.tags ?? []).join(", ")}. Style: futuristic neon-arcade, glowing cyan and magenta accents, dark background, minimalist, high contrast, no text, cinematic.`;
+      const imgRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image-preview",
+          messages: [{ role: "user", content: imgPrompt }],
+          modalities: ["image", "text"],
+        }),
+      });
+      if (imgRes.ok) {
+        const imgJson = await imgRes.json();
+        const b64 = imgJson.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        if (b64) {
+          imageUrl = b64; // already a data URL like data:image/png;base64,...
+          imageAlt = args.title;
+        }
+      } else {
+        console.warn("image gen failed", imgRes.status, await imgRes.text());
+      }
+    } catch (err) {
+      console.warn("image gen exception", err);
+    }
+
     // 3. Insert (race-safe via unique post_date)
     const { data: inserted, error: insErr } = await supabase
       .from("tech_news_posts")
@@ -140,6 +171,8 @@ Deno.serve(async (req) => {
         summary: args.summary,
         content: args.content,
         tags: args.tags ?? [],
+        image_url: imageUrl,
+        image_alt: imageAlt,
       })
       .select()
       .single();
@@ -157,7 +190,7 @@ Deno.serve(async (req) => {
 
     const { data: recent } = await supabase
       .from("tech_news_posts")
-      .select("id, post_date, title, summary, tags")
+      .select("id, post_date, title, summary, tags, image_url, likes")
       .order("post_date", { ascending: false })
       .limit(14);
 
