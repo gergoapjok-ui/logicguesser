@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
                   content: {
                     type: "string",
                     description:
-                      "Full post body in markdown. 3-5 short paragraphs. Use bold for key names. No images.",
+                      "Full post body in markdown. 4-6 short paragraphs with subheadings. Use bold for key names. Do not embed images.",
                   },
                   tags: {
                     type: "array",
