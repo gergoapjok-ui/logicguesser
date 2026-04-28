@@ -21,6 +21,7 @@ export const LANGUAGE_FLAGS: Record<Language, string> = {
 const en: Record<string, string> = {
   // Nav
   "nav.home": "Home",
+  "nav.hub": "Hub",
   "nav.leaderboard": "Leaderboard",
   "nav.practice": "Practice",
   "nav.shop": "Shop",
@@ -227,6 +228,7 @@ const en: Record<string, string> = {
 
 const hu: Record<string, string> = {
   "nav.home": "Főoldal",
+  "nav.hub": "Központ",
   "nav.leaderboard": "Ranglista",
   "nav.practice": "Gyakorlás",
   "nav.shop": "Bolt",
@@ -422,6 +424,7 @@ const hu: Record<string, string> = {
 
 const la: Record<string, string> = {
   "nav.home": "Domus",
+  "nav.hub": "Centrum",
   "nav.leaderboard": "Tabula",
   "nav.practice": "Exercitium",
   "nav.shop": "Taberna",
@@ -617,6 +620,7 @@ const la: Record<string, string> = {
 
 const el: Record<string, string> = {
   "nav.home": "Αρχική",
+  "nav.hub": "Κέντρο",
   "nav.leaderboard": "Κατάταξη",
   "nav.practice": "Εξάσκηση",
   "nav.shop": "Κατάστημα",
@@ -812,6 +816,7 @@ const el: Record<string, string> = {
 
 const zh: Record<string, string> = {
   "nav.home": "首页",
+  "nav.hub": "中心",
   "nav.leaderboard": "排行榜",
   "nav.practice": "练习",
   "nav.shop": "商店",
