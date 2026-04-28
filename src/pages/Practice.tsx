@@ -91,6 +91,11 @@ export default function Practice() {
       <div className="pt-24 pb-16 container mx-auto px-4 max-w-4xl">
         <div className="flex gap-8">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 max-w-lg mx-auto">
+            {!isPro && user && (
+              <div className="mb-4">
+                <UpgradeProCTA variant="banner" />
+              </div>
+            )}
             <div className="glass rounded-2xl border border-border/50 p-8 relative">
               <AnimatePresence>
                 {showCredit && (
