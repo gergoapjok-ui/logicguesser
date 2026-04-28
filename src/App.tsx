@@ -39,6 +39,7 @@ import FloatingMasterAI from "./components/FloatingMasterAI";
 import Unsubscribe from "./pages/Unsubscribe";
 import ClaimGuest from "./pages/ClaimGuest";
 import TechNews from "./pages/TechNews";
+import Hub from "./pages/Hub";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -57,6 +58,7 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={wrap(<Index />)} />
+        <Route path="/hub" element={wrap(<Hub />)} />
         <Route path="/daily" element={wrap(<DailyChallenge />)} />
         <Route path="/leaderboard" element={wrap(<Leaderboard />)} />
         <Route path="/practice" element={wrap(<Practice />)} />

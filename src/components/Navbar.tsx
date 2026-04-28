@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins, Users, Crown, Swords, Settings, Globe, Sparkles, Bot, Newspaper } from "lucide-react";
+import { Home, Trophy, Dumbbell, ShoppingBag, User, Menu, X, Sun, Moon, LogIn, Flame, Coins, Users, Crown, Swords, Settings, Globe, Sparkles, Bot, Newspaper, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,7 @@ const AVATARS_MAP: Record<string, string> = {
 
 const NAV_KEYS = [
   { key: "nav.home", path: "/", icon: Home },
+  { key: "nav.hub", path: "/hub", icon: LayoutGrid },
   { key: "nav.leaderboard", path: "/leaderboard", icon: Trophy },
   { key: "nav.practice", path: "/practice", icon: Dumbbell },
   { key: "nav.shop", path: "/shop", icon: ShoppingBag },
