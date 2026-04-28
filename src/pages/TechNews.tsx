@@ -18,6 +18,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -185,6 +186,10 @@ export default function TechNews() {
             One AI-curated post every day on what's moving in tech.
           </p>
         </motion.div>
+
+        <div className="mb-8">
+          <UpgradeProCTA variant="banner" message="Read ad-free with LOGICGUESSER Pro." />
+        </div>
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">

@@ -13,6 +13,7 @@ import Navbar from "@/components/Navbar";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
 import GuestSignupPrompt from "@/components/GuestSignupPrompt";
 import { PixVerseSidebarCard } from "@/components/PixVersePromo";
+import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 function formatTime(seconds: number) {
@@ -186,6 +187,11 @@ export default function DailyChallenge() {
       <div className="flex items-center justify-center min-h-screen pt-16 px-4">
         <div className="flex gap-8 w-full max-w-4xl justify-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg">
+            {!isPro && user && (
+              <div className="mb-4">
+                <UpgradeProCTA variant="banner" message="Stuck? Pro lets you retry the daily up to 3 times." />
+              </div>
+            )}
             {!user && !guest && (
               <div className="glass rounded-2xl border border-border/50 p-8 text-center">
                 <h1 className="font-display text-3xl font-bold mb-2">{t("daily.title")} <span className="text-primary text-glow">{t("daily.title2")}</span></h1>
@@ -341,8 +347,10 @@ export default function DailyChallenge() {
           </motion.div>
           {!isPro && (
             <aside className="hidden lg:block w-64 flex-shrink-0 self-start pt-4 space-y-4">
+              <UpgradeProCTA variant="card" message="No more ads. Retry the daily. Earn 2× credits." />
               <PixVerseSidebarCard />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
+              <UpgradeProCTA variant="compact" className="block text-center" />
             </aside>
           )}
         </div>

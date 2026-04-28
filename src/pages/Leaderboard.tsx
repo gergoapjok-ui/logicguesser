@@ -12,6 +12,7 @@ import { getLevel } from "@/lib/leveling";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -255,6 +256,10 @@ export default function Leaderboard() {
                 {t("leaderboard.title")}<span className="text-primary text-glow">{t("leaderboard.title2")}</span>
               </h1>
               <p className="font-body text-muted-foreground text-sm">{t("leaderboard.subtitle")}</p>
+            </div>
+
+            <div className="mb-6">
+              <UpgradeProCTA variant="banner" message="Stand out with a glowing Pro badge on the leaderboard." />
             </div>
 
             <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">

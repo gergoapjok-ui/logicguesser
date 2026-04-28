@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
 import { PixVerseSidebarCard } from "@/components/PixVersePromo";
+import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { useGuest } from "@/contexts/GuestContext";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { generatePuzzle, type PuzzleCategory, type Puzzle } from "@/lib/puzzleGenerator";
@@ -90,6 +91,11 @@ export default function Practice() {
       <div className="pt-24 pb-16 container mx-auto px-4 max-w-4xl">
         <div className="flex gap-8">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 max-w-lg mx-auto">
+            {!isPro && user && (
+              <div className="mb-4">
+                <UpgradeProCTA variant="banner" />
+              </div>
+            )}
             <div className="glass rounded-2xl border border-border/50 p-8 relative">
               <AnimatePresence>
                 {showCredit && (
@@ -186,8 +192,10 @@ export default function Practice() {
           </motion.div>
           {!isPro && (
             <aside className="hidden lg:block w-64 flex-shrink-0 pt-4 space-y-4">
+              <UpgradeProCTA variant="card" message="Unlimited practice, no cooldowns, double credits." />
               <PixVerseSidebarCard />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
+              <UpgradeProCTA variant="compact" className="block text-center" />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
             </aside>
           )}
