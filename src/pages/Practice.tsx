@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
 import { PixVerseSidebarCard } from "@/components/PixVersePromo";
+import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { useGuest } from "@/contexts/GuestContext";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { generatePuzzle, type PuzzleCategory, type Puzzle } from "@/lib/puzzleGenerator";

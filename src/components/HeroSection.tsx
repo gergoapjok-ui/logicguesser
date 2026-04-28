@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import LivePlayersWidget from "@/components/LivePlayersWidget";
 import GuestSignupPrompt from "@/components/GuestSignupPrompt";
 import { PixVerseBanner } from "@/components/PixVersePromo";
+import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGuest } from "@/contexts/GuestContext";
 
@@ -89,6 +90,10 @@ export default function HeroSection() {
                 </Button>
               </motion.div>
             )}
+          </div>
+
+          <div className="max-w-xl mx-auto mb-6">
+            <UpgradeProCTA variant="banner" />
           </div>
 
           <div className="max-w-xl mx-auto mb-12">
