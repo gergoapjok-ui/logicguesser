@@ -11,6 +11,7 @@ import { getLevelProgress } from "@/lib/leveling";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import UpgradeProCTA from "@/components/UpgradeProCTA";
 
 const AVATARS_MAP: Record<string, string> = {
   avatar_cyber_skull: "💀", avatar_neon_cat: "🐱", avatar_glitch_bot: "🤖",
@@ -81,6 +82,9 @@ export default function Profile() {
       <Navbar />
       <div className="flex items-center justify-center min-h-screen pt-16 px-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+          <div className="mb-4">
+            <UpgradeProCTA variant="banner" />
+          </div>
           <div className="glass rounded-2xl border border-border/50 p-8 text-center">
             <div className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center mx-auto mb-4 box-glow">
               {avatarEmoji ? <span className="text-4xl">{avatarEmoji}</span> : <User className="w-10 h-10 text-primary" />}

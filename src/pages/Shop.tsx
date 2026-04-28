@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/contexts/LanguageContext";
+import UpgradeProCTA from "@/components/UpgradeProCTA";
 
 const TITLE_BADGES = [
   { id: "badge_puzzle_master", name: "Puzzle Master", emoji: "🧩", price: 800, proOnly: false },
@@ -140,6 +141,10 @@ export default function Shop() {
               <span className="font-body text-sm text-muted-foreground">{t("shop.credits")}</span>
               {isPro && <span className="ml-2 px-2 py-0.5 rounded-full bg-neon-amber/20 border border-neon-amber/40 text-neon-amber text-[10px] font-display font-bold">{t("general.2xEarn")}</span>}
             </div>
+          </div>
+
+          <div className="mb-8">
+            <UpgradeProCTA variant="banner" message="Pro members earn 2× credits — unlock everything in the shop faster." />
           </div>
 
           {/* Avatars */}
