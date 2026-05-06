@@ -41,6 +41,11 @@ import Unsubscribe from "./pages/Unsubscribe";
 import ClaimGuest from "./pages/ClaimGuest";
 import TechNews from "./pages/TechNews";
 import Hub from "./pages/Hub";
+import About from "./pages/About";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Contact from "./pages/Contact";
+import Faq from "./pages/Faq";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -85,6 +90,11 @@ const AnimatedRoutes = () => {
         <Route path="/unsubscribe" element={wrap(<Unsubscribe />)} />
         <Route path="/claim" element={wrap(<ClaimGuest />)} />
         <Route path="/news" element={wrap(<TechNews />)} />
+        <Route path="/about" element={wrap(<About />)} />
+        <Route path="/privacy" element={wrap(<Privacy />)} />
+        <Route path="/terms" element={wrap(<Terms />)} />
+        <Route path="/contact" element={wrap(<Contact />)} />
+        <Route path="/faq" element={wrap(<Faq />)} />
         <Route path="*" element={wrap(<NotFound />)} />
       </Routes>
     </AnimatePresence>
