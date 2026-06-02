@@ -46,6 +46,8 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Faq from "./pages/Faq";
+import Guides from "./pages/Guides";
+import GuideArticle from "./pages/GuideArticle";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -95,6 +97,8 @@ const AnimatedRoutes = () => {
         <Route path="/terms" element={wrap(<Terms />)} />
         <Route path="/contact" element={wrap(<Contact />)} />
         <Route path="/faq" element={wrap(<Faq />)} />
+        <Route path="/guides" element={wrap(<Guides />)} />
+        <Route path="/guides/:slug" element={wrap(<GuideArticle />)} />
         <Route path="*" element={wrap(<NotFound />)} />
       </Routes>
     </AnimatePresence>
