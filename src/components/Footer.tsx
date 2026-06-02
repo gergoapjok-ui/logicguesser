@@ -55,6 +55,7 @@ export default function Footer() {
           <div className="font-display text-sm font-semibold text-foreground mb-3">Company</div>
           <nav className={linkCol}>
             <Link to="/about" className={linkCls}>About</Link>
+            <Link to="/guides" className={linkCls}>Guides</Link>
             <Link to="/faq" className={linkCls}>FAQ</Link>
             <Link to="/contact" className={linkCls}>Contact</Link>
             <Link to="/pro" className={linkCls}>Go Pro</Link>

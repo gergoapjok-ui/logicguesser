@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Brain, Lightbulb, TrendingUp, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Brain, Lightbulb, TrendingUp, Shield, BookOpen, ArrowRight } from "lucide-react";
 
 export default function ContentSection() {
   return (
@@ -79,6 +80,17 @@ export default function ContentSection() {
                 </p>
               </div>
             ))}
+          </div>
+
+          <div className="mt-10 text-center">
+            <Link
+              to="/guides"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-lg glass border border-primary/30 hover:border-primary text-primary font-display text-sm transition-colors"
+            >
+              <BookOpen className="w-4 h-4" />
+              Read our long-form guides
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </motion.div>
       </div>
