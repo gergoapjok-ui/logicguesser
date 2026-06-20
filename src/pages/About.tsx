@@ -2,12 +2,21 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Brain, Target, Users, Sparkles } from "lucide-react";
-import { useEffect } from "react";
+import { usePageMeta } from "@/lib/seo";
 
 export default function About() {
-  useEffect(() => {
-    document.title = "About LogicGuesser — Train Your Brain Daily";
-  }, []);
+  usePageMeta({
+    title: "About LogicGuesser — Daily brain games",
+    description: "Learn how LogicGuesser builds daily logic puzzles, practice modes, leaderboards, and guides for curious thinkers.",
+    path: "/about",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      name: "About LogicGuesser",
+      url: "https://logic-guesser.lovable.app/about",
+      mainEntity: { "@type": "Organization", name: "LogicGuesser" },
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background grid-pattern">
