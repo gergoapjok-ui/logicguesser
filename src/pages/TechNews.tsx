@@ -119,6 +119,7 @@ export default function TechNews() {
     description: post?.summary ?? "Daily technology brief for LogicGuesser players, covering AI, programming, gaming, hardware, and the web.",
     path: "/news",
     type: post ? "article" : "website",
+    noindex: true,
     image: post?.image_url && post.image_url.startsWith("http") ? post.image_url : undefined,
     jsonLd: post
       ? {
