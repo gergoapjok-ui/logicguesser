@@ -15,6 +15,8 @@ Disallow: /unsubscribe
 Disallow: /claim
 Disallow: /coming-soon
 Disallow: /try-more
+Disallow: /ai
+Disallow: /submit-puzzle
 Disallow: /battle/
 Disallow: /lobbies
 
