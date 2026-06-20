@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { usePageMeta } from "@/lib/seo";
 
 const PRO_PERKS = [
   { icon: RotateCcw, label: "Daily Challenge Retries", desc: "Retry the daily challenge up to 3 times" },
@@ -23,6 +25,12 @@ export default function ProUpgrade() {
   const [searchParams] = useSearchParams();
   const [activating, setActivating] = useState(false);
   const [managingPortal, setManagingPortal] = useState(false);
+
+  usePageMeta({
+    title: "LogicGuesser Pro — Ad-free puzzles",
+    description: "Upgrade to LogicGuesser Pro for ad-free play, daily retries, doubled credit rewards, exclusive avatars, and a Pro badge.",
+    path: "/pro",
+  });
 
   useEffect(() => {
     if (searchParams.get("success") === "true") {
@@ -70,7 +78,7 @@ export default function ProUpgrade() {
   return (
     <div className="min-h-screen bg-background grid-pattern">
       <Navbar />
-      <div className="pt-24 pb-16 container mx-auto px-4 max-w-xl">
+      <main className="pt-24 pb-16 container mx-auto px-4 max-w-xl">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="text-center mb-8">
             <div className="w-16 h-16 rounded-full bg-neon-amber/20 border-2 border-neon-amber flex items-center justify-center mx-auto mb-4 box-glow">
@@ -134,7 +142,8 @@ export default function ProUpgrade() {
             </div>
           )}
         </motion.div>
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 }
