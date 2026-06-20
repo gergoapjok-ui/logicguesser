@@ -206,7 +206,7 @@ export default function TechNews() {
             Daily <span className="text-primary text-glow">Tech Pulse</span>
           </h1>
           <p className="font-body text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-            One AI-curated post every day on what's moving in tech.
+            One concise editorial brief every day on what's moving in tech.
           </p>
         </motion.div>
 
