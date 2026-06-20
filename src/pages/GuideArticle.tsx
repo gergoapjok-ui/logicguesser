@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,6 +9,7 @@ import { ArrowLeft, Clock, Calendar, User, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { getGuide, guides } from "@/data/guides";
 import AdSense from "@/components/AdSense";
+import { usePageMeta } from "@/lib/seo";
 
 export default function GuideArticle() {
   const { slug } = useParams<{ slug: string }>();
@@ -19,19 +20,12 @@ export default function GuideArticle() {
     [slug]
   );
 
-  useEffect(() => {
-    if (!guide) return;
-    document.title = `${guide.title} — LogicGuesser`;
-    const meta =
-      document.querySelector('meta[name="description"]') ||
-      Object.assign(document.createElement("meta"), { name: "description" });
-    meta.setAttribute("content", guide.description);
-    if (!meta.parentNode) document.head.appendChild(meta);
-
-    // JSON-LD Article schema for rich results
-    const script = document.createElement("script");
-    script.type = "application/ld+json";
-    script.text = JSON.stringify({
+  usePageMeta({
+    title: guide ? `${guide.title} — LogicGuesser` : "Guides — LogicGuesser",
+    description: guide?.description ?? "Original LogicGuesser guides about puzzle solving and brain training.",
+    path: guide ? `/guides/${guide.slug}` : "/guides",
+    type: "article",
+    jsonLd: guide ? {
       "@context": "https://schema.org",
       "@type": "Article",
       headline: guide.title,
@@ -46,21 +40,10 @@ export default function GuideArticle() {
       },
       mainEntityOfPage: {
         "@type": "WebPage",
-        "@id": `https://logicguesser.com/guides/${guide.slug}`,
+        "@id": `https://logic-guesser.lovable.app/guides/${guide.slug}`,
       },
-    });
-    document.head.appendChild(script);
-
-    const canonical =
-      document.querySelector('link[rel="canonical"]') ||
-      Object.assign(document.createElement("link"), { rel: "canonical" });
-    canonical.setAttribute("href", `https://logicguesser.com/guides/${guide.slug}`);
-    if (!canonical.parentNode) document.head.appendChild(canonical);
-
-    return () => {
-      if (script.parentNode) document.head.removeChild(script);
-    };
-  }, [guide]);
+    } : undefined,
+  });
 
   if (!guide) return <Navigate to="/guides" replace />;
 
