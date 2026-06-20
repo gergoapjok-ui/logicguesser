@@ -4,6 +4,8 @@ Disallow: /admin/
 Disallow: /hub
 Disallow: /shop
 Disallow: /profile
+Disallow: /leaderboard
+Disallow: /community
 Disallow: /friends
 Disallow: /chat/
 Disallow: /settings
