@@ -16,6 +16,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { generatePuzzle, type PuzzleCategory, type Puzzle } from "@/lib/puzzleGenerator";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { PuzzleLang } from "@/lib/puzzleTranslations";
+import { usePageMeta } from "@/lib/seo";
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -29,6 +30,13 @@ export default function Practice() {
   const { t, language } = useLanguage();
   const puzzleLang = language as PuzzleLang;
   const isPro = profile?.is_pro ?? false;
+
+  usePageMeta({
+    title: "Practice Logic Puzzles — LogicGuesser",
+    description: "Practice unlimited logic, word, math, visual, and code puzzles with instant feedback and answer checking.",
+    path: "/practice",
+  });
+
   const [category, setCategory] = useState<PuzzleCategory | undefined>(undefined);
   const [puzzle, setPuzzle] = useState<Puzzle>(() => generatePuzzle(undefined, puzzleLang));
   const [answer, setAnswer] = useState("");
