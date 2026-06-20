@@ -51,8 +51,46 @@ import EditorialStandards from "./pages/EditorialStandards";
 import PuzzleArchive from "./pages/PuzzleArchive";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
+
+const NOINDEX_PREFIXES = [
+  "/admin",
+  "/hub",
+  "/shop",
+  "/profile",
+  "/friends",
+  "/chat",
+  "/settings",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/unsubscribe",
+  "/claim",
+  "/coming-soon",
+  "/try-more",
+  "/battle",
+  "/lobbies",
+];
+
+function RouteRobots() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const shouldNoindex = NOINDEX_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+    let meta = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "robots");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", shouldNoindex ? "noindex,follow" : "index,follow,max-image-preview:large");
+  }, [pathname]);
+
+  return null;
+}
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -120,6 +158,7 @@ const App = () => (
           <GuestProvider>
           <UIPrefsProvider>
           <BattleInvitePopup />
+          <RouteRobots />
           <AnimatedRoutes />
           <FloatingMasterAI />
           <UpgradeProCTA variant="floating" />
