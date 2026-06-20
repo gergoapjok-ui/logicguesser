@@ -1,8 +1,21 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /hub
+Disallow: /shop
+Disallow: /profile
+Disallow: /friends
+Disallow: /chat/
+Disallow: /settings
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /unsubscribe
 Disallow: /claim
+Disallow: /coming-soon
+Disallow: /try-more
+Disallow: /battle/
+Disallow: /lobbies
 
-Sitemap: https://logicguesser.com/sitemap.xml
+Sitemap: https://logic-guesser.lovable.app/sitemap.xml
