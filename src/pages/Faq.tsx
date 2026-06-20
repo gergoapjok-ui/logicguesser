@@ -6,7 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useEffect } from "react";
+import { usePageMeta } from "@/lib/seo";
 
 const faqs = [
   {
@@ -52,13 +52,11 @@ const faqs = [
 ];
 
 export default function Faq() {
-  useEffect(() => {
-    document.title = "FAQ — LogicGuesser";
-
-    // JSON-LD FAQ schema for SEO
-    const script = document.createElement("script");
-    script.type = "application/ld+json";
-    script.text = JSON.stringify({
+  usePageMeta({
+    title: "FAQ — LogicGuesser",
+    description: "Answers about LogicGuesser puzzles, guest play, scoring, leaderboards, Pro, friends, submissions, privacy, and languages.",
+    path: "/faq",
+    jsonLd: {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       mainEntity: faqs.map((f) => ({
@@ -66,12 +64,8 @@ export default function Faq() {
         name: f.q,
         acceptedAnswer: { "@type": "Answer", text: f.a },
       })),
-    });
-    document.head.appendChild(script);
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background grid-pattern">
