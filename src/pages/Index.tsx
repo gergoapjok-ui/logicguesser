@@ -5,43 +5,38 @@ import ContentSection from "@/components/ContentSection";
 import Footer from "@/components/Footer";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
+import { usePageMeta } from "@/lib/seo";
 
 const Index = () => {
   const { profile } = useAuth();
   const isPro = profile?.is_pro ?? false;
 
-  useEffect(() => {
-    document.title = "LogicGuesser — Daily logic puzzles, brain games, and tech pulse";
-    // JSON-LD WebSite + Organization for SEO
-    const script = document.createElement("script");
-    script.type = "application/ld+json";
-    script.text = JSON.stringify({
+  usePageMeta({
+    title: "LogicGuesser — Daily logic puzzles",
+    description: "Play daily logic puzzles, word riddles, math challenges, and original strategy guides in five focused minutes a day.",
+    path: "/",
+    jsonLd: {
       "@context": "https://schema.org",
       "@graph": [
         {
           "@type": "WebSite",
           name: "LogicGuesser",
-          url: "https://logicguesser.com",
+          url: "https://logic-guesser.lovable.app",
           potentialAction: {
             "@type": "SearchAction",
-            target: "https://logicguesser.com/practice?q={search_term_string}",
+            target: "https://logic-guesser.lovable.app/practice?q={search_term_string}",
             "query-input": "required name=search_term_string",
           },
         },
         {
           "@type": "Organization",
           name: "LogicGuesser",
-          url: "https://logicguesser.com",
+          url: "https://logic-guesser.lovable.app",
           sameAs: [],
         },
       ],
-    });
-    document.head.appendChild(script);
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background">
