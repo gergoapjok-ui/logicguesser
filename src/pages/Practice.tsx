@@ -9,7 +9,6 @@ import { isAnswerCorrect } from "@/lib/fuzzyMatch";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
-import { PixVerseSidebarCard } from "@/components/PixVersePromo";
 import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { useGuest } from "@/contexts/GuestContext";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -201,7 +200,6 @@ export default function Practice() {
           {!isPro && (
             <aside className="hidden lg:block w-64 flex-shrink-0 pt-4 space-y-4">
               <UpgradeProCTA variant="card" message="Unlimited practice, no cooldowns, double credits." />
-              <PixVerseSidebarCard />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
               <UpgradeProCTA variant="compact" className="block text-center" />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
