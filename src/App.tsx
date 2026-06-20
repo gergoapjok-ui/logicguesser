@@ -60,6 +60,8 @@ const NOINDEX_PREFIXES = [
   "/hub",
   "/shop",
   "/profile",
+  "/leaderboard",
+  "/community",
   "/friends",
   "/chat",
   "/settings",
