@@ -50,6 +50,7 @@ export function usePageMeta({
 }: PageMetaOptions) {
   useEffect(() => {
     const url = absoluteUrl(path);
+    const previewImage = image ?? `${SITE_URL}/screenshot-desktop.png`;
     document.title = title;
 
     upsertMeta("name", "description", description);
@@ -61,13 +62,11 @@ export function usePageMeta({
     upsertMeta("property", "og:title", title);
     upsertMeta("property", "og:description", description);
     upsertMeta("property", "og:url", url);
-    upsertMeta("name", "twitter:card", image ? "summary_large_image" : "summary");
+    upsertMeta("name", "twitter:card", "summary_large_image");
     upsertMeta("name", "twitter:title", title);
     upsertMeta("name", "twitter:description", description);
-    if (image) {
-      upsertMeta("property", "og:image", image);
-      upsertMeta("name", "twitter:image", image);
-    }
+    upsertMeta("property", "og:image", previewImage);
+    upsertMeta("name", "twitter:image", previewImage);
 
     const existing = document.head.querySelector<HTMLScriptElement>('script[data-page-json-ld="true"]');
     if (existing) existing.remove();
