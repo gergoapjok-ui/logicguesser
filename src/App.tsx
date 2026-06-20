@@ -73,6 +73,7 @@ const NOINDEX_PREFIXES = [
   "/try-more",
   "/ai",
   "/submit-puzzle",
+  "/news",
   "/battle",
   "/lobbies",
 ];
