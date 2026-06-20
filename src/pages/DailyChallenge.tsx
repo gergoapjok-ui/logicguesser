@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
 import GuestSignupPrompt from "@/components/GuestSignupPrompt";
-import { PixVerseSidebarCard } from "@/components/PixVersePromo";
 import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePageMeta } from "@/lib/seo";
@@ -355,7 +354,6 @@ export default function DailyChallenge() {
           {!isPro && (
             <aside className="hidden lg:block w-64 flex-shrink-0 self-start pt-4 space-y-4">
               <UpgradeProCTA variant="card" message="No more ads. Retry the daily. Earn 2× credits." />
-              <PixVerseSidebarCard />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
               <UpgradeProCTA variant="compact" className="block text-center" />
             </aside>
