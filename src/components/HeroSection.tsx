@@ -16,9 +16,9 @@ export default function HeroSection() {
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
 
   const stats = [
-    { icon: Brain, label: t("hero.statPuzzles"), value: "2.4M+" },
-    { icon: Trophy, label: t("hero.statPlayers"), value: "85K+" },
-    { icon: Target, label: t("hero.statDaily"), value: "365" },
+    { icon: Brain, label: "Puzzle styles", value: "5" },
+    { icon: Trophy, label: "Skill modes", value: "4" },
+    { icon: Target, label: "Fresh challenge", value: "Daily" },
   ];
 
   return (
