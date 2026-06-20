@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { isAnswerCorrect } from "@/lib/fuzzyMatch";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import { usePageMeta } from "@/lib/seo";
 
 const DIFFICULTIES = ["easy", "medium", "hard"];
 const CATEGORIES = ["math", "logic", "word", "cipher", "trivia", "patterns", "spatial", "code"];
@@ -26,6 +27,13 @@ interface CommunityPuzzle {
 
 export default function CommunityPuzzles() {
   const { user } = useAuth();
+
+  usePageMeta({
+    title: "Community Puzzles — LogicGuesser",
+    description: "Solve player-created logic puzzles or publish your own challenge for the LogicGuesser community.",
+    path: "/community",
+  });
+
   const [puzzles, setPuzzles] = useState<CommunityPuzzle[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);

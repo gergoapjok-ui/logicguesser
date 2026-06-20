@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SITE_URL, usePageMeta } from "@/lib/seo";
 
 interface NewsPost {
   id: string;
@@ -113,6 +114,29 @@ export default function TechNews() {
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareText = post ? `${post.title} — Daily Tech Pulse on LogicGuesser` : "";
 
+  usePageMeta({
+    title: post ? `${post.title} — Tech Pulse` : "Tech Pulse — LogicGuesser",
+    description: post?.summary ?? "Daily technology brief for LogicGuesser players, covering AI, programming, gaming, hardware, and the web.",
+    path: "/news",
+    type: post ? "article" : "website",
+    noindex: true,
+    image: post?.image_url && post.image_url.startsWith("http") ? post.image_url : undefined,
+    jsonLd: post
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: post.title,
+          description: post.summary,
+          datePublished: post.post_date,
+          dateModified: post.post_date,
+          image: post.image_url && post.image_url.startsWith("http") ? post.image_url : `${SITE_URL}/screenshot-desktop.png`,
+          author: { "@type": "Organization", name: "LogicGuesser Editorial" },
+          publisher: { "@type": "Organization", name: "LogicGuesser", url: SITE_URL },
+          mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/news` },
+        }
+      : undefined,
+  });
+
   async function toggleLike() {
     if (!post || likeBusy) return;
     setLikeBusy(true);
@@ -183,7 +207,7 @@ export default function TechNews() {
             Daily <span className="text-primary text-glow">Tech Pulse</span>
           </h1>
           <p className="font-body text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-            One AI-curated post every day on what's moving in tech.
+            One concise editorial brief every day on what's moving in tech.
           </p>
         </motion.div>
 
@@ -242,7 +266,7 @@ export default function TechNews() {
                   </span>
                   <span className="ml-auto inline-flex items-center gap-1 text-primary">
                     <Sparkles className="w-3.5 h-3.5" />
-                    AI generated
+                    Tech Pulse brief
                   </span>
                 </div>
                 <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-3 leading-tight">
@@ -288,6 +312,7 @@ export default function TechNews() {
                       onClick={nativeShare}
                       className="gap-2"
                       title="Share"
+                      aria-label="Share this Tech Pulse post"
                     >
                       <Share2 className="w-4 h-4" />
                       Share
@@ -297,6 +322,7 @@ export default function TechNews() {
                       size="icon"
                       asChild
                       title="Share on X / Twitter"
+                      aria-label="Share this Tech Pulse post on X"
                     >
                       <a
                         href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`}
@@ -311,6 +337,7 @@ export default function TechNews() {
                       size="icon"
                       asChild
                       title="Share on Facebook"
+                      aria-label="Share this Tech Pulse post on Facebook"
                     >
                       <a
                         href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
@@ -325,6 +352,7 @@ export default function TechNews() {
                       size="icon"
                       onClick={copyLink}
                       title="Copy link"
+                      aria-label="Copy this Tech Pulse post link"
                     >
                       {copied ? <Check className="w-4 h-4 text-primary" /> : <Link2 className="w-4 h-4" />}
                     </Button>

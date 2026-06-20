@@ -1,11 +1,13 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useEffect } from "react";
+import { usePageMeta } from "@/lib/seo";
 
 export default function Privacy() {
-  useEffect(() => {
-    document.title = "Privacy Policy — LogicGuesser";
-  }, []);
+  usePageMeta({
+    title: "Privacy Policy — LogicGuesser",
+    description: "How LogicGuesser collects, uses, protects, and shares data, including cookies, analytics, advertising, and privacy rights.",
+    path: "/privacy",
+  });
 
   return (
     <div className="min-h-screen bg-background grid-pattern">

@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -7,19 +6,25 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, ArrowRight, BookOpen } from "lucide-react";
 import { guides } from "@/data/guides";
 import AdSense from "@/components/AdSense";
+import { usePageMeta } from "@/lib/seo";
 
 export default function Guides() {
-  useEffect(() => {
-    document.title = "Guides & long-form articles — LogicGuesser";
-    const meta =
-      document.querySelector('meta[name="description"]') ||
-      Object.assign(document.createElement("meta"), { name: "description" });
-    meta.setAttribute(
-      "content",
-      "In-depth, original articles on logic puzzles, brain training science, daily-habit design, and the techniques used by the top solvers on LogicGuesser."
-    );
-    if (!meta.parentNode) document.head.appendChild(meta);
-  }, []);
+  usePageMeta({
+    title: "Guides & Articles — LogicGuesser",
+    description: "Original long-form guides on logic puzzles, brain training science, habits, and solving techniques from LogicGuesser.",
+    path: "/guides",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "LogicGuesser Guides",
+      url: "https://logicguesser.com/guides",
+      hasPart: guides.map((guide) => ({
+        "@type": "Article",
+        headline: guide.title,
+        url: `https://logicguesser.com/guides/${guide.slug}`,
+      })),
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background grid-pattern">

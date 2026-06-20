@@ -9,13 +9,13 @@ import { isAnswerCorrect } from "@/lib/fuzzyMatch";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
-import { PixVerseSidebarCard } from "@/components/PixVersePromo";
 import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { useGuest } from "@/contexts/GuestContext";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { generatePuzzle, type PuzzleCategory, type Puzzle } from "@/lib/puzzleGenerator";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { PuzzleLang } from "@/lib/puzzleTranslations";
+import { usePageMeta } from "@/lib/seo";
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -29,6 +29,13 @@ export default function Practice() {
   const { t, language } = useLanguage();
   const puzzleLang = language as PuzzleLang;
   const isPro = profile?.is_pro ?? false;
+
+  usePageMeta({
+    title: "Practice Logic Puzzles — LogicGuesser",
+    description: "Practice unlimited logic, word, math, visual, and code puzzles with instant feedback and answer checking.",
+    path: "/practice",
+  });
+
   const [category, setCategory] = useState<PuzzleCategory | undefined>(undefined);
   const [puzzle, setPuzzle] = useState<Puzzle>(() => generatePuzzle(undefined, puzzleLang));
   const [answer, setAnswer] = useState("");
@@ -193,7 +200,6 @@ export default function Practice() {
           {!isPro && (
             <aside className="hidden lg:block w-64 flex-shrink-0 pt-4 space-y-4">
               <UpgradeProCTA variant="card" message="Unlimited practice, no cooldowns, double credits." />
-              <PixVerseSidebarCard />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
               <UpgradeProCTA variant="compact" className="block text-center" />
               <AdPlaceholder slot={AD_SLOTS.sidebar} />

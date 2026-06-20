@@ -3,7 +3,7 @@
   <url><loc>https://logicguesser.com/</loc><priority>1.0</priority><changefreq>daily</changefreq></url>
   <url><loc>https://logicguesser.com/daily</loc><priority>0.9</priority><changefreq>daily</changefreq></url>
   <url><loc>https://logicguesser.com/practice</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
-  <url><loc>https://logicguesser.com/news</loc><priority>0.9</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://logicguesser.com/puzzle-archive</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://logicguesser.com/guides</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
   <url><loc>https://logicguesser.com/guides/how-to-solve-logic-puzzles-faster</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://logicguesser.com/guides/brain-training-science-what-works-what-does-not</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
@@ -11,12 +11,11 @@
   <url><loc>https://logicguesser.com/guides/daily-streaks-and-habit-formation</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://logicguesser.com/guides/logic-puzzle-techniques-glossary</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://logicguesser.com/guides/play-as-guest-and-claim-account</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://logicguesser.com/leaderboard</loc><priority>0.7</priority><changefreq>daily</changefreq></url>
-  <url><loc>https://logicguesser.com/community</loc><priority>0.7</priority><changefreq>weekly</changefreq></url>
   <url><loc>https://logicguesser.com/about</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://logicguesser.com/editorial-standards</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://logicguesser.com/faq</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://logicguesser.com/contact</loc><priority>0.5</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://logicguesser.com/pro</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://logicguesser.com/pro</loc><priority>0.5</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://logicguesser.com/privacy</loc><priority>0.4</priority><changefreq>yearly</changefreq></url>
   <url><loc>https://logicguesser.com/terms</loc><priority>0.4</priority><changefreq>yearly</changefreq></url>
 </urlset>

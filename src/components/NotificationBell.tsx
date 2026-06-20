@@ -109,6 +109,8 @@ export default function NotificationBell() {
         variant="ghost"
         size="icon"
         className="relative w-8 h-8 sm:w-9 sm:h-9"
+        aria-label={open ? "Close notifications" : "Open notifications"}
+        aria-expanded={open}
         onClick={() => {
           const next = !open;
           setOpen(next);

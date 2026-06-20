@@ -20,20 +20,23 @@ export default function AdSense({ className = "", slot, format = "auto", respons
   const pushed = useRef(false);
 
   useEffect(() => {
-    if (pushed.current) return;
+    if (pushed.current || profile?.is_pro) return;
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
       pushed.current = true;
     } catch {
       // AdSense not loaded yet
     }
-  }, []);
+  }, [profile?.is_pro]);
 
   // Don't show ads to Pro users
   if (profile?.is_pro) return null;
 
   return (
     <div className={className}>
+      <div className="mb-1 text-center font-body text-[10px] uppercase tracking-wider text-muted-foreground">
+        Advertisement
+      </div>
       <ins
         ref={adRef}
         className="adsbygoogle"

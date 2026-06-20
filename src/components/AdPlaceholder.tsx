@@ -40,6 +40,9 @@ export default function AdPlaceholder({ className = "", slot = AD_SLOTS.inConten
 
   return (
     <div className={className}>
+      <div className="mb-1 text-center font-body text-[10px] uppercase tracking-wider text-muted-foreground">
+        Advertisement
+      </div>
       <ins
         ref={adRef}
         className="adsbygoogle"

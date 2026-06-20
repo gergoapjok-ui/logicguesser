@@ -6,8 +6,6 @@ import { Zap, Brain, Trophy, Target, UserCircle2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LivePlayersWidget from "@/components/LivePlayersWidget";
 import GuestSignupPrompt from "@/components/GuestSignupPrompt";
-import { PixVerseBanner } from "@/components/PixVersePromo";
-import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGuest } from "@/contexts/GuestContext";
 
@@ -18,9 +16,9 @@ export default function HeroSection() {
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
 
   const stats = [
-    { icon: Brain, label: t("hero.statPuzzles"), value: "2.4M+" },
-    { icon: Trophy, label: t("hero.statPlayers"), value: "85K+" },
-    { icon: Target, label: t("hero.statDaily"), value: "365" },
+    { icon: Brain, label: "Puzzle styles", value: "5" },
+    { icon: Trophy, label: "Skill modes", value: "4" },
+    { icon: Target, label: "Fresh challenge", value: "Daily" },
   ];
 
   return (
@@ -52,6 +50,7 @@ export default function HeroSection() {
           <h1 className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6">
             <span className="text-foreground">{t("hero.title")}</span>
             <span className="text-primary text-glow">{t("hero.title2")}</span>
+            <span className="sr-only"> — daily logic puzzles, brain games, and reasoning challenges</span>
           </h1>
 
           <p className="font-body text-muted-foreground text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -90,14 +89,6 @@ export default function HeroSection() {
                 </Button>
               </motion.div>
             )}
-          </div>
-
-          <div className="max-w-xl mx-auto mb-6">
-            <UpgradeProCTA variant="banner" />
-          </div>
-
-          <div className="max-w-xl mx-auto mb-12">
-            <PixVerseBanner />
           </div>
 
           {/* Stats */}

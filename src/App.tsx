@@ -8,7 +8,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { GuestProvider } from "@/contexts/GuestContext";
-import { PixVersePopup } from "@/components/PixVersePromo";
 import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { UIPrefsProvider } from "@/contexts/UIPrefsContext";
 import Index from "./pages/Index";
@@ -48,10 +47,55 @@ import Contact from "./pages/Contact";
 import Faq from "./pages/Faq";
 import Guides from "./pages/Guides";
 import GuideArticle from "./pages/GuideArticle";
+import EditorialStandards from "./pages/EditorialStandards";
+import PuzzleArchive from "./pages/PuzzleArchive";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
+
+const NOINDEX_PREFIXES = [
+  "/admin",
+  "/hub",
+  "/shop",
+  "/profile",
+  "/leaderboard",
+  "/community",
+  "/friends",
+  "/chat",
+  "/settings",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/unsubscribe",
+  "/claim",
+  "/coming-soon",
+  "/try-more",
+  "/ai",
+  "/submit-puzzle",
+  "/news",
+  "/battle",
+  "/lobbies",
+];
+
+function RouteRobots() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const shouldNoindex = NOINDEX_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+    let meta = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "robots");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", shouldNoindex ? "noindex,follow" : "index,follow,max-image-preview:large");
+  }, [pathname]);
+
+  return null;
+}
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -97,6 +141,8 @@ const AnimatedRoutes = () => {
         <Route path="/terms" element={wrap(<Terms />)} />
         <Route path="/contact" element={wrap(<Contact />)} />
         <Route path="/faq" element={wrap(<Faq />)} />
+        <Route path="/editorial-standards" element={wrap(<EditorialStandards />)} />
+        <Route path="/puzzle-archive" element={wrap(<PuzzleArchive />)} />
         <Route path="/guides" element={wrap(<Guides />)} />
         <Route path="/guides/:slug" element={wrap(<GuideArticle />)} />
         <Route path="*" element={wrap(<NotFound />)} />
@@ -117,9 +163,9 @@ const App = () => (
           <GuestProvider>
           <UIPrefsProvider>
           <BattleInvitePopup />
+          <RouteRobots />
           <AnimatedRoutes />
           <FloatingMasterAI />
-          <PixVersePopup />
           <UpgradeProCTA variant="floating" />
 
           <SpeedInsights />

@@ -6,7 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useEffect } from "react";
+import { usePageMeta } from "@/lib/seo";
 
 const faqs = [
   {
@@ -19,7 +19,7 @@ const faqs = [
   },
   {
     q: "How are puzzles created?",
-    a: "Our puzzle library mixes hand-written puzzles from the team, community submissions vetted by moderators, and AI-generated puzzles that go through an automated quality and difficulty filter before they ever appear in front of players.",
+    a: "Our puzzle library mixes team-written puzzles, community submissions, and generated variants that go through quality, clarity, uniqueness, and difficulty checks before they appear in front of players.",
   },
   {
     q: "How does the streak work?",
@@ -52,13 +52,11 @@ const faqs = [
 ];
 
 export default function Faq() {
-  useEffect(() => {
-    document.title = "FAQ — LogicGuesser";
-
-    // JSON-LD FAQ schema for SEO
-    const script = document.createElement("script");
-    script.type = "application/ld+json";
-    script.text = JSON.stringify({
+  usePageMeta({
+    title: "FAQ — LogicGuesser",
+    description: "Answers about LogicGuesser puzzles, guest play, scoring, leaderboards, Pro, friends, submissions, privacy, and languages.",
+    path: "/faq",
+    jsonLd: {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       mainEntity: faqs.map((f) => ({
@@ -66,12 +64,8 @@ export default function Faq() {
         name: f.q,
         acceptedAnswer: { "@type": "Answer", text: f.a },
       })),
-    });
-    document.head.appendChild(script);
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background grid-pattern">

@@ -68,7 +68,7 @@ export default function Navbar() {
       <div className="container mx-auto flex items-center justify-between h-14 sm:h-16 px-4">
         {/* Logo - smaller on mobile */}
         <Link to="/" className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-          <img src={logoImg} alt="LogicGuesser" className="w-7 h-7 sm:w-8 sm:h-8" width={32} height={32} />
+          <img src={logoImg} alt="LogicGuesser logo" className="w-7 h-7 sm:w-8 sm:h-8" width={32} height={32} />
           <span className="font-display text-[11px] sm:text-sm md:text-base font-bold tracking-wider text-foreground hidden min-[340px]:inline">
             LOGIC<span className="text-primary">GUESSER</span>
           </span>
@@ -119,13 +119,13 @@ export default function Navbar() {
           {user && <NotificationBell />}
           {user && (
             <Link to="/settings" className="flex-shrink-0">
-              <Button variant="ghost" size="icon" className="w-8 h-8 sm:w-9 sm:h-9"><Settings className="w-4 h-4" /></Button>
+              <Button variant="ghost" size="icon" aria-label="Open settings" className="w-8 h-8 sm:w-9 sm:h-9"><Settings className="w-4 h-4" /></Button>
             </Link>
           )}
-          <Button variant="ghost" size="icon" onClick={toggleDark} className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0">
+          <Button variant="ghost" size="icon" onClick={toggleDark} aria-label={dark ? "Switch to light theme" : "Switch to dark theme"} className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0">
             {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
-          <Button variant="ghost" size="icon" className="md:hidden w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0" onClick={() => setMobileOpen(!mobileOpen)}>
+          <Button variant="ghost" size="icon" aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"} aria-expanded={mobileOpen} className="md:hidden w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
         </div>

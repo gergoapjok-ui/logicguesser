@@ -2,12 +2,21 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Brain, Target, Users, Sparkles } from "lucide-react";
-import { useEffect } from "react";
+import { usePageMeta } from "@/lib/seo";
 
 export default function About() {
-  useEffect(() => {
-    document.title = "About LogicGuesser — Train Your Brain Daily";
-  }, []);
+  usePageMeta({
+    title: "About LogicGuesser — Daily brain games",
+    description: "Learn how LogicGuesser builds daily logic puzzles, practice modes, leaderboards, and guides for curious thinkers.",
+    path: "/about",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      name: "About LogicGuesser",
+      url: "https://logicguesser.com/about",
+      mainEntity: { "@type": "Organization", name: "LogicGuesser" },
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background grid-pattern">
@@ -28,7 +37,7 @@ export default function About() {
             <p>
               LogicGuesser was built on a simple idea: cognitive exercise should be as
               easy and enjoyable as scrolling a feed — but actually leave you sharper.
-              Every day we hand-curate and AI-craft new logic puzzles, word riddles,
+              Every day we design and review new logic puzzles, word riddles,
               math challenges, and lateral-thinking problems designed to stretch the
               way you reason. Whether you have three minutes during a coffee break or
               an hour for a deep dive, there is always something fresh waiting.
@@ -49,8 +58,8 @@ export default function About() {
             <p>
               On top of the daily run, we offer a full Practice mode with category
               filters, a global leaderboard with seasonal resets, real-time 1v1
-              battles, friend lobbies, and a daily Tech Pulse column written by an AI
-              editor that summarises what is genuinely worth knowing in tech today.
+              battles, friend lobbies, and a daily Tech Pulse column that summarises
+              what is genuinely worth knowing in tech today.
             </p>
           </section>
 
@@ -93,7 +102,7 @@ export default function About() {
             { icon: Brain, t: "5 puzzle categories", d: "Logic, word, math, visual, code." },
             { icon: Target, t: "Daily streaks", d: "Build a habit that compounds." },
             { icon: Users, t: "Real-time battles", d: "Challenge friends or strangers." },
-            { icon: Sparkles, t: "AI-curated content", d: "Fresh tech news every day." },
+            { icon: Sparkles, t: "Daily Tech Pulse", d: "Fresh tech news every day." },
           ].map((f) => (
             <Card key={f.t} className="p-5 glass">
               <f.icon className="w-6 h-6 text-primary mb-2" />

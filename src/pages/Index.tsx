@@ -5,18 +5,17 @@ import ContentSection from "@/components/ContentSection";
 import Footer from "@/components/Footer";
 import AdPlaceholder, { AD_SLOTS } from "@/components/AdPlaceholder";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
+import { usePageMeta } from "@/lib/seo";
 
 const Index = () => {
   const { profile } = useAuth();
   const isPro = profile?.is_pro ?? false;
 
-  useEffect(() => {
-    document.title = "LogicGuesser — Daily logic puzzles, brain games, and tech pulse";
-    // JSON-LD WebSite + Organization for SEO
-    const script = document.createElement("script");
-    script.type = "application/ld+json";
-    script.text = JSON.stringify({
+  usePageMeta({
+    title: "LogicGuesser — Daily logic puzzles",
+    description: "Play daily logic puzzles, word riddles, math challenges, and original strategy guides in five focused minutes a day.",
+    path: "/",
+    jsonLd: {
       "@context": "https://schema.org",
       "@graph": [
         {
@@ -36,24 +35,22 @@ const Index = () => {
           sameAs: [],
         },
       ],
-    });
-    document.head.appendChild(script);
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <HeroSection />
-      <FeaturesSection />
-      <ContentSection />
-      {!isPro && (
-        <div className="container mx-auto px-4 max-w-3xl py-4">
-          <AdPlaceholder slot={AD_SLOTS.inContent} />
-        </div>
-      )}
+      <main>
+        <HeroSection />
+        <FeaturesSection />
+        <ContentSection />
+        {!isPro && (
+          <div className="container mx-auto px-4 max-w-3xl py-4">
+            <AdPlaceholder slot={AD_SLOTS.inContent} />
+          </div>
+        )}
+      </main>
       <Footer />
     </div>
   );

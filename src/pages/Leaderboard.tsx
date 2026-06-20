@@ -15,6 +15,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { usePageMeta } from "@/lib/seo";
 
 interface DailyEntry {
   id: string;
@@ -68,6 +69,12 @@ export default function Leaderboard() {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
   const isPro = profile?.is_pro ?? false;
+
+  usePageMeta({
+    title: "Puzzle Leaderboard — LogicGuesser",
+    description: "See daily, monthly, and yearly LogicGuesser puzzle rankings based on speed, accuracy, XP, and challenge results.",
+    path: "/leaderboard",
+  });
 
   const today = useMemo(() => new Date(), []);
   const [tab, setTab] = useState<"daily" | "monthly" | "yearly">("daily");
@@ -361,7 +368,6 @@ export default function Leaderboard() {
           {!isPro && (
             <aside className="hidden lg:block w-64 flex-shrink-0 pt-16">
               <AdPlaceholder slot={AD_SLOTS.sidebar} />
-              <AdPlaceholder slot={AD_SLOTS.sidebar} className="mt-4" />
             </aside>
           )}
         </div>

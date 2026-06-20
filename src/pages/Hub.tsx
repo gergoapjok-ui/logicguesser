@@ -18,7 +18,7 @@ const TILES = [
   { path: "/friends", label: "Friends", desc: "Chat, invite, compete with friends", icon: Users, color: "text-primary", border: "border-primary/40", glow: "from-primary/20" },
   { path: "/community", label: "Community Puzzles", desc: "Puzzles created by other players", icon: Globe, color: "text-neon-purple", border: "border-neon-purple/40", glow: "from-neon-purple/20" },
   { path: "/shop", label: "Shop", desc: "Avatars, themes, and credit packs", icon: ShoppingBag, color: "text-neon-amber", border: "border-neon-amber/40", glow: "from-neon-amber/20" },
-  { path: "/news", label: "Tech News", desc: "Daily AI-curated tech pulse", icon: Newspaper, color: "text-primary", border: "border-primary/40", glow: "from-primary/20" },
+  { path: "/news", label: "Tech News", desc: "Daily editorial tech pulse", icon: Newspaper, color: "text-primary", border: "border-primary/40", glow: "from-primary/20" },
   { path: "/ai", label: "Master AI", desc: "Chat with the puzzle master", icon: Bot, color: "text-neon-purple", border: "border-neon-purple/40", glow: "from-neon-purple/20" },
   { path: "/try-more", label: "Try More", desc: "Discover more game modes", icon: Sparkles, color: "text-neon-amber", border: "border-neon-amber/40", glow: "from-neon-amber/20" },
   { path: "/profile", label: "Profile", desc: "Stats, level, achievements", icon: User, color: "text-primary", border: "border-primary/40", glow: "from-primary/20" },

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Brain, Lightbulb, TrendingUp, Shield, BookOpen, ArrowRight } from "lucide-react";
+import { Brain, Lightbulb, TrendingUp, Shield, BookOpen, ArrowRight, Archive, ClipboardCheck } from "lucide-react";
 
 export default function ContentSection() {
   return (
@@ -82,7 +82,7 @@ export default function ContentSection() {
             ))}
           </div>
 
-          <div className="mt-10 text-center">
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
             <Link
               to="/guides"
               className="inline-flex items-center gap-2 px-5 py-3 rounded-lg glass border border-primary/30 hover:border-primary text-primary font-display text-sm transition-colors"
@@ -90,6 +90,20 @@ export default function ContentSection() {
               <BookOpen className="w-4 h-4" />
               Read our long-form guides
               <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              to="/puzzle-archive"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-lg glass border border-border/50 hover:border-primary text-foreground font-display text-sm transition-colors"
+            >
+              <Archive className="w-4 h-4" />
+              Explore puzzle examples
+            </Link>
+            <Link
+              to="/editorial-standards"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-lg glass border border-border/50 hover:border-primary text-foreground font-display text-sm transition-colors"
+            >
+              <ClipboardCheck className="w-4 h-4" />
+              Review our standards
             </Link>
           </div>
         </motion.div>

@@ -2,12 +2,14 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Mail, MessageSquare, Bug, Briefcase } from "lucide-react";
-import { useEffect } from "react";
+import { usePageMeta } from "@/lib/seo";
 
 export default function Contact() {
-  useEffect(() => {
-    document.title = "Contact LogicGuesser";
-  }, []);
+  usePageMeta({
+    title: "Contact LogicGuesser",
+    description: "Contact LogicGuesser for support, billing help, press requests, bug reports, legal questions, and privacy requests.",
+    path: "/contact",
+  });
 
   const items = [
     {

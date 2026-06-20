@@ -46,6 +46,7 @@ export default function Footer() {
           <nav className={linkCol}>
             <Link to="/daily" className={linkCls}>Daily Challenge</Link>
             <Link to="/practice" className={linkCls}>Practice</Link>
+            <Link to="/puzzle-archive" className={linkCls}>Puzzle Archive</Link>
             <Link to="/leaderboard" className={linkCls}>Leaderboard</Link>
             <Link to="/news" className={linkCls}>Tech Pulse</Link>
           </nav>
@@ -56,6 +57,7 @@ export default function Footer() {
           <nav className={linkCol}>
             <Link to="/about" className={linkCls}>About</Link>
             <Link to="/guides" className={linkCls}>Guides</Link>
+            <Link to="/editorial-standards" className={linkCls}>Editorial Standards</Link>
             <Link to="/faq" className={linkCls}>FAQ</Link>
             <Link to="/contact" className={linkCls}>Contact</Link>
             <Link to="/pro" className={linkCls}>Go Pro</Link>
