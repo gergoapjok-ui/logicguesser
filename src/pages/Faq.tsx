@@ -19,7 +19,7 @@ const faqs = [
   },
   {
     q: "How are puzzles created?",
-    a: "Our puzzle library mixes hand-written puzzles from the team, community submissions vetted by moderators, and AI-generated puzzles that go through an automated quality and difficulty filter before they ever appear in front of players.",
+    a: "Our puzzle library mixes team-written puzzles, community submissions, and generated variants that go through quality, clarity, uniqueness, and difficulty checks before they appear in front of players.",
   },
   {
     q: "How does the streak work?",
