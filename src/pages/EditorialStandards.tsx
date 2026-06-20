@@ -36,7 +36,7 @@ export default function EditorialStandards() {
       "@context": "https://schema.org",
       "@type": "AboutPage",
       name: "LogicGuesser Editorial Standards",
-      url: "https://logic-guesser.lovable.app/editorial-standards",
+      url: "https://logicguesser.com/editorial-standards",
       publisher: { "@type": "Organization", name: "LogicGuesser" },
     },
   });

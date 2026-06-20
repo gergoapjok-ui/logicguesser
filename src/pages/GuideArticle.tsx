@@ -40,7 +40,7 @@ export default function GuideArticle() {
       },
       mainEntityOfPage: {
         "@type": "WebPage",
-        "@id": `https://logic-guesser.lovable.app/guides/${guide.slug}`,
+        "@id": `https://logicguesser.com/guides/${guide.slug}`,
       },
     } : undefined,
   });

@@ -13,7 +13,7 @@ export default function About() {
       "@context": "https://schema.org",
       "@type": "AboutPage",
       name: "About LogicGuesser",
-      url: "https://logic-guesser.lovable.app/about",
+      url: "https://logicguesser.com/about",
       mainEntity: { "@type": "Organization", name: "LogicGuesser" },
     },
   });

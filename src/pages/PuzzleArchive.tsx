@@ -56,7 +56,7 @@ export default function PuzzleArchive() {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
       name: "LogicGuesser Puzzle Archive",
-      url: "https://logic-guesser.lovable.app/puzzle-archive",
+      url: "https://logicguesser.com/puzzle-archive",
       description: "Sample puzzle categories and explanations from LogicGuesser.",
     },
   });

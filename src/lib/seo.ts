@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export const SITE_URL = "https://logic-guesser.lovable.app";
+export const SITE_URL = "https://logicguesser.com";
 
 type JsonLd = Record<string, unknown> | Record<string, unknown>[];
 

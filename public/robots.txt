@@ -18,4 +18,4 @@ Disallow: /try-more
 Disallow: /battle/
 Disallow: /lobbies
 
-Sitemap: https://logic-guesser.lovable.app/sitemap.xml
+Sitemap: https://logicguesser.com/sitemap.xml

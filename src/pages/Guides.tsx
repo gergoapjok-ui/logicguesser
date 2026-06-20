@@ -17,11 +17,11 @@ export default function Guides() {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
       name: "LogicGuesser Guides",
-      url: "https://logic-guesser.lovable.app/guides",
+      url: "https://logicguesser.com/guides",
       hasPart: guides.map((guide) => ({
         "@type": "Article",
         headline: guide.title,
-        url: `https://logic-guesser.lovable.app/guides/${guide.slug}`,
+        url: `https://logicguesser.com/guides/${guide.slug}`,
       })),
     },
   });

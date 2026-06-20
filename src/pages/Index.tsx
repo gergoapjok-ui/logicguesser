@@ -21,17 +21,17 @@ const Index = () => {
         {
           "@type": "WebSite",
           name: "LogicGuesser",
-          url: "https://logic-guesser.lovable.app",
+          url: "https://logicguesser.com",
           potentialAction: {
             "@type": "SearchAction",
-            target: "https://logic-guesser.lovable.app/practice?q={search_term_string}",
+            target: "https://logicguesser.com/practice?q={search_term_string}",
             "query-input": "required name=search_term_string",
           },
         },
         {
           "@type": "Organization",
           name: "LogicGuesser",
-          url: "https://logic-guesser.lovable.app",
+          url: "https://logicguesser.com",
           sameAs: [],
         },
       ],
