@@ -71,6 +71,8 @@ const NOINDEX_PREFIXES = [
   "/claim",
   "/coming-soon",
   "/try-more",
+  "/ai",
+  "/submit-puzzle",
   "/battle",
   "/lobbies",
 ];
