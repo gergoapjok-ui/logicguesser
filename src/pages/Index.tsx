@@ -41,14 +41,16 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <HeroSection />
-      <FeaturesSection />
-      <ContentSection />
-      {!isPro && (
-        <div className="container mx-auto px-4 max-w-3xl py-4">
-          <AdPlaceholder slot={AD_SLOTS.inContent} />
-        </div>
-      )}
+      <main>
+        <HeroSection />
+        <FeaturesSection />
+        <ContentSection />
+        {!isPro && (
+          <div className="container mx-auto px-4 max-w-3xl py-4">
+            <AdPlaceholder slot={AD_SLOTS.inContent} />
+          </div>
+        )}
+      </main>
       <Footer />
     </div>
   );
