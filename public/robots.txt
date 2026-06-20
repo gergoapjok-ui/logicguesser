@@ -17,6 +17,7 @@ Disallow: /coming-soon
 Disallow: /try-more
 Disallow: /ai
 Disallow: /submit-puzzle
+Disallow: /news
 Disallow: /battle/
 Disallow: /lobbies
 
