@@ -52,6 +52,7 @@ export default function HeroSection() {
           <h1 className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6">
             <span className="text-foreground">{t("hero.title")}</span>
             <span className="text-primary text-glow">{t("hero.title2")}</span>
+            <span className="sr-only"> — daily logic puzzles, brain games, and reasoning challenges</span>
           </h1>
 
           <p className="font-body text-muted-foreground text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
