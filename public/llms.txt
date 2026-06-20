@@ -1,0 +1,32 @@
+# LogicGuesser
+
+> Daily logic puzzles, brain games, original solving guides, and a short Tech Pulse brief for curious thinkers.
+
+LogicGuesser is a web puzzle platform focused on short, varied reasoning practice. Visitors can play a Daily Challenge, practise puzzle categories, read long-form guides, review puzzle examples, and learn how official puzzles are selected.
+
+## Core pages
+
+- [Home](/): Overview of LogicGuesser, daily puzzles, practice, guides, and player features.
+- [Daily Challenge](/daily): Today's five-part puzzle challenge.
+- [Practice](/practice): Unlimited practice for logic, word, math, visual, and code puzzles.
+- [Puzzle Archive](/puzzle-archive): Sample puzzle categories, explanations, and weekly rotation notes.
+- [Leaderboard](/leaderboard): Daily, monthly, and yearly puzzle rankings.
+
+## Reading and editorial content
+
+- [Guides](/guides): Original long-form articles about solving techniques, brain training, habits, and puzzle design.
+- [Tech Pulse](/news): Daily technology brief for players interested in AI, programming, gaming, hardware, and the web.
+- [Editorial Standards](/editorial-standards): How LogicGuesser reviews puzzles, writes guides, handles corrections, and separates ads from editorial content.
+- [About](/about): Mission, puzzle categories, and product background.
+- [FAQ](/faq): Common questions about accounts, scoring, Pro, submissions, privacy, and languages.
+
+## Policies
+
+- [Privacy Policy](/privacy): Data collection, cookies, advertising, and privacy rights.
+- [Terms of Service](/terms): Account rules, subscriptions, virtual items, and acceptable use.
+- [Contact](/contact): Support, privacy, legal, press, and bug-report contact routes.
+
+## Optional
+
+- [Community Puzzles](/community): Player-created puzzles and community submissions.
+- [Pro](/pro): Optional ad-free subscription details.
