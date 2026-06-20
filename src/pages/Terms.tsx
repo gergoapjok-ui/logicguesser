@@ -1,11 +1,13 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useEffect } from "react";
+import { usePageMeta } from "@/lib/seo";
 
 export default function Terms() {
-  useEffect(() => {
-    document.title = "Terms of Service — LogicGuesser";
-  }, []);
+  usePageMeta({
+    title: "Terms of Service — LogicGuesser",
+    description: "Rules for using LogicGuesser, including accounts, acceptable use, subscriptions, virtual items, and community content.",
+    path: "/terms",
+  });
 
   return (
     <div className="min-h-screen bg-background grid-pattern">
