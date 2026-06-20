@@ -8,7 +8,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { GuestProvider } from "@/contexts/GuestContext";
-import { PixVersePopup } from "@/components/PixVersePromo";
 import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { UIPrefsProvider } from "@/contexts/UIPrefsContext";
 import Index from "./pages/Index";
@@ -123,7 +122,6 @@ const App = () => (
           <BattleInvitePopup />
           <AnimatedRoutes />
           <FloatingMasterAI />
-          <PixVersePopup />
           <UpgradeProCTA variant="floating" />
 
           <SpeedInsights />
