@@ -10,7 +10,6 @@ LogicGuesser is a web puzzle platform focused on short, varied reasoning practic
 - [Daily Challenge](/daily): Today's five-part puzzle challenge.
 - [Practice](/practice): Unlimited practice for logic, word, math, visual, and code puzzles.
 - [Puzzle Archive](/puzzle-archive): Sample puzzle categories, explanations, and weekly rotation notes.
-- [Leaderboard](/leaderboard): Daily, monthly, and yearly puzzle rankings.
 
 ## Reading and editorial content
 
@@ -27,5 +26,4 @@ LogicGuesser is a web puzzle platform focused on short, varied reasoning practic
 
 ## Optional
 
-- [Community Puzzles](/community): Player-created puzzles and community submissions.
 - [Pro](/pro): Optional ad-free subscription details.
