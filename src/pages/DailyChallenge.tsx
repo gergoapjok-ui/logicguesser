@@ -15,6 +15,7 @@ import GuestSignupPrompt from "@/components/GuestSignupPrompt";
 import { PixVerseSidebarCard } from "@/components/PixVersePromo";
 import UpgradeProCTA from "@/components/UpgradeProCTA";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePageMeta } from "@/lib/seo";
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -41,6 +42,12 @@ export default function DailyChallenge() {
   const isPro = profile?.is_pro ?? false;
   const isGuest = !user && !!guest;
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
+
+  usePageMeta({
+    title: "Daily Challenge — LogicGuesser",
+    description: "Play today's five-part LogicGuesser challenge with logic, word, math, visual, and code reasoning puzzles.",
+    path: "/daily",
+  });
 
   const [tasks, setTasks] = useState<PuzzleTask[]>([]);
   const [loading, setLoading] = useState(true);
