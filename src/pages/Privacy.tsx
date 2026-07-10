@@ -77,10 +77,6 @@ export default function Privacy() {
             <a href="https://monetag.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="text-primary">monetag.com/privacy-policy</a>.
           </p>
 
-            <a href="https://www.aboutads.info" target="_blank" rel="noopener noreferrer" className="text-primary"> aboutads.info</a>
-            for further opt-out controls.
-          </p>
-
           <h2 className="font-display text-2xl text-foreground">4. Data Sharing</h2>
           <p>
             We do not sell personal information. We share limited data only with:
