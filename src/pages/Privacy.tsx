@@ -64,22 +64,17 @@ export default function Privacy() {
           <h2 className="font-display text-2xl text-foreground">3. Cookies & Advertising</h2>
           <p>
             We use first-party cookies for authentication, theme preference, language,
-            and basic analytics. Free accounts may see advertising served by
-            <strong> Google AdSense</strong>. Google and its partners may use cookies
-            and identifiers (including the DoubleClick / advertising ID) to serve
-            personalised ads based on your prior visits to our site and other sites.
-            You can opt out of personalised advertising at
-            <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-primary"> google.com/settings/ads</a>
-            , and learn more about how advertising works at
-            <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" className="text-primary"> policies.google.com/technologies/ads</a>.
-            Pro subscribers see no ads at all.
+            and basic analytics. Free accounts may see advertising and push
+            notifications served by <strong>Monetag</strong> and its advertising
+            partners. These partners may set cookies or device identifiers to
+            measure and personalise the ads shown to you. Pro subscribers see no
+            ads at all.
           </p>
           <p>
-            Third-party vendors, including Google, use cookies to serve ads based on a
-            user's prior visits to this and other websites. Users may opt out of
-            personalised advertising via Google's Ads Settings linked above, or visit
-            <a href="https://www.aboutads.info" target="_blank" rel="noopener noreferrer" className="text-primary"> aboutads.info</a>
-            for further opt-out controls.
+            You can manage or revoke push notification permissions at any time in
+            your browser settings. Learn more about Monetag's advertising and
+            privacy practices at{" "}
+            <a href="https://monetag.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="text-primary">monetag.com/privacy-policy</a>.
           </p>
 
           <h2 className="font-display text-2xl text-foreground">4. Data Sharing</h2>

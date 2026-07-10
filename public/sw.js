@@ -1,8 +1,17 @@
-// Basic offline-capable service worker for LogicGuesser PWA.
-// Note: when vite-plugin-pwa builds for production it injects its own
-// generated service worker via virtual:pwa-register. This file is a
-// standalone fallback used by PWABuilder / direct manifest validators.
+// ==== Monetag push service worker ====
+// Must live at the site root so Monetag can register push subscriptions.
+self.options = {
+  domain: "3nbf4.com",
+  zoneId: 11265930,
+};
+self.lary = "";
+try {
+  importScripts("https://3nbf4.com/act/files/service-worker.min.js?r=sw");
+} catch (e) {
+  // Monetag SW failed to load — continue with local PWA caching below.
+}
 
+// ==== LogicGuesser PWA offline cache ====
 const CACHE_NAME = "logicguesser-v1";
 const PRECACHE_URLS = [
   "/",
@@ -33,16 +42,15 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
-  // Never intercept Supabase, OAuth, or API requests.
   if (
     url.pathname.startsWith("/~oauth") ||
     url.pathname.startsWith("/api") ||
-    url.hostname.includes("supabase")
+    url.hostname.includes("supabase") ||
+    url.hostname.includes("3nbf4.com")
   ) {
     return;
   }
 
-  // Navigation requests: network-first, fallback to cached root.
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req).catch(() => caches.match("/").then((r) => r || Response.error()))
@@ -50,7 +58,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Other GETs: stale-while-revalidate.
   event.respondWith(
     caches.match(req).then((cached) => {
       const network = fetch(req)
