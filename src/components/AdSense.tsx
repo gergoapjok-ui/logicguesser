@@ -1,51 +1,11 @@
-import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useRef } from "react";
-
+// AdSense removed — site switched to Monetag (loaded via /sw.js).
+// Component kept as a no-op stub to preserve existing imports.
 interface AdSenseProps {
   className?: string;
-  slot: string;
-  format?: "auto" | "horizontal" | "vertical" | "rectangle";
+  slot?: string;
+  format?: string;
   responsive?: boolean;
 }
-
-declare global {
-  interface Window {
-    adsbygoogle: any[];
-  }
-}
-
-export default function AdSense({ className = "", slot, format = "auto", responsive = true }: AdSenseProps) {
-  const { profile } = useAuth();
-  const adRef = useRef<HTMLModElement>(null);
-  const pushed = useRef(false);
-
-  useEffect(() => {
-    if (pushed.current || profile?.is_pro) return;
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-      pushed.current = true;
-    } catch {
-      // AdSense not loaded yet
-    }
-  }, [profile?.is_pro]);
-
-  // Don't show ads to Pro users
-  if (profile?.is_pro) return null;
-
-  return (
-    <div className={className}>
-      <div className="mb-1 text-center font-body text-[10px] uppercase tracking-wider text-muted-foreground">
-        Advertisement
-      </div>
-      <ins
-        ref={adRef}
-        className="adsbygoogle"
-        style={{ display: "block" }}
-        data-ad-client="ca-pub-2187290520384465"
-        data-ad-slot={slot}
-        data-ad-format={format}
-        data-full-width-responsive={responsive ? "true" : "false"}
-      />
-    </div>
-  );
+export default function AdSense(_: AdSenseProps) {
+  return null;
 }
