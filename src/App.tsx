@@ -49,6 +49,7 @@ import Guides from "./pages/Guides";
 import GuideArticle from "./pages/GuideArticle";
 import EditorialStandards from "./pages/EditorialStandards";
 import PuzzleArchive from "./pages/PuzzleArchive";
+import Support from "./pages/Support";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { useEffect } from "react";
