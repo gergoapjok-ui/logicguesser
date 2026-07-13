@@ -49,6 +49,7 @@ import Guides from "./pages/Guides";
 import GuideArticle from "./pages/GuideArticle";
 import EditorialStandards from "./pages/EditorialStandards";
 import PuzzleArchive from "./pages/PuzzleArchive";
+import Support from "./pages/Support";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { useEffect } from "react";
@@ -143,6 +144,7 @@ const AnimatedRoutes = () => {
         <Route path="/faq" element={wrap(<Faq />)} />
         <Route path="/editorial-standards" element={wrap(<EditorialStandards />)} />
         <Route path="/puzzle-archive" element={wrap(<PuzzleArchive />)} />
+        <Route path="/support" element={wrap(<Support />)} />
         <Route path="/guides" element={wrap(<Guides />)} />
         <Route path="/guides/:slug" element={wrap(<GuideArticle />)} />
         <Route path="*" element={wrap(<NotFound />)} />

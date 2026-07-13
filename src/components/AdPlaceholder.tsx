@@ -1,5 +1,7 @@
-// AdPlaceholder disabled — Monetag Multitag renders its own creatives site-wide.
-// Direct-link CTA removed because Monetag direct-link destinations were inappropriate.
+// AdPlaceholder now renders in-house HouseAd campaigns.
+// All third-party ad networks (AdSense, Monetag) have been removed.
+import HouseAd from "./HouseAd";
+
 export const AD_SLOTS = {
   sidebar: "sidebar",
   inContent: "in-content",
@@ -12,7 +14,6 @@ interface AdPlaceholderProps {
   slot?: string;
 }
 
-export default function AdPlaceholder(_: AdPlaceholderProps) {
-  return null;
+export default function AdPlaceholder({ className, slot }: AdPlaceholderProps) {
+  return <HouseAd className={className} slot={slot} />;
 }
-
