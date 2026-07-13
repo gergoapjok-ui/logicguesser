@@ -144,6 +144,7 @@ const AnimatedRoutes = () => {
         <Route path="/faq" element={wrap(<Faq />)} />
         <Route path="/editorial-standards" element={wrap(<EditorialStandards />)} />
         <Route path="/puzzle-archive" element={wrap(<PuzzleArchive />)} />
+        <Route path="/support" element={wrap(<Support />)} />
         <Route path="/guides" element={wrap(<Guides />)} />
         <Route path="/guides/:slug" element={wrap(<GuideArticle />)} />
         <Route path="*" element={wrap(<NotFound />)} />
