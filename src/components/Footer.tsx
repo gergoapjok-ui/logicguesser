@@ -61,6 +61,7 @@ export default function Footer() {
             <Link to="/faq" className={linkCls}>FAQ</Link>
             <Link to="/contact" className={linkCls}>Contact</Link>
             <Link to="/pro" className={linkCls}>Go Pro</Link>
+            <Link to="/support" className={linkCls}>Support us</Link>
           </nav>
         </div>
 
